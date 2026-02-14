@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.radicalwriter;
+package pl.polsl.blissapp.ui.views.radicalwriter;
 
 import androidx.fragment.app.Fragment;
 

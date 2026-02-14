@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.alchemy;
+package pl.polsl.blissapp.ui.views.alchemy;
 
 import androidx.fragment.app.Fragment;
 

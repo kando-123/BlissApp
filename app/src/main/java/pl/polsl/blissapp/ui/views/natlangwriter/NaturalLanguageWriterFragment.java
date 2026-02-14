@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.natlangwriter;
+package pl.polsl.blissapp.ui.views.natlangwriter;
 
 import androidx.fragment.app.Fragment;
 
