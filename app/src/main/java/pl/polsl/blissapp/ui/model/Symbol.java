@@ -1,7 +1,5 @@
 package pl.polsl.blissapp.ui.model;
 
-import android.graphics.drawable.Drawable;
-
 public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 {
     private final int index;
