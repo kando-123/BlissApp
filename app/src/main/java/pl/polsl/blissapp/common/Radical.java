@@ -13,10 +13,7 @@ public enum Radical
     EAR("ear"),
 
     BIG_CIRCLE("crlB"),
-    SMALL_CIRCLE("crlS"),
-
-    ETC("etc")
-    ;
+    SMALL_CIRCLE("crlS");
 
     Radical(String code)
     {
@@ -28,5 +25,17 @@ public enum Radical
     public String code()
     {
         return code;
+    }
+
+    private static final List<List<Radical>> GROUPS = List.of(
+            List.of(HORIZONTAL_WAVE, VERTICAL_WAVE),
+            List.of(HEART),
+            List.of(EAR),
+            List.of(BIG_CIRCLE, SMALL_CIRCLE)
+    );
+
+    public static List<List<Radical>> groups()
+    {
+        return GROUPS;
     }
 }
