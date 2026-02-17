@@ -1,5 +1,7 @@
 package pl.polsl.blissapp.ui.model;
 
+import java.util.Objects;
+
 public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 {
     private final int index;
@@ -19,4 +21,16 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
     public SimpleSymbol asSimple() { return null; }
     public CompoundSymbol asCompound() { return null; }
+
+    @Override
+    public boolean equals(Object other)
+    {
+        return other instanceof Symbol that && this.index == that.index;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(index);
+    }
 }

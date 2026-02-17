@@ -1,6 +1,7 @@
 package pl.polsl.blissapp.ui.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,5 +26,23 @@ public final class SimpleSymbol extends Symbol
     public List<Radical> getRadicals()
     {
         return Collections.unmodifiableList(radicals);
+    }
+
+    public boolean matches(Collection<Radical> radicals)
+    {
+        int[] counter = new int[Radical.values().length];
+        for (Radical radical : this.radicals)
+        {
+            ++counter[radical.ordinal()];
+        }
+        for (Radical radical : radicals)
+        {
+            if (--counter[radical.ordinal()] < 0)
+            {
+                // If it has just hit -1, it may be only worse.
+                return false;
+            }
+        }
+        return true;
     }
 }
