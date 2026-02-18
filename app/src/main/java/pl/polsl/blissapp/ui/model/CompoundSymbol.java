@@ -2,15 +2,14 @@ package pl.polsl.blissapp.ui.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import pl.polsl.blissapp.common.Radical;
 
 public final class CompoundSymbol extends Symbol
 {
     private final List<SimpleSymbol> units;
+    private final int radicalCount;
 
     public CompoundSymbol(int index, String uri, List<SimpleSymbol> units)
     {
@@ -20,6 +19,10 @@ public final class CompoundSymbol extends Symbol
             throw new IllegalArgumentException("List of units shall be nonempty!");
         }
         this.units = new ArrayList<>(units);
+
+        this.radicalCount = this.units.stream()
+                .mapToInt(SimpleSymbol::getRadicalCount)
+                .sum();
     }
 
     @Override
@@ -33,83 +36,51 @@ public final class CompoundSymbol extends Symbol
         return Collections.unmodifiableList(units);
     }
 
-    /**
-     * Checks whether this compound symbol contains all the simple symbols of the given compound symbol,
-     * and whether the remaining simple symbols of this compound symbol contain all the given radicals.
-     *
-     * @param subSymbol the subSymbol compound symbol whose simple symbols need to be all contained in this compound symbol
-     * @param radicals the radicals that need to be contained in the remaining simple symbols of this compound symbol
-     * @return result of checking whether this compound symbol contains all the simple symbols of the given compound symbol,
-     * and whether the remaining simple symbols of this compound symbol contain all the given radicals
-     */
-    public boolean matches(Symbol subSymbol, List<Radical> radicals)
+    @Override
+    public int getUnitCount()
     {
-        int subUnitsSize;
+        return units.size();
+    }
 
-        // Check if this symbol contains the subSymbol.
-        if (subSymbol == null)
+    @Override
+    public int getRadicalCount()
+    {
+        return radicalCount;
+    }
+
+    public int matches(Symbol subSymbol, List<Radical> requirements)
+    {
+        final int failure = -1;
+
+        List<SimpleSymbol> initials = Collections.emptyList();
+        if (subSymbol instanceof SimpleSymbol simple)
         {
-            subUnitsSize = 0;
+            initials = Collections.singletonList(simple);
         }
-        else if (subSymbol.isSimple())
+        else if (subSymbol instanceof CompoundSymbol compound)
         {
-            SimpleSymbol simple = subSymbol.asSimple();
-
-            // Check if this compound symbol begins with that simple symbol.
-            if (!units.getFirst().equals(simple))
-            {
-                return false;
-            }
-
-            subUnitsSize = 1;
-        }
-        else
-        {
-            CompoundSymbol compound = subSymbol.asCompound();
-
-            // If the subSymbol is compound and it contains more simple symbols than this one,
-            // it cannot be a match.
-            if (compound.units.size() > units.size())
-            {
-                return false;
-            }
-
-            // If this compound symbol does not begin with all the simple symbols of the subSymbol,
-            // it cannot be a match.
-            for (int i = 0; i < compound.units.size(); ++i)
-            {
-                SimpleSymbol symbol1 = units.get(i);
-                SimpleSymbol symbol2 = compound.units.get(i);
-                if (!symbol1.equals(symbol2))
-                {
-                    return false;
-                }
-            }
-
-            subUnitsSize = compound.units.size();
+            initials = compound.getUnits();
         }
 
-        // Check if the given radicals are a subset of the remaining simple symbols of this symbol.
-        // Respect the count of each symbol on both sides.
-
-        List<SimpleSymbol> remainder = units.subList(subUnitsSize, units.size());
-
-        int[] counter = new int[Radical.values().length];
-        for (SimpleSymbol simpleSymbol : remainder)
+        if (initials.size() > units.size())
         {
-            for (Radical radical : simpleSymbol.getRadicals())
+            return failure;
+        }
+
+        for (int i = 0; i < initials.size(); ++i)
+        {
+            SimpleSymbol provided = units.get(i);
+            SimpleSymbol required = initials.get(i);
+            if (!provided.equals(required))
             {
-                ++counter[radical.ordinal()];
+                return failure;
             }
         }
-        for (Radical radical : radicals)
-        {
-            if (--counter[radical.ordinal()] < 0)
-            {
-                // If it has just hit -1, it may only get worse.
-                return false;
-            }
-        }
-        return true;
+
+        List<SimpleSymbol> remainder = units.subList(initials.size(), units.size());
+        List<Radical> radicals = remainder.stream()
+                .flatMap(s -> s.getRadicals().stream())
+                .toList();
+        return match(radicals, requirements);
     }
 }

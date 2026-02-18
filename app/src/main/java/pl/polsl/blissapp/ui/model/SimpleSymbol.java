@@ -1,9 +1,10 @@
 package pl.polsl.blissapp.ui.model;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import static java.lang.Math.abs;
+import static java.lang.Math.min;
 
 import pl.polsl.blissapp.common.Radical;
 
@@ -28,21 +29,20 @@ public final class SimpleSymbol extends Symbol
         return Collections.unmodifiableList(radicals);
     }
 
-    public boolean matches(Collection<Radical> radicals)
+    @Override
+    public int getUnitCount()
     {
-        int[] counter = new int[Radical.values().length];
-        for (Radical radical : this.radicals)
-        {
-            ++counter[radical.ordinal()];
-        }
-        for (Radical radical : radicals)
-        {
-            if (--counter[radical.ordinal()] < 0)
-            {
-                // If it has just hit -1, it may be only worse.
-                return false;
-            }
-        }
-        return true;
+        return 1;
+    }
+
+    @Override
+    public int getRadicalCount()
+    {
+        return radicals.size();
+    }
+
+    public int matches(List<Radical> requirements)
+    {
+        return match(radicals, requirements);
     }
 }
