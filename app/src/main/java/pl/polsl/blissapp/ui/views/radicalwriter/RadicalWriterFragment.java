@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.List;
 
 import pl.polsl.blissapp.common.Radical;
-import pl.polsl.blissapp.ui.model.Symbol;
+import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 import pl.polsl.blissapp.ui.views.keyboard.ControlKey;
 

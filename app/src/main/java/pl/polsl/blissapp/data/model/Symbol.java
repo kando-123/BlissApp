@@ -1,6 +1,5 @@
-package pl.polsl.blissapp.ui.model;
+package pl.polsl.blissapp.data.model;
 
-import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
 import java.util.List;
@@ -91,8 +90,8 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         {
             Radical parent = child.getParent();
             assert parent != null;
-            if (counter[parent.ordinal()] < 0 &&  // The "parent" (more general radical) is required
-                counter[child.ordinal()] > 0)     // The "child" (more specific radical) is provided
+
+            if (counter[child.ordinal()] > 0)
             {
                 counter[parent.ordinal()] += counter[child.ordinal()];
                 counter[child.ordinal()] = 0;
@@ -101,32 +100,27 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
         // If any "parent" has a negative score now, it means that the more general requirement
         // (the parent) was not covered by the provided specific radicals (the children).
-        if (Radical.PARENT_RADICALS.stream()
-                .anyMatch(parent -> counter[parent.ordinal()] < 0))
+        if (Radical.PARENT_RADICALS.stream().anyMatch(r -> counter[r.ordinal()] < 0))
         {
             return -1;
         }
 
         // Step 3. If a radical is provided in one form but required in another form (a "sibling"),
         // the symbol still may count as a match, but with a lower preference (result > 0).
-        // A specific requirement that is still not satisfied by the equal radicals provided,
-        // it might be compensated by radicals from the same "family". The points will be aggregated
-        // in the parent's counters.
+        // The points will be aggregated in the parent's counters.
         int result = 0;
         for (Radical child : Radical.CHILD_RADICALS)
         {
             Radical parent = child.getParent();
             assert parent != null;
 
-            // If this child's points are reducing with its siblings',
-            // reflect that fact in the final result.
-            if (counter[child.ordinal()] > 0 && counter[parent.ordinal()] < 0 &&
-                counter[child.ordinal()] < 0 && counter[parent.ordinal()] > 0)
+            // Count the reductions to the result.
+            if (counter[child.ordinal()] < 0 && counter[parent.ordinal()] > 0)
             {
-                result += min(abs(counter[child.ordinal()]), abs(counter[parent.ordinal()]));
+                result += min(-counter[child.ordinal()], +counter[parent.ordinal()]);
             }
 
-            // Pass the score to the parent, be it positive or negative.
+            // Pass the score to the parent.
             counter[parent.ordinal()] += counter[child.ordinal()];
             counter[child.ordinal()] = 0;
         }

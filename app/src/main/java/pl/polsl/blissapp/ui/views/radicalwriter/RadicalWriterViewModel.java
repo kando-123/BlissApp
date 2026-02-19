@@ -10,7 +10,7 @@ import java.util.List;
 
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.common.Radical;
-import pl.polsl.blissapp.ui.model.Symbol;
+import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 public class RadicalWriterViewModel extends ViewModel

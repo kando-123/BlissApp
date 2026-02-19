@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.model;
+package pl.polsl.blissapp.data.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
