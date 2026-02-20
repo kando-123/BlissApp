@@ -8,11 +8,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.common.Radical;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
+@HiltViewModel
 public class RadicalWriterViewModel extends ViewModel
 {
     private final SymbolRepository symbolRepository;
@@ -23,6 +27,7 @@ public class RadicalWriterViewModel extends ViewModel
 
     private static final int MAX_HINT_COUNT = 20; // Change if more or less is needed
 
+    @Inject
     public RadicalWriterViewModel(SymbolRepository symbolRepository)
     {
         this.symbolRepository = symbolRepository;

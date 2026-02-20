@@ -4,24 +4,30 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Symbol;
+import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
+@HiltViewModel
 public class NaturalLanguageWriterViewModel extends ViewModel
 {
     private final SymbolRepository symbolRepository;
-    private final MutableLiveData<List<Symbol>> translations = new MutableLiveData<>();
+    private final MutableLiveData<List<MeaningfulSymbol>> translations = new MutableLiveData<>();
     private final MutableLiveData<Exception> failure = new MutableLiveData<>();
 
+    @Inject
     public NaturalLanguageWriterViewModel(SymbolRepository symbolRepository)
     {
         this.symbolRepository = symbolRepository;
     }
 
-    LiveData<List<Symbol>> getTranslations()
+    LiveData<List<MeaningfulSymbol>> getTranslations()
     {
         return translations;
     }
@@ -33,10 +39,10 @@ public class NaturalLanguageWriterViewModel extends ViewModel
 
     void translate(String input)
     {
-        var callback = new Callback<List<Symbol>, Exception>()
+        var callback = new Callback<List<MeaningfulSymbol>, Exception>()
         {
             @Override
-            public void onSuccess(List<Symbol> data)
+            public void onSuccess(List<MeaningfulSymbol> data)
             {
                 translations.setValue(data);
             }
@@ -48,5 +54,10 @@ public class NaturalLanguageWriterViewModel extends ViewModel
             }
         };
         symbolRepository.getTranslations(input, callback);
+    }
+
+    void clearTranslations()
+    {
+        translations.setValue(Collections.emptyList());
     }
 }

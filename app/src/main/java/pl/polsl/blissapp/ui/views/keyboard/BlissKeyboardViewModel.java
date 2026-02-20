@@ -4,13 +4,18 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Radical;
 
+@HiltViewModel
 public class BlissKeyboardViewModel extends ViewModel
 {
     private final MutableLiveData<Radical> radicalKey;
     private final MutableLiveData<ControlKey> controlKey;
 
+    @Inject
     public BlissKeyboardViewModel()
     {
         radicalKey = new MutableLiveData<>();
