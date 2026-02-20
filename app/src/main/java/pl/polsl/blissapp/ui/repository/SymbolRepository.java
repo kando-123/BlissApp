@@ -3,7 +3,7 @@ package pl.polsl.blissapp.ui.repository;
 import java.util.List;
 
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Symbol;
 

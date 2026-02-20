@@ -9,7 +9,7 @@ import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;

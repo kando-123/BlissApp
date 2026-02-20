@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import pl.polsl.blissapp.common.Radical;
-
 public final class CompoundSymbol extends Symbol
 {
     private final List<SimpleSymbol> units;

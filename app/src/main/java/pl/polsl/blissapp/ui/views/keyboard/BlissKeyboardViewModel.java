@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel;
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 
 @HiltViewModel
 public class BlissKeyboardViewModel extends ViewModel

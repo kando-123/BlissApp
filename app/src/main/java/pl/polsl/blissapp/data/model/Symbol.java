@@ -5,8 +5,6 @@ import static java.lang.Math.min;
 import java.util.List;
 import java.util.Objects;
 
-import pl.polsl.blissapp.common.Radical;
-
 public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 {
     private final int index;

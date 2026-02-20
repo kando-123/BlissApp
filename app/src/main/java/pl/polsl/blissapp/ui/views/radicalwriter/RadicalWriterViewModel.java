@@ -12,7 +12,7 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 

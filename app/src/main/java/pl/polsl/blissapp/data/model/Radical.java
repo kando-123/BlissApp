@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.common;
+package pl.polsl.blissapp.data.model;
 
 import java.util.Arrays;
 import java.util.List;

@@ -6,8 +6,6 @@ import java.util.List;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import pl.polsl.blissapp.common.Radical;
-
 public final class SimpleSymbol extends Symbol
 {
     private final List<Radical> radicals;
