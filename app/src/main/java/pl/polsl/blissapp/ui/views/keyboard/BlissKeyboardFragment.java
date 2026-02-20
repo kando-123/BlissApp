@@ -26,8 +26,11 @@ import java.util.List;
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.common.Radical;
 
-public class BlissKeyboardFragment extends Fragment {
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
+public class BlissKeyboardFragment extends Fragment
+{
     private BlissKeyboardViewModel viewModel;
     private final List<View> radicalButtons = new ArrayList<>();
     private boolean isIndicatorMode = false;

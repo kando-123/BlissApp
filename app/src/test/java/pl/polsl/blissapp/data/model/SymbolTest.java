@@ -4,8 +4,7 @@ import junit.framework.TestCase;
 
 import java.util.List;
 
-import pl.polsl.blissapp.common.Radical;
-import static pl.polsl.blissapp.common.Radical.*;
+import static pl.polsl.blissapp.data.model.Radical.*;
 
 public class SymbolTest extends TestCase
 {
