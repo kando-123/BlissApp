@@ -3,37 +3,25 @@ package pl.polsl.blissapp.ui.views.keyboard;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-
 import pl.polsl.blissapp.common.Radical;
 
-public class BlissKeyboardViewModel extends ViewModel
-{
-    private final MutableLiveData<Radical> radicalKey;
-    private final MutableLiveData<ControlKey> controlKey;
+public class BlissKeyboardViewModel extends ViewModel {
+    private final MutableLiveData<Radical> radicalInput = new MutableLiveData<>();
+    private final MutableLiveData<ControlKey> controlInput = new MutableLiveData<>();
 
-    public BlissKeyboardViewModel()
-    {
-        radicalKey = new MutableLiveData<>();
-        controlKey = new MutableLiveData<>();
+    public void onRadicalKeyTapped(Radical radical) {
+        radicalInput.setValue(radical);
     }
 
-    void setRadical(Radical radical)
-    {
-        radicalKey.setValue(radical);
+    public void onControlKeyTapped(ControlKey key) {
+        controlInput.setValue(key);
     }
 
-    void setControl(ControlKey control)
-    {
-        controlKey.setValue(control);
+    public LiveData<Radical> getRadicalInput() {
+        return radicalInput;
     }
 
-    public LiveData<Radical> getRadical()
-    {
-        return radicalKey;
-    }
-
-    public LiveData<ControlKey> getControl()
-    {
-        return controlKey;
+    public LiveData<ControlKey> getControlInput() {
+        return controlInput;
     }
 }

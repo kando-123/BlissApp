@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#E0E0E0"
+    android:layout_gravity="bottom"
+    android:orientation="vertical"
+    android:padding="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/key_semi_circle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_dark_background"
+            android:src="@drawable/radical_arc"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_arc"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_arc"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_arrow"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_arrow"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_building"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_building"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_cross_hatches"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_cross_hatches"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_cross"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_dark_background"
+            android:src="@drawable/radical_cross_hatches"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_pointer"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_pointer"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_punctuation"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/design_default_color_error"
+            android:src="@drawable/radical_punctuation"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_digit"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/design_default_color_error"
+            android:src="@drawable/radical_digit"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_backspace"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1.5"
+            android:background="#D6D6D6"
+            android:src="@android:drawable/ic_input_delete" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/key_ear"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_ear"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_heart"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_heart"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_open_rectangle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_open_rectangle"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_rectangle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_rectangle" android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_open_square"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_open_square"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_square"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_square"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_dot"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_dot" android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_small_circle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_small_circle"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_wheel"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_wheel"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/key_acute_angle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_acute_angle" android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_acute_triangle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_acute_triangle"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_right_angle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_right_angle"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_right_triangle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_right_triangle"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_pin"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_dark_background"
+            android:src="@drawable/radical_vertical_line"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_wave"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_wave"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_horizontal_line"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_horizontal_line"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_vertical_line"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_vertical_line"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+
+        <ImageButton
+            android:id="@+id/key_diagonal_line"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:background="@color/cardview_light_background"
+            android:src="@drawable/radical_diagonal_line"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/key_shift"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1.5"
+            android:text="SHIFT" />
+
+        <Button
+            android:id="@+id/key_space"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="4"
+            android:text="SPACE" />
+
+        <Button
+            android:id="@+id/key_enter"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:layout_weight="1.5"
+            android:text="ENTER" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -11,7 +11,13 @@ public enum ControlKey
      * Enter/space. Confirm the symbol currently being input.
      * Proceed to the next symbol.
      */
-    PUSH_SYMBOL;
+    PUSH_SYMBOL,
+    /**
+     * Enable/disable mode for inserting indicators
+     */
+    INDICATOR_MODE,
+    ENTER,
+    SPACE
 
     // Add more control keys as needed.
 }
