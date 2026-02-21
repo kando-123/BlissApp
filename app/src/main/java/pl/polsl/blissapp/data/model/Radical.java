@@ -153,7 +153,7 @@ public enum Radical
     OTHER(R.drawable.radical_other_punctuation_question_mark),
     PUNCTUATION(OTHER, R.drawable.radical_other_punctuation_question_mark),
     DIGIT(OTHER, R.drawable.radical_digit_1),
-    LETTER(OTHER, R.drawable.radical_digit_0); // TEMPORARY
+    LETTER(OTHER, R.drawable.radical_digit_0); // TEMPORARY!
 
     private final Radical parent;
 
@@ -180,13 +180,9 @@ public enum Radical
 
     private static final Map<Radical, List<Radical>> parenthood = new TreeMap<>();
 
-    private static final List<Radical> PARENT_RADICALS = Arrays.stream(Radical.values())
-            .filter(r -> r.parent == null)
-            .toList();
+    private static final List<Radical> PARENT_RADICALS;
 
-    private static final List<Radical> CHILD_RADICALS = Arrays.stream(Radical.values())
-            .filter(r -> r.parent != null)
-            .toList();
+    private static final List<Radical> CHILD_RADICALS;
 
     static
     {
@@ -204,6 +200,14 @@ public enum Radical
                 children.add(radical);
             }
         }
+
+        PARENT_RADICALS = Arrays.stream(Radical.values())
+                .filter(r -> r.parent == null)
+                .collect(Collectors.toList());
+
+        CHILD_RADICALS = Arrays.stream(Radical.values())
+                .filter(r -> r.parent != null)
+                .collect(Collectors.toList());
     }
 
     public static List<Radical> getChildren(Radical parent)
@@ -214,12 +218,12 @@ public enum Radical
 
     public static List<Radical> getParentRadicals()
     {
-        return PARENT_RADICALS;
+        return Collections.unmodifiableList(PARENT_RADICALS);
     }
 
     public static List<Radical> getChildRadicals()
     {
-        return CHILD_RADICALS;
+        return Collections.unmodifiableList(CHILD_RADICALS);
     }
 
     @DrawableRes
