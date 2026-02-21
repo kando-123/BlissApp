@@ -84,7 +84,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
         // Step 2. Try to match the provided specific radicals (the "children") to the required
         // general radicals (the "parents").
-        for (Radical child : Radical.CHILD_RADICALS)
+        for (Radical child : Radical.getChildRadicals())
         {
             Radical parent = child.getParent();
             assert parent != null;
@@ -98,7 +98,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
         // If any "parent" has a negative score now, it means that the more general requirement
         // (the parent) was not covered by the provided specific radicals (the children).
-        if (Radical.PARENT_RADICALS.stream().anyMatch(r -> counter[r.ordinal()] < 0))
+        if (Radical.getParentRadicals().stream().anyMatch(r -> counter[r.ordinal()] < 0))
         {
             return -1;
         }
@@ -107,7 +107,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         // the symbol still may count as a match, but with a lower preference (result > 0).
         // The points will be aggregated in the parent's counters.
         int result = 0;
-        for (Radical child : Radical.CHILD_RADICALS)
+        for (Radical child : Radical.getChildRadicals())
         {
             Radical parent = child.getParent();
             assert parent != null;

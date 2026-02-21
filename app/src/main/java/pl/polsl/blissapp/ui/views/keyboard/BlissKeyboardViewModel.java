@@ -3,7 +3,6 @@ package pl.polsl.blissapp.ui.views.keyboard;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import pl.polsl.blissapp.common.Radical;
 
 import javax.inject.Inject;
 
@@ -12,8 +11,8 @@ import pl.polsl.blissapp.data.model.Radical;
 
 @HiltViewModel
 public class BlissKeyboardViewModel extends ViewModel {
-    private final MutableLiveData<Radical> radicalInput = null;
-    private final MutableLiveData<ControlKey> controlInput = null;
+    private final MutableLiveData<Radical> radicalInput;
+    private final MutableLiveData<ControlKey> controlInput;
 
     @Inject
     public BlissKeyboardViewModel()

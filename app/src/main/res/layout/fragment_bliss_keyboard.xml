@@ -20,7 +20,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_dark_background"
-            android:src="@drawable/radical_arc"
+            android:src="@drawable/radical_semicircle_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -31,7 +31,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_arc"
+            android:src="@drawable/radical_arc_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -42,7 +42,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_arrow"
+            android:src="@drawable/radical_arrow_east"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -64,7 +64,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_cross_hatches"
+            android:src="@drawable/radical_crosshatch_straight"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -75,7 +75,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_dark_background"
-            android:src="@drawable/radical_cross_hatches"
+            android:src="@drawable/radical_cross_large_orthogonal"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -86,7 +86,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_pointer"
+            android:src="@drawable/radical_pointer_south"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -97,7 +97,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/design_default_color_error"
-            android:src="@drawable/radical_punctuation"
+            android:src="@drawable/radical_other_punctuation_exclamation_mark"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -108,7 +108,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/design_default_color_error"
-            android:src="@drawable/radical_digit"
+            android:src="@drawable/radical_digit_1"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -157,7 +157,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_open_rectangle"
+            android:src="@drawable/radical_open_rectangle_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -168,7 +168,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_rectangle" android:scaleType="fitCenter"
+            android:src="@drawable/radical_rectangle_small" android:scaleType="fitCenter"
             android:padding="8dp"/>
 
         <ImageButton
@@ -178,7 +178,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_open_square"
+            android:src="@drawable/radical_open_square_large_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -189,7 +189,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_square"
+            android:src="@drawable/radical_square_large"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -210,7 +210,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_small_circle"
+            android:src="@drawable/radical_circle_large"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -239,7 +239,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_acute_angle" android:scaleType="fitCenter"
+            android:src="@drawable/radical_acute_angle_large_north" android:scaleType="fitCenter"
             android:padding="8dp"/>
 
         <ImageButton
@@ -249,7 +249,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_acute_triangle"
+            android:src="@drawable/radical_acute_triangle_large_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -260,7 +260,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_right_angle"
+            android:src="@drawable/radical_right_angle_large_north"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -271,7 +271,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_right_triangle"
+            android:src="@drawable/radical_right_triangle_large_southeast"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -282,7 +282,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_dark_background"
-            android:src="@drawable/radical_vertical_line"
+            android:src="@drawable/radical_vertical_line_large"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -293,7 +293,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_wave"
+            android:src="@drawable/radical_wavy_line_horizontal"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -304,7 +304,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_horizontal_line"
+            android:src="@drawable/radical_horizontal_line_large"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -315,7 +315,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_vertical_line"
+            android:src="@drawable/radical_vertical_line_large"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
 
@@ -326,7 +326,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@color/cardview_light_background"
-            android:src="@drawable/radical_diagonal_line"
+            android:src="@drawable/radical_diagonal_line_large_northeast"
             android:scaleType="fitCenter"
             android:padding="8dp"/>
     </LinearLayout>

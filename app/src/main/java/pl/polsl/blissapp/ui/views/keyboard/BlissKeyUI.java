@@ -1,7 +1,7 @@
 package pl.polsl.blissapp.ui.views.keyboard;
 
 import java.util.List;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 
 /**
  * Represents a key that inputs a Bliss Symbol (Radical).

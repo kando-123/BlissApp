@@ -44,11 +44,11 @@ public class RadicalWriterFragment extends Fragment
         writerViewModel = new ViewModelProvider(this).get(RadicalWriterViewModel.class);
 
         /* Pass the writer VM the information that a radical was input from the keyboard. */
-        LiveData<Radical> kbdRadicalInput = keyboardViewModel.getRadical();
+        LiveData<Radical> kbdRadicalInput = keyboardViewModel.getRadicalInput();
         kbdRadicalInput.observe(getViewLifecycleOwner(), writerViewModel::putRadical);
 
         /* Pass the writer VM the information that a control key was input from the keyboard. */
-        LiveData<ControlKey> kbdControlInput = keyboardViewModel.getControl();
+        LiveData<ControlKey> kbdControlInput = keyboardViewModel.getControlInput();
         kbdControlInput.observe(getViewLifecycleOwner(), controlKey ->
         {
             switch (controlKey)

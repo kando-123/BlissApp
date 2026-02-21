@@ -7,7 +7,7 @@
     android:layout_height="60dp"
     android:layout_gravity="center"
     android:background="?attr/selectableItemBackground"
-    android:src="@drawable/radical_punctuation"
+    android:src="@drawable/radical_other_punctuation_question_mark"
     android:contentDescription="Bliss Symbol"
     android:padding="8dp"
     android:scaleType="fitCenter" />

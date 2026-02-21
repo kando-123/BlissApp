@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import pl.polsl.blissapp.R;
-import pl.polsl.blissapp.common.Radical;
+import pl.polsl.blissapp.data.model.Radical;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -85,7 +85,7 @@ public class BlissKeyboardFragment extends Fragment
                 new BlissKeyUI(R.id.key_wave, Radical.WAVY_LINE, List.of(Radical.WAVY_LINE_HORIZONTAL, Radical.WAVY_LINE_VERTICAL)),
                 new BlissKeyUI(R.id.key_horizontal_line, Radical.HORIZONTAL_LINE, Radical.HORIZONTAL_LINE_LARGE, List.of(Radical.HORIZONTAL_LINE_SMALL)), // Indicator
                 new BlissKeyUI(R.id.key_vertical_line, Radical.VERTICAL_LINE, Radical.VERTICAL_LINE_LARGE, List.of(Radical.VERTICAL_LINE_SMALL)), // Indicator
-                new BlissKeyUI(R.id.key_diagonal_line, Radical.DIAGONAL_LINE, List.of(Radical.DIAGONAL_LINE_LARGE_NORTHEAST, Radical.SLASH)),
+                new BlissKeyUI(R.id.key_diagonal_line, Radical.DIAGONAL_LINE, List.of(Radical.DIAGONAL_LINE_LARGE_NORTHEAST)),
 
                 // --- ROW 4 (Controls) ---
                 new ControlKeyUI(R.id.key_shift, ControlKey.INDICATOR_MODE),
