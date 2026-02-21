@@ -337,13 +337,16 @@
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/key_shift"
+        <ImageButton
+            android:id="@+id/key_indicator_mode"
+            style="?android:attr/buttonStyle"
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
             android:layout_weight="1.5"
-            android:text="SHIFT" />
+            android:src="@drawable/indicator_placeholder"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
 
         <Button
             android:id="@+id/key_space"
