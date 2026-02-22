@@ -1,6 +1,7 @@
 package pl.polsl.blissapp.common.injection;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Singleton;
 
@@ -12,6 +13,7 @@ import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Symbol;
+import pl.polsl.blissapp.ui.repository.AlchemyRepository;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 @Module
@@ -44,6 +46,49 @@ public class InjectionModule
             @Override
             public void getTranslations(String input,
                                         Callback<List<MeaningfulSymbol>, Exception> callback)
+            {
+                callback.onFailure(new Exception("Not implemented yet"));
+            }
+        };
+    }
+
+    @Provides
+    @Singleton
+    public AlchemyRepository provideAlchemyRepository()
+    {
+        return new AlchemyRepository()
+        {
+            @Override
+            public void getGameState(Callback<Set<Symbol>, Exception> callback)
+            {
+                callback.onFailure(new Exception("Not implemented yet"));
+            }
+
+            @Override
+            public void setGameState(Set<Symbol> newGameState)
+            {
+            }
+
+            @Override
+            public void getConstructibleSymbol(List<Radical> inputRadicals, List<Symbol> inputSymbols, Callback<List<Symbol>, Exception> callback)
+            {
+                callback.onFailure(new Exception("Not implemented yet"));
+            }
+
+            @Override
+            public void getDerivedSymbols(Symbol symbol, Callback<List<Symbol>, Exception> callback)
+            {
+                callback.onFailure(new Exception("Not implemented yet"));
+            }
+
+            @Override
+            public void getFrontier(Set<Symbol> discoveredSymbols, Callback<List<Symbol>, Exception> callback)
+            {
+                callback.onFailure(new Exception("Not implemented yet"));
+            }
+
+            @Override
+            public void getFrontierIncrease(Set<Symbol> currentlyDiscoveredSymbols, Symbol newlyDiscoveredSymbol, Callback<List<Symbol>, Exception> callback)
             {
                 callback.onFailure(new Exception("Not implemented yet"));
             }
