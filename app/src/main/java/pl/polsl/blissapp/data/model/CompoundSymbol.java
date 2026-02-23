@@ -1,6 +1,5 @@
 package pl.polsl.blissapp.data.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,7 +15,7 @@ public final class CompoundSymbol extends Symbol
         {
             throw new IllegalArgumentException("List of units shall be nonempty!");
         }
-        this.units = new ArrayList<>(units);
+        this.units = List.copyOf(units);
 
         this.radicalCount = this.units.stream()
                 .mapToInt(SimpleSymbol::getRadicalCount)
@@ -29,22 +28,13 @@ public final class CompoundSymbol extends Symbol
     @Override
     public CompoundSymbol asCompound() { return this; }
 
-    public List<SimpleSymbol> getUnits()
-    {
-        return Collections.unmodifiableList(units);
-    }
+    @Override
+    public int getUnitCount() { return units.size(); }
 
     @Override
-    public int getUnitCount()
-    {
-        return units.size();
-    }
+    public int getRadicalCount() { return radicalCount; }
 
-    @Override
-    public int getRadicalCount()
-    {
-        return radicalCount;
-    }
+    public List<SimpleSymbol> getUnits() { return units; }
 
     public int matches(Symbol subSymbol, List<Radical> requirements)
     {

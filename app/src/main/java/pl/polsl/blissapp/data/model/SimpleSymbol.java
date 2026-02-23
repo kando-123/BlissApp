@@ -9,11 +9,18 @@ import static java.lang.Math.min;
 public final class SimpleSymbol extends Symbol
 {
     private final List<Radical> radicals;
+    private final List<Indicator> indicators;
 
     public SimpleSymbol(int index, String uri, List<Radical> radicals)
     {
+        this(index, uri, radicals, Collections.emptyList());
+    }
+
+    public SimpleSymbol(int index, String uri, List<Radical> radicals, List<Indicator> indicators)
+    {
         super(index, uri);
-        this.radicals = new ArrayList<>(radicals);
+        this.radicals = List.copyOf(radicals);
+        this.indicators = List.copyOf(indicators);
     }
 
     @Override
@@ -22,22 +29,15 @@ public final class SimpleSymbol extends Symbol
     @Override
     public SimpleSymbol asSimple() { return this; }
 
-    public List<Radical> getRadicals()
-    {
-        return Collections.unmodifiableList(radicals);
-    }
+    @Override
+    public int getUnitCount() { return 1; }
 
     @Override
-    public int getUnitCount()
-    {
-        return 1;
-    }
+    public int getRadicalCount() { return radicals.size(); }
 
-    @Override
-    public int getRadicalCount()
-    {
-        return radicals.size();
-    }
+    public List<Radical> getRadicals() { return radicals; }
+
+    public List<Indicator> getIndicators() { return indicators; }
 
     public int matches(List<Radical> requirements)
     {
