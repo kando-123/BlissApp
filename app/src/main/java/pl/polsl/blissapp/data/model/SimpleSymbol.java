@@ -1,10 +1,7 @@
 package pl.polsl.blissapp.data.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import static java.lang.Math.abs;
-import static java.lang.Math.min;
 
 public final class SimpleSymbol extends Symbol
 {
@@ -30,17 +27,22 @@ public final class SimpleSymbol extends Symbol
     public SimpleSymbol asSimple() { return this; }
 
     @Override
-    public int getUnitCount() { return 1; }
+    public int getRadicalCount() { return radicals.size(); }
 
     @Override
-    public int getRadicalCount() { return radicals.size(); }
+    public List<SimpleSymbol> getComponents()
+    {
+        return Collections.singletonList(this);
+    }
 
     public List<Radical> getRadicals() { return radicals; }
 
     public List<Indicator> getIndicators() { return indicators; }
 
-    public int matches(List<Radical> requirements)
+    public int matches(List<Radical> requiredRadicals, List<Indicator> requiredIndicators)
     {
-        return match(radicals, requirements);
+        int radicalMatch = matchRadicals(radicals, requiredRadicals);
+        int indicatorMatch = matchIndicators(indicators, requiredIndicators);
+        return radicalMatch < 0 || indicatorMatch < 0 ? -1 : radicalMatch + indicatorMatch;
     }
 }

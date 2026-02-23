@@ -119,7 +119,14 @@ public enum Radical
     ACUTE_ANGLE_LARGE_SOUTH(ACUTE_ANGLE, R.drawable.radical_acute_angle_large_south),
     ACUTE_ANGLE_SMALL_NORTH(ACUTE_ANGLE, R.drawable.radical_acute_angle_small_north),
     ACUTE_ANGLE_SMALL_SOUTH(ACUTE_ANGLE, R.drawable.radical_acute_angle_small_south),
+
     ACUTE_ANGLE_WEIRD(ACUTE_ANGLE, R.drawable.radical_acute_angle_weird),
+    // ACUTE_ANGLE_WEIRD_NORTH,
+    // ACUTE_ANGLE_WEIRD_EAST
+    // ACUTE_ANGLE_WEIRD_SOUTHEAST
+    // ACUTE_ANGLE_WEIRD_SOUTH
+    // ACUTE_ANGLE_WEIRD_SOUTHWEST
+    // ACUTE_ANGLE_WEIRD_WEST
 
     ACUTE_TRIANGLE(R.drawable.radical_acute_triangle_large_north),
     ACUTE_TRIANGLE_LARGE_NORTH(ACUTE_TRIANGLE, R.drawable.radical_acute_triangle_large_north),

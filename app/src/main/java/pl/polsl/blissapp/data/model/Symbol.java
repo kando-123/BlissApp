@@ -25,8 +25,8 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
     public SimpleSymbol asSimple() { return null; }
     public CompoundSymbol asCompound() { return null; }
 
-    public abstract int getUnitCount();
     public abstract int getRadicalCount();
+    public abstract List<SimpleSymbol> getComponents();
 
     @Override
     public boolean equals(Object other)
@@ -60,7 +60,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
      * @param required
      * @return
      */
-    protected static int match(List<Radical> provided, List<Radical> required)
+    protected static int matchRadicals(List<Radical> provided, List<Radical> required)
     {
         // If more is required than is provided, the match is failed.
         if (required.size() > provided.size())
@@ -134,5 +134,27 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
             result += count;
         }
         return result;
+    }
+
+    protected static int matchIndicators(List<Indicator> provided, List<Indicator> required)
+    {
+        int[] counter = new int[Indicator.values().length];
+        for (Indicator indicator : provided)
+        {
+            ++counter[indicator.ordinal()];
+        }
+        for (Indicator indicator : required)
+        {
+            if (--counter[indicator.ordinal()] < 0)
+            {
+                return -1;
+            }
+        }
+        int excess = 0;
+        for (int count : counter)
+        {
+            excess += count;
+        }
+        return excess;
     }
 }
