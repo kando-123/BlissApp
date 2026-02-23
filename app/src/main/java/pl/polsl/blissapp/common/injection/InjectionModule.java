@@ -10,6 +10,7 @@ import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
 import pl.polsl.blissapp.common.Callback;
+import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Symbol;
@@ -29,7 +30,8 @@ public class InjectionModule
         {
             @Override
             public void getMatchingSymbols(Symbol symbol,
-                                           List<Radical> filter,
+                                           List<Radical> radicals,
+                                           List<Indicator> indicators,
                                            int maxCount,
                                            Callback<List<Symbol>, Exception> callback)
             {

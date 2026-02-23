@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
@@ -72,10 +73,12 @@ public class RadicalWriterFragment extends Fragment
             /* Render the hints. */
         });
 
-        LiveData<List<Radical>> filters = writerViewModel.getFilters();
-        filters.observe(getViewLifecycleOwner(), radicals ->
+        LiveData<SearchFilter> filter = writerViewModel.getFilter();
+        filter.observe(getViewLifecycleOwner(), sf ->
         {
             /* Render the filters. */
+            List<Radical> radicals = sf.getRadicals();
+            List<Indicator> indicators = sf.getIndicators();
         });
 
         LiveData<Exception> failure = writerViewModel.getFailure();

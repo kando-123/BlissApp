@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
+import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
@@ -22,7 +23,7 @@ public class RadicalWriterViewModel extends ViewModel
     private final SymbolRepository symbolRepository;
     private final MutableLiveData<List<Symbol>> message = new MutableLiveData<>();
     private final MutableLiveData<List<Symbol>> hints = new MutableLiveData<>();
-    private final MutableLiveData<List<Radical>> filters = new MutableLiveData<>();
+    private final MutableLiveData<SearchFilter> filter = new MutableLiveData<>();
     private final MutableLiveData<Exception> failure = new MutableLiveData<>();
 
     private static final int MAX_HINT_COUNT = 20; // Change if more or less is needed
@@ -49,9 +50,9 @@ public class RadicalWriterViewModel extends ViewModel
         return hints;
     }
 
-    LiveData<List<Radical>> getFilters()
+    LiveData<SearchFilter> getFilter()
     {
-        return filters;
+        return filter;
     }
 
     LiveData<Exception> getFailure()
@@ -61,19 +62,37 @@ public class RadicalWriterViewModel extends ViewModel
 
     void putRadical(Radical radical)
     {
-        List<Radical> radicals = filters.getValue();
-        assert radicals != null;
-        radicals.add(radical);
-        filters.setValue(radicals);
+        SearchFilter value = filter.getValue();
+        assert value != null;
+        value.addRadical(radical);
+        filter.setValue(value);
         updateHints();
     }
 
     void removeRadical(Radical radical)
     {
-        List<Radical> radicals = filters.getValue();
-        assert radicals != null;
-        radicals.remove(radical);
-        filters.setValue(radicals);
+        SearchFilter value = filter.getValue();
+        assert value != null;
+        value.removeRadical(radical);
+        filter.setValue(value);
+        updateHints();
+    }
+
+    void putIndicator(Indicator indicator)
+    {
+        SearchFilter value = filter.getValue();
+        assert value != null;
+        value.addIndicator(indicator);
+        filter.setValue(value);
+        updateHints();
+    }
+
+    void removeIndicator(Indicator indicator)
+    {
+        SearchFilter value = filter.getValue();
+        assert value != null;
+        value.removeIndicator(indicator);
+        filter.setValue(value);
         updateHints();
     }
 
@@ -89,7 +108,8 @@ public class RadicalWriterViewModel extends ViewModel
         list.set(list.size() - 1, symbol);
         message.setValue(list);
 
-        filters.setValue(Collections.emptyList());
+        // Clear the filter
+        filter.setValue(new SearchFilter());
         updateHints();
     }
 
@@ -99,8 +119,12 @@ public class RadicalWriterViewModel extends ViewModel
         assert symbols != null;
         Symbol symbol = symbols.getLast();
 
-        List<Radical> radicals = filters.getValue();
-        assert radicals != null;
+        SearchFilter sf = filter.getValue();
+        assert sf != null;
+
+        List<Radical> radicals = sf.getRadicals();
+        List<Indicator> indicators = sf.getIndicators();
+        assert radicals != null && indicators != null;
 
         var callback = new Callback<List<Symbol>, Exception>()
         {
@@ -117,8 +141,7 @@ public class RadicalWriterViewModel extends ViewModel
                 failure.setValue(data);
             }
         };
-
-        symbolRepository.getMatchingSymbols(symbol, radicals, MAX_HINT_COUNT, callback);
+        symbolRepository.getMatchingSymbols(symbol, radicals, indicators, MAX_HINT_COUNT, callback);
     }
 
     void popSymbol()
@@ -145,7 +168,7 @@ public class RadicalWriterViewModel extends ViewModel
         {
             list.add(null);
             hints.setValue(Collections.emptyList());
-            filters.setValue(Collections.emptyList());
+            filter.setValue(new SearchFilter());
             message.setValue(list);
         }
     }
