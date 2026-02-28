@@ -38,29 +38,30 @@ public class RadicalWriterViewModel extends ViewModel
         List<Symbol> list = new ArrayList<>();
         list.add(null);
         message.setValue(list);
+        filter.setValue(new SearchFilter());
     }
 
-    LiveData<List<Symbol>> getMessage()
+    public LiveData<List<Symbol>> getMessage()
     {
         return message;
     }
 
-    LiveData<List<Symbol>> getHints()
+    public LiveData<List<Symbol>> getHints()
     {
         return hints;
     }
 
-    LiveData<SearchFilter> getFilter()
+    public LiveData<SearchFilter> getFilter()
     {
         return filter;
     }
 
-    LiveData<Exception> getFailure()
+    public LiveData<Exception> getFailure()
     {
         return failure;
     }
 
-    void putRadical(Radical radical)
+    public void putRadical(Radical radical)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
@@ -69,7 +70,7 @@ public class RadicalWriterViewModel extends ViewModel
         updateHints();
     }
 
-    void removeRadical(Radical radical)
+    public void removeRadical(Radical radical)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
@@ -78,7 +79,7 @@ public class RadicalWriterViewModel extends ViewModel
         updateHints();
     }
 
-    void putIndicator(Indicator indicator)
+    public void putIndicator(Indicator indicator)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
@@ -87,7 +88,7 @@ public class RadicalWriterViewModel extends ViewModel
         updateHints();
     }
 
-    void removeIndicator(Indicator indicator)
+    public void removeIndicator(Indicator indicator)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
@@ -96,7 +97,7 @@ public class RadicalWriterViewModel extends ViewModel
         updateHints();
     }
 
-    void selectHint(Symbol symbol)
+    public void selectHint(Symbol symbol)
     {
         List<Symbol> list = message.getValue();
         assert list != null;
@@ -117,7 +118,7 @@ public class RadicalWriterViewModel extends ViewModel
     {
         List<Symbol> symbols = message.getValue();
         assert symbols != null;
-        Symbol symbol = symbols.getLast();
+        Symbol symbol = symbols.get(symbols.size() - 1);
 
         SearchFilter sf = filter.getValue();
         assert sf != null;
@@ -141,16 +142,18 @@ public class RadicalWriterViewModel extends ViewModel
                 failure.setValue(data);
             }
         };
-        symbolRepository.getMatchingSymbols(symbol, radicals, indicators, MAX_HINT_COUNT, callback);
+        if (symbolRepository != null) {
+            symbolRepository.getMatchingSymbols(symbol, radicals, indicators, MAX_HINT_COUNT, callback);
+        }
     }
 
-    void popSymbol()
+    public void popSymbol()
     {
         List<Symbol> list = message.getValue();
         assert list != null;
         if (!list.isEmpty())
         {
-            list.removeLast();
+            list.remove(list.size() - 1);
         }
         if (list.isEmpty())
         {
@@ -160,11 +163,11 @@ public class RadicalWriterViewModel extends ViewModel
         updateHints();
     }
 
-    void confirmSymbol()
+    public void confirmSymbol()
     {
         List<Symbol> list = message.getValue();
         assert list != null;
-        if (list.getLast() != null)
+        if (list.get(list.size() - 1) != null)
         {
             list.add(null);
             hints.setValue(Collections.emptyList());

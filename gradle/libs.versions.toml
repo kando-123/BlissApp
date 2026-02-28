@@ -9,8 +9,8 @@ recyclerview = "1.4.0"
 constraintlayout = "2.2.1"
 lifecycleLivedataKtx = "2.10.0"
 lifecycleViewmodelKtx = "2.10.0"
-navigationFragment = "2.9.6"
-navigationUi = "2.9.6"
+navigationFragment = "2.9.7"
+navigationUi = "2.9.7"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -1,28 +1,27 @@
 package pl.polsl.blissapp.data.model;
 
-import pl.polsl.blissapp.R;
+import androidx.annotation.DrawableRes;
 
 public enum Indicator
 {
-    ACTION(R.drawable.indicator_action),
-    ACTIVE(R.drawable.indicator_active),
-    CONDITIONAL(R.drawable.indicator_conditional),
-    DEFINITE(R.drawable.indicator_definite_form),
-    DESCRIPTION(R.drawable.indicator_description),
-    DOT(R.drawable.indicator_dot),
-    FUTURE_ACTION(R.drawable.indicator_action),
-    IMPERATIVE(R.drawable.indicator_imperative_form),
-    PASSIVE(R.drawable.indicator_passive),
-    PAST_ACTION(R.drawable.indicator_past_action),
-    PLURAL(R.drawable.indicator_plural),
-    THING(R.drawable.indicator_thing);
+    ACTION,
+    ACTIVE,
+    CONDITIONAL,
+    DEFINITE,
+    DESCRIPTION,
+    DOT,
+    FUTURE_ACTION,
+    IMPERATIVE,
+    PASSIVE,
+    PAST_ACTION,
+    PLURAL,
+    THING;
 
-    Indicator(int res) { drawableResource = res; }
+    Indicator() { }
 
-    private final int drawableResource;
-
+    @DrawableRes
     public int getDrawableResource()
     {
-        return drawableResource;
+        return 0; // Will be replaced by a mapping in the UI layer
     }
 }

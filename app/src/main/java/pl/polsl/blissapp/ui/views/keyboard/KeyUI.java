@@ -1,12 +1,14 @@
 package pl.polsl.blissapp.ui.views.keyboard;
 
-/**
- * The base blueprint for any key on the keyboard.
- */
-public abstract class KeyUI {
-    public final int viewId;
+import androidx.annotation.Nullable;
+import java.util.List;
+import pl.polsl.blissapp.data.model.Indicator;
+import pl.polsl.blissapp.data.model.Radical;
 
-    public KeyUI(int viewId) {
-        this.viewId = viewId;
+public abstract class KeyUI {
+    public final float weight;
+
+    public KeyUI(float weight) {
+        this.weight = weight;
     }
 }

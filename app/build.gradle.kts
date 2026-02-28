@@ -50,8 +50,8 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation("com.google.dagger:hilt-android:2.57.2")
-    annotationProcessor("com.google.dagger:hilt-compiler:2.57.2")
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    annotationProcessor("com.google.dagger:hilt-compiler:2.51.1")
     implementation("javax.inject:javax.inject:1")
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.10.0")
     implementation("androidx.lifecycle:lifecycle-livedata:2.10.0")

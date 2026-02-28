@@ -1,33 +1,31 @@
 package pl.polsl.blissapp.ui.views.keyboard;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
+
+import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.Radical;
 
-/**
- * Represents a key that inputs a Bliss Symbol (Radical).
- */
 public class BlissKeyUI extends KeyUI {
     public final Radical baseRadical;
-    public final Radical indicatorRadical; // The symbol to output when Shift/Indicator mode is ON
-    public final List<Radical> variants;   // Long-press options (disabled in Indicator mode)
+    @Nullable
+    public final Indicator indicator; // Fixed type to Indicator
+    public final List<Radical> variants;
 
-    public BlissKeyUI(int viewId, Radical baseRadical, Radical indicatorRadical, List<Radical> variants) {
-        super(viewId);
+    // Smart constructor: Automatically fetches variants from the Radical enum!
+    public BlissKeyUI(Radical baseRadical, @Nullable Indicator indicator, float weight) {
+        super(weight);
         this.baseRadical = baseRadical;
-        this.indicatorRadical = indicatorRadical;
-        this.variants = variants;
-    }
-
-    // Convenience constructor for standard keys (no indicator behavior)
-    public BlissKeyUI(int viewId, Radical baseRadical, List<Radical> variants) {
-        this(viewId, baseRadical, null, variants);
+        this.indicator = indicator;
+        this.variants = Radical.getChildren(baseRadical);
     }
 
     public boolean hasVariants() {
         return variants != null && !variants.isEmpty();
     }
 
-    public  boolean isIndicator() {
-        return (indicatorRadical != null);
+    public boolean hasIndicator() {
+        return indicator != null;
     }
 }
