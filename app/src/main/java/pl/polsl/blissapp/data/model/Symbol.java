@@ -37,7 +37,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(index);
+        return Integer.hashCode(index);
     }
 
     /**

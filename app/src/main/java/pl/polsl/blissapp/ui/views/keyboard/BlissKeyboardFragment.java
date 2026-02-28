@@ -88,7 +88,7 @@ public class BlissKeyboardFragment extends Fragment
                 new BlissKeyUI(R.id.key_diagonal_line, Radical.DIAGONAL_LINE, List.of(Radical.DIAGONAL_LINE_LARGE_NORTHEAST)),
 
                 // --- ROW 4 (Controls) ---
-                new ControlKeyUI(R.id.key_shift, ControlKey.INDICATOR_MODE),
+                //new ControlKeyUI(R.id.key_shift, ControlKey.INDICATOR_MODE),
                 new ControlKeyUI(R.id.key_space, ControlKey.PUSH_SYMBOL),
                 new ControlKeyUI(R.id.key_enter, ControlKey.ENTER)
         );

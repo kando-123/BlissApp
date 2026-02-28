@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import pl.polsl.blissapp.common.Callback;
+import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.Radical;
 import pl.polsl.blissapp.data.model.Symbol;
 
@@ -24,6 +25,7 @@ public interface AlchemyRepository
      */
     void getConstructibleSymbol(List<Radical> inputRadicals,
                                 List<Symbol> inputSymbols,
+                                List<Indicator> inputIndicators,
                                 Callback<List<Symbol>, Exception> callback);
 
     /**

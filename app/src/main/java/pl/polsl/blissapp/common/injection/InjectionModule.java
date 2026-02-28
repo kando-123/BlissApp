@@ -72,7 +72,10 @@ public class InjectionModule
             }
 
             @Override
-            public void getConstructibleSymbol(List<Radical> inputRadicals, List<Symbol> inputSymbols, Callback<List<Symbol>, Exception> callback)
+            public void getConstructibleSymbol(List<Radical> r,
+                                               List<Symbol> s,
+                                               List<Indicator> i,
+                                               Callback<List<Symbol>, Exception> callback)
             {
                 callback.onFailure(new Exception("Not implemented yet"));
             }
