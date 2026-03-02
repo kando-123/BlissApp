@@ -4,28 +4,20 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 
-public class BlissKeyUI extends KeyUI {
-    public final Radical baseRadical;
+public class BlissKeyUI extends KeyUI
+{
+    public final Primitive basePrimitive;
     @Nullable
-    public final Indicator indicator; // Fixed type to Indicator
-    public final List<Radical> variants;
+    public final Primitive indicator;
+    public final List<Primitive> variants;
 
-    // Smart constructor: Automatically fetches variants from the Radical enum!
-    public BlissKeyUI(Radical baseRadical, @Nullable Indicator indicator, float weight) {
+    public BlissKeyUI(Primitive basePrimitive, @Nullable Primitive indicator, float weight)
+    {
         super(weight);
-        this.baseRadical = baseRadical;
+        this.basePrimitive = basePrimitive;
         this.indicator = indicator;
-        this.variants = Radical.getChildren(baseRadical);
-    }
-
-    public boolean hasVariants() {
-        return variants != null && !variants.isEmpty();
-    }
-
-    public boolean hasIndicator() {
-        return indicator != null;
+        variants = Primitive.getChildren(basePrimitive);
     }
 }

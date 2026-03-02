@@ -1,7 +1,5 @@
 package pl.polsl.blissapp.data.model;
 
-import androidx.annotation.DrawableRes;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public enum Radical
+public enum Primitive
 {
     WAVY_LINE,
     WAVY_LINE_HORIZONTAL(WAVY_LINE),
@@ -155,64 +153,117 @@ public enum Radical
     POINTER_WEST(POINTER),
     POINTER_NORTHWEST(POINTER),
 
-    OTHER,
-    PUNCTUATION(OTHER),
-    DIGIT(OTHER),
-    LETTER(OTHER); // TEMPORARY!
+    PUNCTUATION,
+    QUESTION_MARK(PUNCTUATION),
+    EXCLAMATION_MARK(PUNCTUATION),
 
-    private final Radical parent;
+    DIGIT,
+    DIGIT_ZERO(DIGIT),
+    DIGIT_ONE(DIGIT),
+    DIGIT_TWO(DIGIT),
+    DIGIT_THREE(DIGIT),
+    DIGIT_FOUR(DIGIT),
+    DIGIT_FIVE(DIGIT),
+    DIGIT_SIX(DIGIT),
+    DIGIT_SEVEN(DIGIT),
+    DIGIT_EIGHT(DIGIT),
+    DIGIT_NINE(DIGIT),
 
-    Radical() {
+    LETTER,
+    LETTER_A(LETTER),
+    LETTER_B(LETTER),
+    LETTER_C(LETTER),
+    LETTER_D(LETTER),
+    LETTER_E(LETTER),
+    LETTER_F(LETTER),
+    LETTER_G(LETTER),
+    LETTER_H(LETTER),
+    LETTER_I(LETTER),
+    LETTER_J(LETTER),
+    LETTER_K(LETTER),
+    LETTER_L(LETTER),
+    LETTER_M(LETTER),
+    LETTER_N(LETTER),
+    LETTER_O(LETTER),
+    LETTER_P(LETTER),
+    LETTER_Q(LETTER),
+    LETTER_R(LETTER),
+    LETTER_S(LETTER),
+    LETTER_T(LETTER),
+    LETTER_U(LETTER),
+    LETTER_V(LETTER),
+    LETTER_W(LETTER),
+    LETTER_X(LETTER),
+    LETTER_Y(LETTER),
+    LETTER_Z(LETTER),
+
+    INDICATOR,
+    INDICATOR_ACTION(INDICATOR),
+    INDICATOR_ACTIVE(INDICATOR),
+    INDICATOR_CONDITIONAL(INDICATOR),
+    INDICATOR_DEFINITE(INDICATOR),
+    INDICATOR_DESCRIPTION(INDICATOR),
+    INDICATOR_DOT(INDICATOR),
+    INDICATOR_FUTURE_ACTION(INDICATOR),
+    INDICATOR_IMPERATIVE(INDICATOR),
+    INDICATOR_PASSIVE(INDICATOR),
+    INDICATOR_PAST_ACTION(INDICATOR),
+    INDICATOR_PLURAL(INDICATOR),
+    INDICATOR_THING(INDICATOR);
+
+    private final Primitive parent;
+
+    Primitive() {
         this.parent = null;
     }
 
-    Radical(Radical parent) {
+    Primitive(Primitive parent) {
         assert parent == null || parent.parent == null : "Multi-layer hierarchy detected!";
 
         this.parent = parent;
     }
 
-    public Radical getParent() {
+    public Primitive getParent() {
         return parent;
     }
 
-    private static final Map<Radical, List<Radical>> parenthood = new EnumMap<>(Radical.class);
+    private static final Map<Primitive, List<Primitive>> parenthood = new EnumMap<>(Primitive.class);
 
-    private static final List<Radical> PARENT_RADICALS;
+    private static final List<Primitive> PARENT_PRIMITIVES;
 
-    private static final List<Radical> CHILD_RADICALS;
+    private static final List<Primitive> CHILD_PRIMITIVES;
 
     static {
-        for (Radical radical : Radical.values()) {
-            if (radical.parent == null) {
-                parenthood.put(radical, new ArrayList<>());
+        for (Primitive primitive : Primitive.values()) {
+            if (primitive.parent == null) {
+                parenthood.put(primitive, new ArrayList<>());
             } else {
-                List<Radical> children = parenthood.get(radical.parent);
+                List<Primitive> children = parenthood.get(primitive.parent);
                 assert children != null: String.format("Child radical %s defined before its parent!",
-                        radical.name());
-                children.add(radical);
+                        primitive.name());
+                children.add(primitive);
             }
         }
 
-        PARENT_RADICALS = Arrays.stream(Radical.values())
+        PARENT_PRIMITIVES = Arrays.stream(Primitive.values())
                 .filter(r -> r.parent == null)
                 .collect(Collectors.toList());
 
-        CHILD_RADICALS = Arrays.stream(Radical.values())
+        CHILD_PRIMITIVES = Arrays.stream(Primitive.values())
                 .filter(r -> r.parent != null)
                 .collect(Collectors.toList());
     }
 
-    public static List<Radical> getChildren(Radical parent) {
-        List<Radical> children = parenthood.get(parent);
+    public static List<Primitive> getChildren(Primitive parent) {
+        List<Primitive> children = parenthood.get(parent);
         return children == null ? Collections.emptyList() : List.copyOf(children);
     }
 
-    public static List<Radical> getParentRadicals() {
-        return Collections.unmodifiableList(PARENT_RADICALS);
+    public static List<Primitive> getParentPrimitives() {
+        return Collections.unmodifiableList(PARENT_PRIMITIVES);
     }
 
-    public static List<Radical> getChildRadicals() {
-        return Collections.unmodifiableList(CHILD_RADICALS);
+    public static List<Primitive> getChildPrimitives() {
+        return Collections.unmodifiableList(CHILD_PRIMITIVES);
     }
 }

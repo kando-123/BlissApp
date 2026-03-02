@@ -3,69 +3,51 @@ package pl.polsl.blissapp.ui.views.alchemy;
 import java.util.ArrayList;
 import java.util.List;
 
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 
 class CraftingTable
 {
-    private final List<Symbol> symbols;
-    private final List<Radical> radicals;
-    private final List<Indicator> indicators;
+    private final List<Symbol> mSymbols;
+    private final List<Primitive> mPrimitives;
 
     CraftingTable()
     {
-        symbols = new ArrayList<>();
-        radicals = new ArrayList<>();
-        indicators = new ArrayList<>();
+        mSymbols = new ArrayList<>();
+        mPrimitives = new ArrayList<>();
     }
 
     private CraftingTable(CraftingTable base)
     {
-        symbols = new ArrayList<>(base.symbols);
-        radicals = new ArrayList<>(base.radicals);
-        indicators = new ArrayList<>(base.indicators);
+        mSymbols = new ArrayList<>(base.mSymbols);
+        mPrimitives = new ArrayList<>(base.mPrimitives);
     }
 
     CraftingTable addSymbol(Symbol symbol)
     {
         CraftingTable copy = new CraftingTable(this);
-        copy.symbols.add(symbol);
+        copy.mSymbols.add(symbol);
         return copy;
     }
 
-    CraftingTable addRadical(Radical radical)
+    CraftingTable addRadical(Primitive primitive)
     {
         CraftingTable copy = new CraftingTable(this);
-        copy.radicals.add(radical);
-        return copy;
-    }
-
-    CraftingTable addIndicator(Indicator indicator)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.indicators.add(indicator);
+        copy.mPrimitives.add(primitive);
         return copy;
     }
 
     CraftingTable removeSymbol(Symbol symbol)
     {
         CraftingTable copy = new CraftingTable(this);
-        copy.symbols.remove(symbol);
+        copy.mSymbols.remove(symbol);
         return copy;
     }
 
-    CraftingTable removeRadical(Radical radical)
+    CraftingTable removeRadical(Primitive primitive)
     {
         CraftingTable copy = new CraftingTable(this);
-        copy.radicals.remove(radical);
-        return copy;
-    }
-
-    CraftingTable removeIndicator(Indicator indicator)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.indicators.remove(indicator);
+        copy.mPrimitives.remove(primitive);
         return copy;
     }
 }

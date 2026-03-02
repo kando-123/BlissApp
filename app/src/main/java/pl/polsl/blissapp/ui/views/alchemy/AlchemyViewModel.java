@@ -7,82 +7,67 @@ import androidx.lifecycle.ViewModel;
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.AlchemyRepository;
 
 @HiltViewModel
 public class AlchemyViewModel extends ViewModel
 {
-    private final AlchemyRepository alchemyRepository;
-    private final MutableLiveData<CraftingTable> craftingTable;
-    private final MutableLiveData<Symbol> resultingSymbol;
-    private final MutableLiveData<Symbol> constructedSymbols;
+    private final AlchemyRepository mAlchemyRepository;
+    private final MutableLiveData<CraftingTable> mCraftingTable;
+    private final MutableLiveData<Symbol> mResultingSymbol;
+    private final MutableLiveData<Symbol> mConstructedSymbols;
 
     @Inject
     public AlchemyViewModel(AlchemyRepository alchemyRepository)
     {
-        this.alchemyRepository = alchemyRepository;
-        craftingTable = new MutableLiveData<>(new CraftingTable());
-        resultingSymbol = new MutableLiveData<>();
-        constructedSymbols = new MutableLiveData<>();
+        this.mAlchemyRepository = alchemyRepository;
+        mCraftingTable = new MutableLiveData<>(new CraftingTable());
+        mResultingSymbol = new MutableLiveData<>();
+        mConstructedSymbols = new MutableLiveData<>();
     }
 
     LiveData<CraftingTable> getCraftingTable()
     {
-        return craftingTable;
+        return mCraftingTable;
     }
 
     LiveData<Symbol> getResultingSymbol()
     {
-        return resultingSymbol;
+        return mResultingSymbol;
     }
 
     LiveData<Symbol> getConstructedSymbols()
     {
-        return constructedSymbols;
+        return mConstructedSymbols;
     }
 
     void addSymbol(Symbol symbol)
     {
-        CraftingTable value = craftingTable.getValue();
+        CraftingTable value = mCraftingTable.getValue();
         assert value != null;
-        craftingTable.setValue(value.addSymbol(symbol));
+        mCraftingTable.setValue(value.addSymbol(symbol));
     }
 
-    void addRadical(Radical radical)
+    void addRadical(Primitive primitive)
     {
-        CraftingTable value = craftingTable.getValue();
+        CraftingTable value = mCraftingTable.getValue();
         assert value != null;
-        craftingTable.setValue(value.addRadical(radical));
-    }
-
-    void addIndicator(Indicator indicator)
-    {
-        CraftingTable value = craftingTable.getValue();
-        assert value != null;
-        craftingTable.setValue(value.addIndicator(indicator));
+        mCraftingTable.setValue(value.addRadical(primitive));
     }
 
     void removeSymbol(Symbol symbol)
     {
-        CraftingTable value = craftingTable.getValue();
+        CraftingTable value = mCraftingTable.getValue();
         assert value != null;
-        craftingTable.setValue(value.removeSymbol(symbol));
+        mCraftingTable.setValue(value.removeSymbol(symbol));
     }
 
-    void removeRadical(Radical radical)
+    void removeRadical(Primitive primitive)
     {
-        CraftingTable value = craftingTable.getValue();
+        CraftingTable value = mCraftingTable.getValue();
         assert value != null;
-        craftingTable.setValue(value.removeRadical(radical));
-    }
-
-    void removeIndicator(Indicator indicator)
-    {
-        CraftingTable value = craftingTable.getValue();
-        assert value != null;
-        craftingTable.setValue(value.removeIndicator(indicator));
+        mCraftingTable.setValue(value.removeRadical(primitive));
     }
 }

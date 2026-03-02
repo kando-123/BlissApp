@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.views.radicalwriter;
+package pl.polsl.blissapp.ui.views.blisswriter;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,13 +12,12 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 @HiltViewModel
-public class RadicalWriterViewModel extends ViewModel
+public class BlissWriterViewModel extends ViewModel
 {
     private final SymbolRepository symbolRepository;
     private final MutableLiveData<List<Symbol>> message = new MutableLiveData<>();
@@ -29,7 +28,7 @@ public class RadicalWriterViewModel extends ViewModel
     private static final int MAX_HINT_COUNT = 20; // Change if more or less is needed
 
     @Inject
-    public RadicalWriterViewModel(SymbolRepository symbolRepository)
+    public BlissWriterViewModel(SymbolRepository symbolRepository)
     {
         this.symbolRepository = symbolRepository;
 
@@ -61,38 +60,20 @@ public class RadicalWriterViewModel extends ViewModel
         return failure;
     }
 
-    public void putRadical(Radical radical)
+    public void putRadical(Primitive primitive)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
-        value.addRadical(radical);
+        value.addPrimitive(primitive);
         filter.setValue(value);
         updateHints();
     }
 
-    public void removeRadical(Radical radical)
+    public void removeRadical(Primitive primitive)
     {
         SearchFilter value = filter.getValue();
         assert value != null;
-        value.removeRadical(radical);
-        filter.setValue(value);
-        updateHints();
-    }
-
-    public void putIndicator(Indicator indicator)
-    {
-        SearchFilter value = filter.getValue();
-        assert value != null;
-        value.addIndicator(indicator);
-        filter.setValue(value);
-        updateHints();
-    }
-
-    public void removeIndicator(Indicator indicator)
-    {
-        SearchFilter value = filter.getValue();
-        assert value != null;
-        value.removeIndicator(indicator);
+        value.removePrimitive(primitive);
         filter.setValue(value);
         updateHints();
     }
@@ -123,9 +104,8 @@ public class RadicalWriterViewModel extends ViewModel
         SearchFilter sf = filter.getValue();
         assert sf != null;
 
-        List<Radical> radicals = sf.getRadicals();
-        List<Indicator> indicators = sf.getIndicators();
-        assert radicals != null && indicators != null;
+        List<Primitive> primitives = sf.getPrimitives();
+        assert primitives != null;
 
         var callback = new Callback<List<Symbol>, Exception>()
         {
@@ -143,7 +123,7 @@ public class RadicalWriterViewModel extends ViewModel
             }
         };
         if (symbolRepository != null) {
-            symbolRepository.getMatchingSymbols(symbol, radicals, indicators, MAX_HINT_COUNT, callback);
+            symbolRepository.getMatchingSymbols(symbol, primitives, MAX_HINT_COUNT, callback);
         }
     }
 
