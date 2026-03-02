@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_writer">
+
+    <fragment
+        android:id="@+id/nav_dictionary"
+        android:name="pl.polsl.blissapp.ui.views.natlangwriter.NaturalLanguageWriterFragment"
+        android:label="Dictionary" />
+
+    <fragment
+        android:id="@+id/nav_writer"
+        android:name="pl.polsl.blissapp.ui.views.radicalwriter.RadicalWriterFragment"
+        android:label="Writer" />
+
+    <fragment
+        android:id="@+id/nav_alchemy"
+        android:name="pl.polsl.blissapp.ui.views.alchemy.AlchemyFragment"
+        android:label="Alchemy" />
+
+</navigation>

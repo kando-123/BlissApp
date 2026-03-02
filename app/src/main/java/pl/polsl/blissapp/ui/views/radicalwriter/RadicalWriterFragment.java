@@ -36,10 +36,12 @@ public class RadicalWriterFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_radical_writer, container, false);
+        // return inflater.inflate(R.layout.hello_world, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+    {
         super.onViewCreated(view, savedInstanceState);
 
         keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
@@ -90,7 +92,8 @@ public class RadicalWriterFragment extends Fragment {
         });
     }
 
-    private void setupFilterView(View root) {
+    private void setupFilterView(View root)
+    {
         RecyclerView filterView = root.findViewById(R.id.rv_filters);
         filterAdapter = new FilterAdapter(writerViewModel);
         filterView.setAdapter(filterAdapter);

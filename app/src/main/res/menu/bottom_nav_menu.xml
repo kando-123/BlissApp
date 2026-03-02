@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item
+        android:id="@+id/nav_dictionary"
+        android:icon="@drawable/icon_outline_dictionary_24"
+        android:title="@string/menu_dictionary" />
+
+    <item
+        android:id="@+id/nav_writer"
+        android:icon="@drawable/icon_outline_keyboard_24"
+        android:title="@string/menu_writer" />
+
+    <item
+        android:id="@+id/nav_alchemy"
+        android:icon="@drawable/icon_outline_science_24"
+        android:title="@string/menu_alchemy" />
+
+
+</menu>
