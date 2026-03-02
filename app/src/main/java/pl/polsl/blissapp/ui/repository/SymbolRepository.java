@@ -3,9 +3,8 @@ package pl.polsl.blissapp.ui.repository;
 import java.util.List;
 
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Indicator;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 
 public interface SymbolRepository
@@ -23,16 +22,13 @@ public interface SymbolRepository
      * with respect to the returned result.</p>
      *
      * @param symbol the symbol that the results are expected to begin with, or null
-     * @param radicals the radicals that the radicals of the simple symbol,
+     * @param primitives the radicals that the radicals of the simple symbol,
      *                 or the remaining part of the compound symbol, are required to contain
-     * @param indicators the indicators that the indicators of the simple symbol,
-     *                   or the remaining part of the compound symbol, are required to contain
      * @param maxCount the maximum number of symbols to return
      * @param callback the callback that will be called with the results, or failure
      */
     void getMatchingSymbols(Symbol symbol,
-                            List<Radical> radicals,
-                            List<Indicator> indicators,
+                            List<Primitive> primitives,
                             int maxCount,
                             Callback<List<Symbol>, Exception> callback);
 

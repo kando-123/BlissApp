@@ -5,19 +5,12 @@ import java.util.List;
 
 public final class SimpleSymbol extends Symbol
 {
-    private final List<Radical> radicals;
-    private final List<Indicator> indicators;
+    private final List<Primitive> mPrimitives;
 
-    public SimpleSymbol(int index, String uri, List<Radical> radicals)
-    {
-        this(index, uri, radicals, Collections.emptyList());
-    }
-
-    public SimpleSymbol(int index, String uri, List<Radical> radicals, List<Indicator> indicators)
+    public SimpleSymbol(int index, String uri, List<Primitive> primitives)
     {
         super(index, uri);
-        this.radicals = List.copyOf(radicals);
-        this.indicators = List.copyOf(indicators);
+        mPrimitives = List.copyOf(primitives);
     }
 
     @Override
@@ -27,7 +20,7 @@ public final class SimpleSymbol extends Symbol
     public SimpleSymbol asSimple() { return this; }
 
     @Override
-    public int getRadicalCount() { return radicals.size(); }
+    public int getRadicalCount() { return mPrimitives.size(); }
 
     @Override
     public List<SimpleSymbol> getComponents()
@@ -35,14 +28,10 @@ public final class SimpleSymbol extends Symbol
         return Collections.singletonList(this);
     }
 
-    public List<Radical> getRadicals() { return radicals; }
+    public List<Primitive> getPrimitives() { return mPrimitives; }
 
-    public List<Indicator> getIndicators() { return indicators; }
-
-    public int matches(List<Radical> requiredRadicals, List<Indicator> requiredIndicators)
+    public int matches(List<Primitive> requiredPrimitives)
     {
-        int radicalMatch = matchRadicals(radicals, requiredRadicals);
-        int indicatorMatch = matchIndicators(indicators, requiredIndicators);
-        return radicalMatch < 0 || indicatorMatch < 0 ? -1 : radicalMatch + indicatorMatch;
+        return match(mPrimitives, requiredPrimitives);
     }
 }

@@ -17,24 +17,24 @@ import pl.polsl.blissapp.ui.repository.SymbolRepository;
 @HiltViewModel
 public class NaturalLanguageWriterViewModel extends ViewModel
 {
-    private final SymbolRepository symbolRepository;
-    private final MutableLiveData<List<MeaningfulSymbol>> translations = new MutableLiveData<>();
-    private final MutableLiveData<Exception> failure = new MutableLiveData<>();
+    private final SymbolRepository mSymbolRepository;
+    private final MutableLiveData<List<MeaningfulSymbol>> mTranslations = new MutableLiveData<>();
+    private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
     @Inject
     public NaturalLanguageWriterViewModel(SymbolRepository symbolRepository)
     {
-        this.symbolRepository = symbolRepository;
+        this.mSymbolRepository = symbolRepository;
     }
 
     LiveData<List<MeaningfulSymbol>> getTranslations()
     {
-        return translations;
+        return mTranslations;
     }
 
     LiveData<Exception> getFailure()
     {
-        return failure;
+        return mFailure;
     }
 
     void translate(String input)
@@ -44,20 +44,20 @@ public class NaturalLanguageWriterViewModel extends ViewModel
             @Override
             public void onSuccess(List<MeaningfulSymbol> data)
             {
-                translations.setValue(data);
+                mTranslations.setValue(data);
             }
 
             @Override
             public void onFailure(Exception data)
             {
-                failure.setValue(data);
+                mFailure.setValue(data);
             }
         };
-        symbolRepository.getTranslations(input, callback);
+        mSymbolRepository.getTranslations(input, callback);
     }
 
     void clearTranslations()
     {
-        translations.setValue(Collections.emptyList());
+        mTranslations.setValue(Collections.emptyList());
     }
 }

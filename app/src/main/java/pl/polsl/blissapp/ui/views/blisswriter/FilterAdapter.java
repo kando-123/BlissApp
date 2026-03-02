@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.views.radicalwriter;
+package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,33 +11,36 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.R;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.ui.mapping.DrawableMapper;
 
 public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder> {
 
-    private final List<Object> items = new ArrayList<>();
-    private final RadicalWriterViewModel viewModel;
+    private final List<Object> mItems;
+    private final BlissWriterViewModel mViewModel;
 
-    public FilterAdapter(RadicalWriterViewModel viewModel) {
-        this.viewModel = viewModel;
+    public FilterAdapter(BlissWriterViewModel viewModel)
+    {
+        mViewModel = viewModel;
+        mItems = new ArrayList<>();
     }
 
-    public void update(SearchFilter filter) {
-        items.clear();
-        if (filter != null) {
-            items.addAll(countItems(filter.getRadicals()));
-            items.addAll(countItems(filter.getIndicators()));
+    public void update(SearchFilter filter)
+    {
+        mItems.clear();
+        if (filter != null)
+        {
+            mItems.addAll(countItems(filter.getPrimitives()));
         }
+
         notifyDataSetChanged();
     }
 
-    private List<CountedItem> countItems(List<?> list) {
+    private List<CountedItem> countItems(List<?> list)
+    {
         return list.stream()
                 .collect(Collectors.groupingBy(item -> item, Collectors.counting()))
                 .entrySet().stream()
@@ -47,7 +50,8 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_filter_key, parent, false);
         return new ViewHolder(view);
@@ -55,48 +59,54 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        CountedItem countedItem = (CountedItem) items.get(position);
+        CountedItem countedItem = (CountedItem) mItems.get(position);
         Object item = countedItem.item;
 
-        if (item instanceof Radical) {
-            holder.imageView.setImageResource(DrawableMapper.getDrawableRes((Radical) item));
-        } else if (item instanceof Indicator) {
-            holder.imageView.setImageResource(DrawableMapper.getDrawableRes((Indicator) item));
+        if (item instanceof Primitive primitive)
+        {
+            holder.imageView.setImageResource(DrawableMapper.getDrawableRes(primitive));
         }
 
-        if (countedItem.count > 1) {
-            holder.counterView.setText("x" + countedItem.count);
+        if (countedItem.count > 1)
+        {
+            String countText = holder.itemView.getContext()
+                    .getString(R.string.item_count_format, countedItem.count);
+            holder.counterView.setText(countText);
             holder.counterView.setVisibility(View.VISIBLE);
-        } else {
+        }
+        else
+        {
             holder.counterView.setVisibility(View.GONE);
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (item instanceof Radical) {
-                viewModel.removeRadical((Radical) item);
-            } else if (item instanceof Indicator) {
-                viewModel.removeIndicator((Indicator) item);
+            if (item instanceof Primitive) {
+                mViewModel.removeRadical((Primitive) item);
             }
         });
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
+    public int getItemCount()
+    {
+        return mItems.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder
+    {
         ImageView imageView;
         TextView counterView;
 
-        ViewHolder(View view) {
+        ViewHolder(View view)
+        {
             super(view);
             imageView = view.findViewById(R.id.filter_key_image);
             counterView = view.findViewById(R.id.filter_key_counter);
         }
     }
 
-    static class CountedItem {
+    static class CountedItem
+    {
         Object item;
         int count;
 

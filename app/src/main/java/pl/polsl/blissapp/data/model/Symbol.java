@@ -3,7 +3,6 @@ package pl.polsl.blissapp.data.model;
 import static java.lang.Math.min;
 
 import java.util.List;
-import java.util.Objects;
 
 public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 {
@@ -60,7 +59,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
      * @param required
      * @return
      */
-    protected static int matchRadicals(List<Radical> provided, List<Radical> required)
+    protected static int match(List<Primitive> provided, List<Primitive> required)
     {
         // If more is required than is provided, the match is failed.
         if (required.size() > provided.size())
@@ -70,23 +69,23 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
         // Count the radicals provided as positive,
         // count the radicals required as negative.
-        int[] counter = new int[Radical.values().length];
+        int[] counter = new int[Primitive.values().length];
 
         // Step 1. Cancel out the identical radicals.
-        for (Radical radical : provided)
+        for (Primitive primitive : provided)
         {
-            ++counter[radical.ordinal()];
+            ++counter[primitive.ordinal()];
         }
-        for (Radical radical : required)
+        for (Primitive primitive : required)
         {
-            --counter[radical.ordinal()];
+            --counter[primitive.ordinal()];
         }
 
         // Step 2. Try to match the provided specific radicals (the "children") to the required
         // general radicals (the "parents").
-        for (Radical child : Radical.getChildRadicals())
+        for (Primitive child : Primitive.getChildPrimitives())
         {
-            Radical parent = child.getParent();
+            Primitive parent = child.getParent();
             assert parent != null;
 
             if (counter[child.ordinal()] > 0)
@@ -98,7 +97,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
 
         // If any "parent" has a negative score now, it means that the more general requirement
         // (the parent) was not covered by the provided specific radicals (the children).
-        if (Radical.getParentRadicals().stream().anyMatch(r -> counter[r.ordinal()] < 0))
+        if (Primitive.getParentPrimitives().stream().anyMatch(r -> counter[r.ordinal()] < 0))
         {
             return -1;
         }
@@ -107,9 +106,9 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         // the symbol still may count as a match, but with a lower preference (result > 0).
         // The points will be aggregated in the parent's counters.
         int result = 0;
-        for (Radical child : Radical.getChildRadicals())
+        for (Primitive child : Primitive.getChildPrimitives())
         {
-            Radical parent = child.getParent();
+            Primitive parent = child.getParent();
             assert parent != null;
 
             // Count the reductions to the result.
@@ -134,27 +133,5 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
             result += count;
         }
         return result;
-    }
-
-    protected static int matchIndicators(List<Indicator> provided, List<Indicator> required)
-    {
-        int[] counter = new int[Indicator.values().length];
-        for (Indicator indicator : provided)
-        {
-            ++counter[indicator.ordinal()];
-        }
-        for (Indicator indicator : required)
-        {
-            if (--counter[indicator.ordinal()] < 0)
-            {
-                return -1;
-            }
-        }
-        int excess = 0;
-        for (int count : counter)
-        {
-            excess += count;
-        }
-        return excess;
     }
 }

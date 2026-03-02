@@ -81,30 +81,21 @@ public final class CompoundSymbol extends Symbol
         return providedCopy;
     }
 
-    public int matches(Symbol subSymbol,
-                       List<Radical> requiredRadicals,
-                       List<Indicator> requiredIndicators)
+    public int matches(Symbol subSymbol, List<Primitive> requiredPrimitives)
     {
         List<SimpleSymbol> requiredSymbols = subSymbol == null
                 ? Collections.emptyList()
                 : subSymbol.getComponents();
 
         List<SimpleSymbol> remainder = subtractRequiredSymbols(units, requiredSymbols);
+
         if (remainder == null)
-        {
             return -1;
-        }
 
-        List<Radical> radicals = remainder.stream()
-                .flatMap(s -> s.getRadicals().stream())
+        List<Primitive> primitives = remainder.stream()
+                .flatMap(s -> s.getPrimitives().stream())
                 .collect(Collectors.toList());
-        int radicalMatch = matchRadicals(radicals, requiredRadicals);
 
-        List<Indicator> indicators = remainder.stream()
-                .flatMap(s -> s.getIndicators().stream())
-                .collect(Collectors.toList());
-        int indicatorMatch = matchIndicators(indicators, requiredIndicators);
-
-        return radicalMatch < 0 || indicatorMatch < 0 ? -1 : radicalMatch + indicatorMatch;
+        return match(primitives, requiredPrimitives);
     }
 }

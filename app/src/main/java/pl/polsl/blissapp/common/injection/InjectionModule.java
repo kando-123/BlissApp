@@ -10,8 +10,7 @@ import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.AlchemyRepository;
@@ -30,8 +29,7 @@ public class InjectionModule
         {
             @Override
             public void getMatchingSymbols(Symbol symbol,
-                                           List<Radical> radicals,
-                                           List<Indicator> indicators,
+                                           List<Primitive> primitives,
                                            int maxCount,
                                            Callback<List<Symbol>, Exception> callback)
             {
@@ -72,9 +70,8 @@ public class InjectionModule
             }
 
             @Override
-            public void getConstructibleSymbol(List<Radical> r,
+            public void getConstructibleSymbol(List<Primitive> r,
                                                List<Symbol> s,
-                                               List<Indicator> i,
                                                Callback<List<Symbol>, Exception> callback)
             {
                 callback.onFailure(new Exception("Not implemented yet"));

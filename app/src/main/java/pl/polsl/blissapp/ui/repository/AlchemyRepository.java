@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 
 public interface AlchemyRepository
@@ -19,13 +18,12 @@ public interface AlchemyRepository
      *
      * <p>If no symbol can be constructed, method {@code onFailure} should be invoked.</p>
      *
-     * @param inputRadicals
+     * @param inputPrimitives
      * @param inputSymbols
      * @param callback
      */
-    void getConstructibleSymbol(List<Radical> inputRadicals,
+    void getConstructibleSymbol(List<Primitive> inputPrimitives,
                                 List<Symbol> inputSymbols,
-                                List<Indicator> inputIndicators,
                                 Callback<List<Symbol>, Exception> callback);
 
     /**

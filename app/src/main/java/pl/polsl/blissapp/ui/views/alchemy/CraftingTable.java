@@ -1,30 +1,53 @@
 package pl.polsl.blissapp.ui.views.alchemy;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 
 class CraftingTable
 {
-    final List<Symbol> symbols;
-    final List<Radical> radicals;
-    final List<Indicator> indicators;
+    private final List<Symbol> mSymbols;
+    private final List<Primitive> mPrimitives;
 
     CraftingTable()
     {
-        symbols = new ArrayList<>();
-        radicals = new ArrayList<>();
-        indicators = new ArrayList<>();
+        mSymbols = new ArrayList<>();
+        mPrimitives = new ArrayList<>();
     }
 
-    CraftingTable(CraftingTable other)
+    private CraftingTable(CraftingTable base)
     {
-        symbols = new ArrayList<>(other.symbols);
-        radicals = new ArrayList<>(other.radicals);
-        indicators = new ArrayList<>(other.indicators);
+        mSymbols = new ArrayList<>(base.mSymbols);
+        mPrimitives = new ArrayList<>(base.mPrimitives);
+    }
+
+    CraftingTable addSymbol(Symbol symbol)
+    {
+        CraftingTable copy = new CraftingTable(this);
+        copy.mSymbols.add(symbol);
+        return copy;
+    }
+
+    CraftingTable addRadical(Primitive primitive)
+    {
+        CraftingTable copy = new CraftingTable(this);
+        copy.mPrimitives.add(primitive);
+        return copy;
+    }
+
+    CraftingTable removeSymbol(Symbol symbol)
+    {
+        CraftingTable copy = new CraftingTable(this);
+        copy.mSymbols.remove(symbol);
+        return copy;
+    }
+
+    CraftingTable removeRadical(Primitive primitive)
+    {
+        CraftingTable copy = new CraftingTable(this);
+        copy.mPrimitives.remove(primitive);
+        return copy;
     }
 }

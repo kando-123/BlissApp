@@ -1,4 +1,4 @@
-package pl.polsl.blissapp.ui.views.radicalwriter;
+package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,26 +17,26 @@ import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import pl.polsl.blissapp.R;
-import pl.polsl.blissapp.data.model.Indicator;
-import pl.polsl.blissapp.data.model.Radical;
+import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 import pl.polsl.blissapp.ui.views.keyboard.ControlKey;
 
 @AndroidEntryPoint
-public class RadicalWriterFragment extends Fragment {
+public class BlissWriterFragment extends Fragment
+{
 
     private BlissKeyboardViewModel keyboardViewModel;
-    private RadicalWriterViewModel writerViewModel;
+    private BlissWriterViewModel writerViewModel;
     private FilterAdapter filterAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_radical_writer, container, false);
-        // return inflater.inflate(R.layout.hello_world, container, false);
+                             @Nullable Bundle savedInstanceState)
+    {
+        return inflater.inflate(R.layout.fragment_bliss_writer, container, false);
     }
 
     @Override
@@ -45,17 +45,13 @@ public class RadicalWriterFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
-        writerViewModel = new ViewModelProvider(this).get(RadicalWriterViewModel.class);
+        writerViewModel = new ViewModelProvider(this).get(BlissWriterViewModel.class);
 
         setupFilterView(view);
 
         /* Pass the writer VM the information that a radical was input from the keyboard. */
-        LiveData<Radical> kbdRadicalInput = keyboardViewModel.getRadicalInput();
-        kbdRadicalInput.observe(getViewLifecycleOwner(), writerViewModel::putRadical);
-
-        /* Pass the writer VM the information that an indicator was input from the keyboard. */
-        LiveData<Indicator> kbdIndicatorInput = keyboardViewModel.getIndicatorInput();
-        kbdIndicatorInput.observe(getViewLifecycleOwner(), writerViewModel::putIndicator);
+        LiveData<Primitive> kbdPrimitiveInput = keyboardViewModel.getPrimitiveInput();
+        kbdPrimitiveInput.observe(getViewLifecycleOwner(), writerViewModel::putRadical);
 
         /* Pass the writer VM the information that a control key was input from the keyboard. */
         LiveData<ControlKey> kbdControlInput = keyboardViewModel.getControlInput();
