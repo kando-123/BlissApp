@@ -31,8 +31,8 @@ import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.ui.mapping.DrawableMapper;
 
 @AndroidEntryPoint
-public class BlissKeyboardFragment extends Fragment {
-
+public class BlissKeyboardFragment extends Fragment
+{
     private static final int VARIANTS_PER_ROW = 6;
 
     private BlissKeyboardViewModel mViewModel;
@@ -41,19 +41,29 @@ public class BlissKeyboardFragment extends Fragment {
     private ImageButton mIndicatorModeButton;
     private PopupWindow mCurrentPopupWindow;
 
+    public BlissKeyboardViewModel getViewModel()
+    {
+        return mViewModel;
+    }
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState)
+    {
         Fragment parent = getParentFragment();
-        mViewModel = new ViewModelProvider(parent != null? parent: requireActivity())
-                            .get(BlissKeyboardViewModel.class);
+        mViewModel = new ViewModelProvider(parent != null ? parent : this)
+                .get(BlissKeyboardViewModel.class);
         return createKeyboardView();
     }
 
     @Override
-    public void onDestroyView() {
+    public void onDestroyView()
+    {
         super.onDestroyView();
-        if (mCurrentPopupWindow != null && mCurrentPopupWindow.isShowing()) {
+        if (mCurrentPopupWindow != null && mCurrentPopupWindow.isShowing())
+        {
             mCurrentPopupWindow.dismiss();
         }
         mCurrentPopupWindow = null;
@@ -61,7 +71,8 @@ public class BlissKeyboardFragment extends Fragment {
 
     // --- KEYBOARD UI GENERATION ---
 
-    private View createKeyboardView() {
+    private View createKeyboardView()
+    {
         LinearLayout keyboardLayout = new LinearLayout(getContext());
         keyboardLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         keyboardLayout.setOrientation(LinearLayout.VERTICAL);
@@ -70,20 +81,23 @@ public class BlissKeyboardFragment extends Fragment {
         int padding = getResources().getDimensionPixelSize(R.dimen.keyboard_padding);
         keyboardLayout.setPadding(padding, padding, padding, padding);
 
-        for (List<KeyUI> rowConfig : getKeyboardRows()) {
+        for (List<KeyUI> rowConfig : getKeyboardRows())
+        {
             keyboardLayout.addView(createRowView(rowConfig));
         }
 
         return keyboardLayout;
     }
 
-    private View createRowView(List<KeyUI> rowConfig) {
+    private View createRowView(List<KeyUI> rowConfig)
+    {
         LinearLayout rowLayout = new LinearLayout(getContext());
         rowLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         rowLayout.setOrientation(LinearLayout.HORIZONTAL);
         rowLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        for (KeyUI keyConfig : rowConfig) {
+        for (KeyUI keyConfig : rowConfig)
+        {
             View keyView = createKeyView(keyConfig);
             setupKeyLogic(keyView, keyConfig);
             rowLayout.addView(keyView);
@@ -91,12 +105,14 @@ public class BlissKeyboardFragment extends Fragment {
         return rowLayout;
     }
 
-    private View createKeyView(KeyUI keyConfig) {
+    private View createKeyView(KeyUI keyConfig)
+    {
         int keyHeight = getResources().getDimensionPixelSize(R.dimen.keyboard_key_height);
         int keyMargin = getResources().getDimensionPixelSize(R.dimen.keyboard_key_margin);
         int keyPadding = getResources().getDimensionPixelSize(R.dimen.keyboard_key_padding);
 
-        if (keyConfig instanceof BlissKeyUI) {
+        if (keyConfig instanceof BlissKeyUI)
+        {
             ImageButton imageButton = new ImageButton(getContext());
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
             params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
@@ -110,8 +126,9 @@ public class BlissKeyboardFragment extends Fragment {
 
             mRadicalButtons.add(imageButton);
             return imageButton;
-
-        } else if (keyConfig instanceof ControlKeyUI) {
+        }
+        else if (keyConfig instanceof ControlKeyUI)
+        {
             ControlKey action = ((ControlKeyUI) keyConfig).action;
             ImageButton imageButton = new ImageButton(getContext());
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
@@ -122,7 +139,8 @@ public class BlissKeyboardFragment extends Fragment {
             imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
 
-            switch (action) {
+            switch (action)
+            {
                 case POP_SYMBOL:
                     imageButton.setImageResource(android.R.drawable.ic_input_delete);
                     imageButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.black), PorterDuff.Mode.SRC_ATOP);
@@ -146,11 +164,23 @@ public class BlissKeyboardFragment extends Fragment {
 
     // --- KEYBOARD CONFIGURATION DSL ---
 
-    private BlissKeyUI key(Primitive r) { return new BlissKeyUI(r, null, 1f); }
-    private BlissKeyUI key(Primitive r, Primitive i) { return new BlissKeyUI(r, i, 1f); }
-    private ControlKeyUI ctrl(ControlKey c, float weight) { return new ControlKeyUI(c, weight); }
+    private BlissKeyUI key(Primitive r)
+    {
+        return new BlissKeyUI(r, null, 1f);
+    }
 
-    private List<List<KeyUI>> getKeyboardRows() {
+    private BlissKeyUI key(Primitive r, Primitive i)
+    {
+        return new BlissKeyUI(r, i, 1f);
+    }
+
+    private ControlKeyUI ctrl(ControlKey c, float weight)
+    {
+        return new ControlKeyUI(c, weight);
+    }
+
+    private List<List<KeyUI>> getKeyboardRows()
+    {
         return Arrays.asList(
                 // ROW 1
                 Arrays.asList(
@@ -198,18 +228,22 @@ public class BlissKeyboardFragment extends Fragment {
 
     // --- EVENT HANDLING LOGIC ---
 
-    private void setupKeyLogic(View buttonView, KeyUI blueprint) {
+    private void setupKeyLogic(View buttonView, KeyUI blueprint)
+    {
         buttonView.setTag(blueprint);
 
-        if (blueprint instanceof BlissKeyUI blissKey) {
+        if (blueprint instanceof BlissKeyUI blissKey)
+        {
             final List<Primitive> variants = Primitive.getChildren(blissKey.basePrimitive);
 
             // Standard Click
-            buttonView.setOnClickListener(v -> {
-                if (mIsIndicatorMode) {
+            buttonView.setOnClickListener(v ->
+            {
+                if (mIsIndicatorMode)
+                {
                     if (blissKey.indicator != null)
                     {
-                        mViewModel.onBlissKeyTapped(blissKey.indicator);;
+                        mViewModel.onBlissKeyTapped(blissKey.indicator);
 
                         // Turn indicator mode off automatically using the cached button
                         if (mIndicatorModeButton != null && mIsIndicatorMode)
@@ -217,29 +251,40 @@ public class BlissKeyboardFragment extends Fragment {
                             toggleIndicatorMode(mIndicatorModeButton);
                         }
                     }
-                } else {
+                }
+                else
+                {
                     mViewModel.onBlissKeyTapped(blissKey.basePrimitive);
                 }
             });
 
             // Long Click Variants (Disabled if Indicator mode is ON)
-            if (!variants.isEmpty()) {
-                buttonView.setOnLongClickListener(v -> {
-                    if (!mIsIndicatorMode) {
+            if (!variants.isEmpty())
+            {
+                buttonView.setOnLongClickListener(v ->
+                {
+                    if (!mIsIndicatorMode)
+                    {
                         showVariantsPopup(buttonView, variants);
                         return true;
                     }
                     return false;
                 });
-            } else {
+            }
+            else
+            {
                 buttonView.setLongClickable(false);
             }
-        } else if (blueprint instanceof ControlKeyUI controlKey) {
-            buttonView.setOnClickListener(v -> {
+        }
+        else if (blueprint instanceof ControlKeyUI controlKey)
+        {
+            buttonView.setOnClickListener(v ->
+            {
                 if (controlKey.action == ControlKey.INDICATOR_MODE)
                 {
                     toggleIndicatorMode((ImageButton) buttonView);
-                } else
+                }
+                else
                 {
                     mViewModel.onControlKeyTapped(controlKey.action);
                 }
@@ -256,21 +301,28 @@ public class BlissKeyboardFragment extends Fragment {
         shiftButton.setActivated(mIsIndicatorMode);
 
         // Loop through all Radical buttons and update their appearance
-        for (View btn : mRadicalButtons) {
+        for (View btn : mRadicalButtons)
+        {
             BlissKeyUI blueprint = (BlissKeyUI) btn.getTag();
             ImageButton imgBtn = (ImageButton) btn;
 
-            if (mIsIndicatorMode) {
-                if (blueprint.indicator != null) { // Direct null check clears IDE warning
+            if (mIsIndicatorMode)
+            {
+                if (blueprint.indicator != null)
+                { // Direct null check clears IDE warning
                     imgBtn.setImageResource(DrawableMapper.getDrawableRes(blueprint.indicator));
                     imgBtn.setAlpha(1.0f);
                     imgBtn.setEnabled(true);
-                } else {
+                }
+                else
+                {
                     // Disable keys that have a NULL indicator
                     imgBtn.setAlpha(0.25f);
                     imgBtn.setEnabled(false);
                 }
-            } else {
+            }
+            else
+            {
                 imgBtn.setImageResource(DrawableMapper.getDrawableRes(blueprint.basePrimitive));
                 imgBtn.setAlpha(1.0f);
                 imgBtn.setEnabled(true);
@@ -278,9 +330,13 @@ public class BlissKeyboardFragment extends Fragment {
         }
     }
 
-    private void showVariantsPopup(View anchorView, List<Primitive> variants) {
+    private void showVariantsPopup(View anchorView, List<Primitive> variants)
+    {
         Context context = getContext();
-        if (context == null) return;
+        if (context == null)
+        {
+            return;
+        }
 
         int popupOffset = getResources().getDimensionPixelSize(R.dimen.keyboard_popup_offset);
 
@@ -292,8 +348,10 @@ public class BlissKeyboardFragment extends Fragment {
         mCurrentPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         LinearLayout currentRow = null;
-        for (int i = 0; i < variants.size(); i++) {
-            if (i % VARIANTS_PER_ROW == 0) {
+        for (int i = 0; i < variants.size(); i++)
+        {
+            if (i % VARIANTS_PER_ROW == 0)
+            {
                 currentRow = new LinearLayout(context);
                 currentRow.setOrientation(LinearLayout.HORIZONTAL);
                 container.addView(currentRow);
@@ -315,7 +373,8 @@ public class BlissKeyboardFragment extends Fragment {
     }
 
     @NonNull
-    private ImageButton getVariantButton(@NonNull Context context, Primitive variant, PopupWindow popupWindow) {
+    private ImageButton getVariantButton(@NonNull Context context, Primitive variant, PopupWindow popupWindow)
+    {
         int keyHeight = getResources().getDimensionPixelSize(R.dimen.keyboard_key_height);
         int keyMargin = getResources().getDimensionPixelSize(R.dimen.keyboard_key_margin);
         int keyPadding = getResources().getDimensionPixelSize(R.dimen.keyboard_key_padding);
@@ -331,7 +390,8 @@ public class BlissKeyboardFragment extends Fragment {
         btn.setScaleType(ImageView.ScaleType.FIT_CENTER);
         btn.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
 
-        btn.setOnClickListener(v -> {
+        btn.setOnClickListener(v ->
+        {
             mViewModel.onBlissKeyTapped(variant);
             popupWindow.dismiss();
         });

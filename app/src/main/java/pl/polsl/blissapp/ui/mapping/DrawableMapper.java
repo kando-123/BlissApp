@@ -121,13 +121,13 @@ public class DrawableMapper {
         radicalMap.put(ACUTE_ANGLE_SMALL_NORTH, R.drawable.radical_acute_angle_small_north);
         radicalMap.put(ACUTE_ANGLE_SMALL_SOUTH, R.drawable.radical_acute_angle_small_south);
 
-        radicalMap.put(ACUTE_ANGLE_WEIRD, R.drawable.radical_acute_angle_weird);
-        // ACUTE_ANGLE_WEIRD_NORTH,
-        // ACUTE_ANGLE_WEIRD_EAST
-        // ACUTE_ANGLE_WEIRD_SOUTHEAST
-        // ACUTE_ANGLE_WEIRD_SOUTH
-        // ACUTE_ANGLE_WEIRD_SOUTHWEST
-        // ACUTE_ANGLE_WEIRD_WEST
+        radicalMap.put(WEIRD_ANGLE, R.drawable.radical_acute_angle_weird);
+        // radicalMap.put(WEIRD_ANGLE_NORTH, R.drawable.radical_weird_angle_north);
+        // radicalMap.put(WEIRD_ANGLE_EAST, R.drawable.radical_weird_angle_east);
+        // radicalMap.put(WEIRD_ANGLE_SOUTHEAST, R.drawable.radical_weird_angle_southeast);
+        // radicalMap.put(WEIRD_ANGLE_SOUTH, R.drawable.radical_weird_angle_south);
+        // radicalMap.put(WEIRD_ANGLE_SOUTHWEST, R.drawable.radical_weird_angle_southwest);
+        // radicalMap.put(WEIRD_ANGLE_WEST, R.drawable.radical_weird_angle_west);
 
         radicalMap.put(ACUTE_TRIANGLE, R.drawable.radical_acute_triangle_large_north);
         radicalMap.put(ACUTE_TRIANGLE_LARGE_NORTH, R.drawable.radical_acute_triangle_large_north);

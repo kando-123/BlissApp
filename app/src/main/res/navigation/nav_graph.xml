@@ -11,7 +11,7 @@
 
     <fragment
         android:id="@+id/nav_writer"
-        android:name="pl.polsl.blissapp.ui.views.radicalwriter.RadicalWriterFragment"
+        android:name="pl.polsl.blissapp.ui.views.blisswriter.BlissWriterFragment"
         android:label="Writer" />
 
     <fragment

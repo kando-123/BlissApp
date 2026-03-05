@@ -1,5 +1,7 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -19,68 +21,72 @@ import pl.polsl.blissapp.ui.repository.SymbolRepository;
 @HiltViewModel
 public class BlissWriterViewModel extends ViewModel
 {
-    private final SymbolRepository symbolRepository;
-    private final MutableLiveData<List<Symbol>> message = new MutableLiveData<>();
-    private final MutableLiveData<List<Symbol>> hints = new MutableLiveData<>();
-    private final MutableLiveData<SearchFilter> filter = new MutableLiveData<>();
-    private final MutableLiveData<Exception> failure = new MutableLiveData<>();
+    private final SymbolRepository mSymbolRepository;
+    private final MutableLiveData<List<Symbol>> mMessage = new MutableLiveData<>();
+    private final MutableLiveData<List<Symbol>> mHints = new MutableLiveData<>();
+    private final MutableLiveData<SearchFilter> mFilter = new MutableLiveData<>();
+    private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
     private static final int MAX_HINT_COUNT = 20; // Change if more or less is needed
 
     @Inject
     public BlissWriterViewModel(SymbolRepository symbolRepository)
     {
-        this.symbolRepository = symbolRepository;
+        mSymbolRepository = symbolRepository;
 
         // Initially, the message contains an element, but the element is empty (no symbol).
         // Graphically, it is an empty tile.
         List<Symbol> list = new ArrayList<>();
         list.add(null);
-        message.setValue(list);
-        filter.setValue(new SearchFilter());
+        mMessage.setValue(list);
+        mFilter.setValue(new SearchFilter());
     }
 
-    public LiveData<List<Symbol>> getMessage()
+    LiveData<List<Symbol>> getMessage()
     {
-        return message;
+        return mMessage;
     }
 
-    public LiveData<List<Symbol>> getHints()
+    LiveData<List<Symbol>> getHints()
     {
-        return hints;
+        return mHints;
     }
 
-    public LiveData<SearchFilter> getFilter()
+    LiveData<SearchFilter> getFilter()
     {
-        return filter;
+        return mFilter;
     }
 
-    public LiveData<Exception> getFailure()
+    LiveData<Exception> getFailure()
     {
-        return failure;
+        return mFailure;
     }
 
-    public void putRadical(Primitive primitive)
+    public void putPrimitive(Primitive primitive)
     {
-        SearchFilter value = filter.getValue();
+        Log.d("BlissWriterViewModel", "Putting primitive: " + primitive.name());
+
+        SearchFilter value = mFilter.getValue();
         assert value != null;
         value.addPrimitive(primitive);
-        filter.setValue(value);
+        mFilter.setValue(value);
         updateHints();
     }
 
-    public void removeRadical(Primitive primitive)
+    public void removePrimitive(Primitive primitive)
     {
-        SearchFilter value = filter.getValue();
+        Log.d("BlissWriterViewModel", "Removing primitive: " + primitive.name());
+
+        SearchFilter value = mFilter.getValue();
         assert value != null;
         value.removePrimitive(primitive);
-        filter.setValue(value);
+        mFilter.setValue(value);
         updateHints();
     }
 
     public void selectHint(Symbol symbol)
     {
-        List<Symbol> list = message.getValue();
+        List<Symbol> list = mMessage.getValue();
         assert list != null;
         // The list is always non-empty, because when it does not end
         // with an actual symbol, it ends with a null.
@@ -88,20 +94,22 @@ public class BlissWriterViewModel extends ViewModel
 
         /* Substitute the last element (null or an actual symbol) with the new one. */
         list.set(list.size() - 1, symbol);
-        message.setValue(list);
+        mMessage.setValue(list);
 
         // Clear the filter
-        filter.setValue(new SearchFilter());
+        mFilter.setValue(new SearchFilter());
         updateHints();
     }
 
     private void updateHints()
     {
-        List<Symbol> symbols = message.getValue();
+        Log.d("BlissWriterViewModel", "Updating hints");
+
+        List<Symbol> symbols = mMessage.getValue();
         assert symbols != null;
         Symbol symbol = symbols.get(symbols.size() - 1);
 
-        SearchFilter sf = filter.getValue();
+        SearchFilter sf = mFilter.getValue();
         assert sf != null;
 
         List<Primitive> primitives = sf.getPrimitives();
@@ -112,24 +120,23 @@ public class BlissWriterViewModel extends ViewModel
             @Override
             public void onSuccess(List<Symbol> data)
             {
-                hints.setValue(data);
+                mHints.setValue(data);
             }
 
             @Override
             public void onFailure(Exception data)
             {
-                hints.setValue(Collections.emptyList());
-                failure.setValue(data);
+                mHints.setValue(Collections.emptyList());
+                mFailure.setValue(data);
             }
         };
-        if (symbolRepository != null) {
-            symbolRepository.getMatchingSymbols(symbol, primitives, MAX_HINT_COUNT, callback);
-        }
+        assert mSymbolRepository != null : "SymbolRepository was called but it had not been injected (it was null)!";
+        mSymbolRepository.getMatchingSymbols(symbol, primitives, MAX_HINT_COUNT, callback);
     }
 
     public void popSymbol()
     {
-        List<Symbol> list = message.getValue();
+        List<Symbol> list = mMessage.getValue();
         assert list != null;
         if (!list.isEmpty())
         {
@@ -139,20 +146,20 @@ public class BlissWriterViewModel extends ViewModel
         {
             list.add(null);
         }
-        message.setValue(list);
+        mMessage.setValue(list);
         updateHints();
     }
 
     public void confirmSymbol()
     {
-        List<Symbol> list = message.getValue();
+        List<Symbol> list = mMessage.getValue();
         assert list != null;
         if (list.get(list.size() - 1) != null)
         {
             list.add(null);
-            hints.setValue(Collections.emptyList());
-            filter.setValue(new SearchFilter());
-            message.setValue(list);
+            mHints.setValue(Collections.emptyList());
+            mFilter.setValue(new SearchFilter());
+            mMessage.setValue(list);
         }
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,10 +26,9 @@ import pl.polsl.blissapp.ui.views.keyboard.ControlKey;
 @AndroidEntryPoint
 public class BlissWriterFragment extends Fragment
 {
-
-    private BlissKeyboardViewModel keyboardViewModel;
-    private BlissWriterViewModel writerViewModel;
-    private FilterAdapter filterAdapter;
+    private BlissKeyboardViewModel mKeyboardViewModel;
+    private BlissWriterViewModel mWriterViewModel;
+    private FilterAdapter mFilterAdapter;
 
     @Nullable
     @Override
@@ -44,55 +44,55 @@ public class BlissWriterFragment extends Fragment
     {
         super.onViewCreated(view, savedInstanceState);
 
-        keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
-        writerViewModel = new ViewModelProvider(this).get(BlissWriterViewModel.class);
+        mKeyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
+        mWriterViewModel = new ViewModelProvider(this).get(BlissWriterViewModel.class);
 
         setupFilterView(view);
 
         /* Pass the writer VM the information that a radical was input from the keyboard. */
-        LiveData<Primitive> kbdPrimitiveInput = keyboardViewModel.getPrimitiveInput();
-        kbdPrimitiveInput.observe(getViewLifecycleOwner(), writerViewModel::putRadical);
+        LiveData<Primitive> kbdPrimitiveInput = mKeyboardViewModel.getPrimitiveInput();
+        kbdPrimitiveInput.observe(getViewLifecycleOwner(), mWriterViewModel::putPrimitive);
 
         /* Pass the writer VM the information that a control key was input from the keyboard. */
-        LiveData<ControlKey> kbdControlInput = keyboardViewModel.getControlInput();
+        LiveData<ControlKey> kbdControlInput = mKeyboardViewModel.getControlInput();
         kbdControlInput.observe(getViewLifecycleOwner(), controlKey ->
         {
             switch (controlKey)
             {
-                case POP_SYMBOL -> writerViewModel.popSymbol();
-                case PUSH_SYMBOL -> writerViewModel.confirmSymbol();
+                case POP_SYMBOL -> mWriterViewModel.popSymbol();
+                case PUSH_SYMBOL -> mWriterViewModel.confirmSymbol();
             }
         });
 
         /* Set the callbacks to changes in the writer VM. */
 
-        LiveData<List<Symbol>> message = writerViewModel.getMessage();
+        LiveData<List<Symbol>> message = mWriterViewModel.getMessage();
         message.observe(getViewLifecycleOwner(), symbols ->
         {
             /* Render the message. */
         });
 
-        LiveData<List<Symbol>> hints = writerViewModel.getHints();
+        LiveData<List<Symbol>> hints = mWriterViewModel.getHints();
         hints.observe(getViewLifecycleOwner(), symbols ->
         {
             /* Render the hints. */
         });
 
-        LiveData<SearchFilter> filter = writerViewModel.getFilter();
-        filter.observe(getViewLifecycleOwner(), filterAdapter::update);
+        LiveData<SearchFilter> filter = mWriterViewModel.getFilter();
+        filter.observe(getViewLifecycleOwner(), mFilterAdapter::update);
 
-        LiveData<Exception> failure = writerViewModel.getFailure();
+        LiveData<Exception> failure = mWriterViewModel.getFailure();
         failure.observe(getViewLifecycleOwner(), exception ->
         {
-            /* Render the failure, e.g. use a toast. */
+            Toast.makeText(getContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 
     private void setupFilterView(View root)
     {
         RecyclerView filterView = root.findViewById(R.id.rv_filters);
-        filterAdapter = new FilterAdapter(writerViewModel);
-        filterView.setAdapter(filterAdapter);
+        mFilterAdapter = new FilterAdapter(mWriterViewModel);
+        filterView.setAdapter(mFilterAdapter);
         filterView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
     }
 }

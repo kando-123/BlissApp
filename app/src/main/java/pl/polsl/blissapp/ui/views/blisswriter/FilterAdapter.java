@@ -81,7 +81,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
         holder.itemView.setOnClickListener(v -> {
             if (item instanceof Primitive) {
-                mViewModel.removeRadical((Primitive) item);
+                mViewModel.removePrimitive((Primitive) item);
             }
         });
     }
