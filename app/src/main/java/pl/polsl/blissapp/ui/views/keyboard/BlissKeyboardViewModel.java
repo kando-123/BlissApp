@@ -10,19 +10,19 @@ import pl.polsl.blissapp.data.model.Primitive;
 @HiltViewModel
 public class BlissKeyboardViewModel extends ViewModel
 {
-    private final MutableLiveData<Primitive> mRadicalInput;
+    private final MutableLiveData<Primitive> mPrimitiveInput;
     private final MutableLiveData<ControlKey> mControlInput;
 
     @Inject
     public BlissKeyboardViewModel()
     {
-        mRadicalInput = new MutableLiveData<>();
+        mPrimitiveInput = new MutableLiveData<>();
         mControlInput = new MutableLiveData<>();
     }
 
     public void onBlissKeyTapped(Primitive primitive)
     {
-        mRadicalInput.setValue(primitive);
+        mPrimitiveInput.setValue(primitive);
     }
 
     public void onControlKeyTapped(ControlKey key)
@@ -30,6 +30,12 @@ public class BlissKeyboardViewModel extends ViewModel
         mControlInput.setValue(key);
     }
 
-    public LiveData<Primitive> getPrimitiveInput() { return mRadicalInput; }
+    public LiveData<Primitive> getPrimitiveInput() { return mPrimitiveInput; }
     public LiveData<ControlKey> getControlInput() { return mControlInput; }
+
+    public void clearInputs()
+    {
+        mPrimitiveInput.setValue(null);
+        mControlInput.setValue(null);
+    }
 }

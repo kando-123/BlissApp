@@ -28,12 +28,12 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         mItems = new ArrayList<>();
     }
 
-    public void update(SearchFilter filter)
+    public void update(List<Primitive> filter)
     {
         mItems.clear();
         if (filter != null)
         {
-            mItems.addAll(countItems(filter.getPrimitives()));
+            mItems.addAll(countItems(filter));
         }
 
         notifyDataSetChanged();

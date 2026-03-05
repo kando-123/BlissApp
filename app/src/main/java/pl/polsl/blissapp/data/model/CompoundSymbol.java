@@ -40,6 +40,14 @@ public final class CompoundSymbol extends Symbol
         return units;
     }
 
+    /**
+     * If {@code provided} begins with {@code required}, returns the list of the remaining provided
+     * {@code SimpleSymbols}. Otherwise, {@code null} is returned to signalize failure.
+     *
+     * @param provided
+     * @param required
+     * @return
+     */
     private static List<SimpleSymbol> subtractRequiredSymbols(List<SimpleSymbol> provided,
                                                               List<SimpleSymbol> required)
     {
@@ -90,7 +98,9 @@ public final class CompoundSymbol extends Symbol
         List<SimpleSymbol> remainder = subtractRequiredSymbols(units, requiredSymbols);
 
         if (remainder == null)
-            return -1;
+        {
+            return MATCH_FAILURE;
+        }
 
         List<Primitive> primitives = remainder.stream()
                 .flatMap(s -> s.getPrimitives().stream())

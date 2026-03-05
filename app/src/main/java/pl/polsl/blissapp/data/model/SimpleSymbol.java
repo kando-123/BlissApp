@@ -34,4 +34,19 @@ public final class SimpleSymbol extends Symbol
     {
         return match(mPrimitives, requiredPrimitives);
     }
+
+    @Override
+    public int matches(Symbol subSymbol, List<Primitive> requiredPrimitives)
+    {
+        if (subSymbol == null)
+        {
+            return matches(requiredPrimitives);
+        }
+        else
+        {
+            return equals(subSymbol) && requiredPrimitives.isEmpty()
+                    ? EXACT_MATCH
+                    : MATCH_FAILURE;
+        }
+    }
 }

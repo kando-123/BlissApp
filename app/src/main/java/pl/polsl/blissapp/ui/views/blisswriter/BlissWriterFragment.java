@@ -49,6 +49,8 @@ public class BlissWriterFragment extends Fragment
 
         setupFilterView(view);
 
+        mKeyboardViewModel.clearInputs();
+
         /* Pass the writer VM the information that a radical was input from the keyboard. */
         LiveData<Primitive> kbdPrimitiveInput = mKeyboardViewModel.getPrimitiveInput();
         kbdPrimitiveInput.observe(getViewLifecycleOwner(), mWriterViewModel::putPrimitive);
@@ -57,6 +59,7 @@ public class BlissWriterFragment extends Fragment
         LiveData<ControlKey> kbdControlInput = mKeyboardViewModel.getControlInput();
         kbdControlInput.observe(getViewLifecycleOwner(), controlKey ->
         {
+            if (controlKey == null) { return; }
             switch (controlKey)
             {
                 case POP_SYMBOL -> mWriterViewModel.popSymbol();
@@ -78,7 +81,7 @@ public class BlissWriterFragment extends Fragment
             /* Render the hints. */
         });
 
-        LiveData<SearchFilter> filter = mWriterViewModel.getFilter();
+        LiveData<List<Primitive>> filter = mWriterViewModel.getFilter();
         filter.observe(getViewLifecycleOwner(), mFilterAdapter::update);
 
         LiveData<Exception> failure = mWriterViewModel.getFailure();

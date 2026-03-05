@@ -39,6 +39,9 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         return Integer.hashCode(index);
     }
 
+    protected static final int MATCH_FAILURE = -1;
+    protected static final int EXACT_MATCH = 0;
+
     /**
      * The method evaluates how the provided radicals match the required ones.
      *
@@ -64,7 +67,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         // If more is required than is provided, the match is failed.
         if (required.size() > provided.size())
         {
-            return -1;
+            return MATCH_FAILURE;
         }
 
         // Count the radicals provided as positive,
@@ -99,7 +102,7 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         // (the parent) was not covered by the provided specific radicals (the children).
         if (Primitive.getParentPrimitives().stream().anyMatch(r -> counter[r.ordinal()] < 0))
         {
-            return -1;
+            return MATCH_FAILURE;
         }
 
         // Step 3. If a radical is provided in one form but required in another form (a "sibling"),
@@ -128,10 +131,12 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         {
             if (count < 0)
             {
-                return -1;
+                return MATCH_FAILURE;
             }
             result += count;
         }
         return result;
     }
+
+    public abstract int matches(Symbol subSymbol, List<Primitive> requiredPrimitives);
 }

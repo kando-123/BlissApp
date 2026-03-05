@@ -143,10 +143,10 @@ public class DrawableMapper {
         radicalMap.put(VERTICAL_LINE_SMALL, R.drawable.radical_vertical_line_small);
 
         radicalMap.put(DIAGONAL_LINE, R.drawable.radical_diagonal_line_large_northeast);
-        radicalMap.put(DIAGONAL_LINE_LARGE_NORTHEAST, R.drawable.radical_diagonal_line_large_northeast);
-        radicalMap.put(DIAGONAL_LINE_LARGE_SOUTHEAST, R.drawable.radical_diagonal_line_large_southeast);
-        radicalMap.put(DIAGONAL_LINE_SMALL_NORTHEAST, R.drawable.radical_diagonal_line_small_northeast);
-        radicalMap.put(DIAGONAL_LINE_SMALL_SOUTHEAST, R.drawable.radical_diagonal_line_small_southeast);
+        radicalMap.put(DIAGONAL_LINE_LARGE_UPWARD, R.drawable.radical_diagonal_line_large_northeast);
+        radicalMap.put(DIAGONAL_LINE_LARGE_DOWNWARD, R.drawable.radical_diagonal_line_large_southeast);
+        radicalMap.put(DIAGONAL_LINE_SMALL_UPWARD, R.drawable.radical_diagonal_line_small_northeast);
+        radicalMap.put(DIAGONAL_LINE_SMALL_DOWNWARD, R.drawable.radical_diagonal_line_small_southeast);
 
         radicalMap.put(POINTER, R.drawable.radical_pointer_south);
         radicalMap.put(POINTER_NORTH, R.drawable.radical_pointer_north);

@@ -2,6 +2,8 @@ package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -24,10 +26,10 @@ public class BlissWriterViewModel extends ViewModel
     private final SymbolRepository mSymbolRepository;
     private final MutableLiveData<List<Symbol>> mMessage = new MutableLiveData<>();
     private final MutableLiveData<List<Symbol>> mHints = new MutableLiveData<>();
-    private final MutableLiveData<SearchFilter> mFilter = new MutableLiveData<>();
+    private final MutableLiveData<List<Primitive>> mFilter = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
-    private static final int MAX_HINT_COUNT = 20; // Change if more or less is needed
+    private static final int MAX_HINT_COUNT = 20; // Feel free to change if more or less are needed
 
     @Inject
     public BlissWriterViewModel(SymbolRepository symbolRepository)
@@ -39,7 +41,7 @@ public class BlissWriterViewModel extends ViewModel
         List<Symbol> list = new ArrayList<>();
         list.add(null);
         mMessage.setValue(list);
-        mFilter.setValue(new SearchFilter());
+        mFilter.setValue(new ArrayList<>());
     }
 
     LiveData<List<Symbol>> getMessage()
@@ -52,7 +54,7 @@ public class BlissWriterViewModel extends ViewModel
         return mHints;
     }
 
-    LiveData<SearchFilter> getFilter()
+    LiveData<List<Primitive>> getFilter()
     {
         return mFilter;
     }
@@ -62,24 +64,26 @@ public class BlissWriterViewModel extends ViewModel
         return mFailure;
     }
 
-    public void putPrimitive(Primitive primitive)
+    public void putPrimitive(@Nullable Primitive primitive)
     {
+        if (primitive == null) { return; }
+
         Log.d("BlissWriterViewModel", "Putting primitive: " + primitive.name());
 
-        SearchFilter value = mFilter.getValue();
+        List<Primitive> value = mFilter.getValue();
         assert value != null;
-        value.addPrimitive(primitive);
+        value.add(primitive);
         mFilter.setValue(value);
         updateHints();
     }
 
-    public void removePrimitive(Primitive primitive)
+    public void removePrimitive(@NonNull Primitive primitive)
     {
         Log.d("BlissWriterViewModel", "Removing primitive: " + primitive.name());
 
-        SearchFilter value = mFilter.getValue();
+        List<Primitive> value = mFilter.getValue();
         assert value != null;
-        value.removePrimitive(primitive);
+        value.remove(primitive);
         mFilter.setValue(value);
         updateHints();
     }
@@ -97,7 +101,7 @@ public class BlissWriterViewModel extends ViewModel
         mMessage.setValue(list);
 
         // Clear the filter
-        mFilter.setValue(new SearchFilter());
+        mFilter.setValue(new ArrayList<>());
         updateHints();
     }
 
@@ -109,10 +113,7 @@ public class BlissWriterViewModel extends ViewModel
         assert symbols != null;
         Symbol symbol = symbols.get(symbols.size() - 1);
 
-        SearchFilter sf = mFilter.getValue();
-        assert sf != null;
-
-        List<Primitive> primitives = sf.getPrimitives();
+        List<Primitive> primitives = mFilter.getValue();
         assert primitives != null;
 
         var callback = new Callback<List<Symbol>, Exception>()
@@ -158,7 +159,7 @@ public class BlissWriterViewModel extends ViewModel
         {
             list.add(null);
             mHints.setValue(Collections.emptyList());
-            mFilter.setValue(new SearchFilter());
+            mFilter.setValue(new ArrayList<>());
             mMessage.setValue(list);
         }
     }
