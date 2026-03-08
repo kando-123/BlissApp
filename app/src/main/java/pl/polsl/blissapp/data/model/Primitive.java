@@ -117,12 +117,12 @@ public enum Primitive
     ACUTE_ANGLE_SMALL_SOUTH(ACUTE_ANGLE),
 
     WEIRD_ANGLE,
-    // WEIRD_ANGLE_NORTH(WEIRD_ANGLE),
-    // WEIRD_ANGLE_EAST(WEIRD_ANGLE),
-    // WEIRD_ANGLE_SOUTHEAST(WEIRD_ANGLE),
-    // WEIRD_ANGLE_SOUTH(WEIRD_ANGLE),
-    // WEIRD_ANGLE_SOUTHWEST(WEIRD_ANGLE),
-    // WEIRD_ANGLE_WEST(WEIRD_ANGLE),
+    WEIRD_ANGLE_NORTH(WEIRD_ANGLE),
+    WEIRD_ANGLE_EAST(WEIRD_ANGLE),
+    WEIRD_ANGLE_SOUTHEAST(WEIRD_ANGLE),
+    WEIRD_ANGLE_SOUTH(WEIRD_ANGLE),
+    WEIRD_ANGLE_SOUTHWEST(WEIRD_ANGLE),
+    WEIRD_ANGLE_WEST(WEIRD_ANGLE),
 
     ACUTE_TRIANGLE,
     ACUTE_TRIANGLE_LARGE_NORTH(ACUTE_TRIANGLE),
@@ -156,6 +156,7 @@ public enum Primitive
     PUNCTUATION,
     QUESTION_MARK(PUNCTUATION),
     EXCLAMATION_MARK(PUNCTUATION),
+	PERCENT_MARK(PUNCTUATION),
 
     DIGIT,
     DIGIT_ZERO(DIGIT),
@@ -233,11 +234,16 @@ public enum Primitive
 
     private static final List<Primitive> CHILD_PRIMITIVES;
 
-    static {
-        for (Primitive primitive : Primitive.values()) {
-            if (primitive.parent == null) {
+    static
+    {
+        for (Primitive primitive : Primitive.values())
+        {
+            if (primitive.parent == null)
+            {
                 parenthood.put(primitive, new ArrayList<>());
-            } else {
+            }
+            else
+            {
                 List<Primitive> children = parenthood.get(primitive.parent);
                 assert children != null: String.format("Child radical %s defined before its parent!",
                         primitive.name());
