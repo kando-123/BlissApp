@@ -19,4 +19,9 @@
         android:name="pl.polsl.blissapp.ui.views.alchemy.AlchemyFragment"
         android:label="Alchemy" />
 
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="pl.polsl.blissapp.ui.settings.SettingsFragment"
+        android:label="Settings" />
+
 </navigation>
