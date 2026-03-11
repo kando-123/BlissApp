@@ -13,4 +13,7 @@
     <dimen name="keyboard_popup_offset">10dp</dimen>
     <dimen name="filter_bar_height">70dp</dimen>
     <dimen name="keyboard_key_elevation">2dp</dimen>
+
+    <dimen name="keyboard_alt_image_offset_x">-25dp</dimen>
+    <dimen name="keyboard_alt_image_offset_y">-30dp</dimen>
 </resources>

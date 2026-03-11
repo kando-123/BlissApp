@@ -69,8 +69,8 @@ public class BlissWriterFragment extends Fragment
 
         /* Set the callbacks to changes in the writer VM. */
 
-        LiveData<List<Symbol>> message = mWriterViewModel.getMessage();
-        message.observe(getViewLifecycleOwner(), symbols ->
+        LiveData<List<BlissWriterViewModel.MessageItem>> message = mWriterViewModel.getMessage();
+        message.observe(getViewLifecycleOwner(), items ->
         {
             /* Render the message. */
         });

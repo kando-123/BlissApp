@@ -3,7 +3,9 @@ package pl.polsl.blissapp.ui.views.keyboard;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
 import javax.inject.Inject;
+
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.data.model.Primitive;
 
@@ -30,6 +32,11 @@ public class BlissKeyboardViewModel extends ViewModel
     public void onBlissKeyTapped(Primitive primitive)
     {
         mPrimitiveInput.setValue(primitive);
+    }
+
+    public void onAlphanumericKeyTapped(Primitive letter, boolean isShiftMode) {
+        Primitive target = isShiftMode ? letter.getUpperVariant() : letter;
+        mPrimitiveInput.setValue(target);
     }
 
     public void onControlKeyTapped(ControlKey key)

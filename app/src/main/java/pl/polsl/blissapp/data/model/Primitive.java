@@ -1,5 +1,7 @@
 package pl.polsl.blissapp.data.model;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -170,33 +172,23 @@ public enum Primitive
     DIGIT_EIGHT(DIGIT),
     DIGIT_NINE(DIGIT),
 
-    LETTER,
-    LETTER_A(LETTER),
-    LETTER_B(LETTER),
-    LETTER_C(LETTER),
-    LETTER_D(LETTER),
-    LETTER_E(LETTER),
-    LETTER_F(LETTER),
-    LETTER_G(LETTER),
-    LETTER_H(LETTER),
-    LETTER_I(LETTER),
-    LETTER_J(LETTER),
-    LETTER_K(LETTER),
-    LETTER_L(LETTER),
-    LETTER_M(LETTER),
-    LETTER_N(LETTER),
-    LETTER_O(LETTER),
-    LETTER_P(LETTER),
-    LETTER_Q(LETTER),
-    LETTER_R(LETTER),
-    LETTER_S(LETTER),
-    LETTER_T(LETTER),
-    LETTER_U(LETTER),
-    LETTER_V(LETTER),
-    LETTER_W(LETTER),
-    LETTER_X(LETTER),
-    LETTER_Y(LETTER),
-    LETTER_Z(LETTER),
+    LETTER_LOWER,
+    LETTER_LOWER_A(LETTER_LOWER), LETTER_LOWER_B(LETTER_LOWER), LETTER_LOWER_C(LETTER_LOWER), LETTER_LOWER_D(LETTER_LOWER),
+    LETTER_LOWER_E(LETTER_LOWER), LETTER_LOWER_F(LETTER_LOWER), LETTER_LOWER_G(LETTER_LOWER), LETTER_LOWER_H(LETTER_LOWER),
+    LETTER_LOWER_I(LETTER_LOWER), LETTER_LOWER_J(LETTER_LOWER), LETTER_LOWER_K(LETTER_LOWER), LETTER_LOWER_L(LETTER_LOWER),
+    LETTER_LOWER_M(LETTER_LOWER), LETTER_LOWER_N(LETTER_LOWER), LETTER_LOWER_O(LETTER_LOWER), LETTER_LOWER_P(LETTER_LOWER),
+    LETTER_LOWER_Q(LETTER_LOWER), LETTER_LOWER_R(LETTER_LOWER), LETTER_LOWER_S(LETTER_LOWER), LETTER_LOWER_T(LETTER_LOWER),
+    LETTER_LOWER_U(LETTER_LOWER), LETTER_LOWER_V(LETTER_LOWER), LETTER_LOWER_W(LETTER_LOWER), LETTER_LOWER_X(LETTER_LOWER),
+    LETTER_LOWER_Y(LETTER_LOWER), LETTER_LOWER_Z(LETTER_LOWER),
+
+    LETTER_UPPER,
+    LETTER_UPPER_A(LETTER_UPPER), LETTER_UPPER_B(LETTER_UPPER), LETTER_UPPER_C(LETTER_UPPER), LETTER_UPPER_D(LETTER_UPPER),
+    LETTER_UPPER_E(LETTER_UPPER), LETTER_UPPER_F(LETTER_UPPER), LETTER_UPPER_G(LETTER_UPPER), LETTER_UPPER_H(LETTER_UPPER),
+    LETTER_UPPER_I(LETTER_UPPER), LETTER_UPPER_J(LETTER_UPPER), LETTER_UPPER_K(LETTER_UPPER), LETTER_UPPER_L(LETTER_UPPER),
+    LETTER_UPPER_M(LETTER_UPPER), LETTER_UPPER_N(LETTER_UPPER), LETTER_UPPER_O(LETTER_UPPER), LETTER_UPPER_P(LETTER_UPPER),
+    LETTER_UPPER_Q(LETTER_UPPER), LETTER_UPPER_R(LETTER_UPPER), LETTER_UPPER_S(LETTER_UPPER), LETTER_UPPER_T(LETTER_UPPER),
+    LETTER_UPPER_U(LETTER_UPPER), LETTER_UPPER_V(LETTER_UPPER), LETTER_UPPER_W(LETTER_UPPER), LETTER_UPPER_X(LETTER_UPPER),
+    LETTER_UPPER_Y(LETTER_UPPER), LETTER_UPPER_Z(LETTER_UPPER),
 
     INDICATOR,
     INDICATOR_ACTION(INDICATOR),
@@ -214,24 +206,48 @@ public enum Primitive
 
     private final Primitive parent;
 
-    Primitive() {
+    Primitive()
+    {
         this.parent = null;
     }
 
     Primitive(Primitive parent) {
         assert parent == null || parent.parent == null : "Multi-layer hierarchy detected!";
-
         this.parent = parent;
     }
 
-    public Primitive getParent() {
+    public Primitive getParent()
+    {
         return parent;
     }
 
+    public boolean isLetter()
+    {
+        return parent == LETTER_LOWER || parent == LETTER_UPPER;
+    }
+
+    public Primitive getUpperVariant() {
+        if (!isLetter() || parent == LETTER_UPPER) return this;
+        String suffix = name().substring(name().lastIndexOf("_") + 1);
+        return Primitive.valueOf("LETTER_UPPER_" + suffix);
+    }
+
+    public Primitive getLowerVariant() {
+        if (!isLetter() || parent == LETTER_LOWER) return this;
+        String suffix = name().substring(name().lastIndexOf("_") + 1);
+        return Primitive.valueOf("LETTER_LOWER_" + suffix);
+    }
+
+    @Nullable
+    public String getLetterLabel() {
+        if (!isLetter()) return null;
+        String name = name();
+        String suffix = name.substring(name.lastIndexOf('_') + 1);
+        return parent == LETTER_UPPER ? suffix.toUpperCase() : suffix.toLowerCase();
+    }
+
     private static final Map<Primitive, List<Primitive>> parenthood = new EnumMap<>(Primitive.class);
-
     private static final List<Primitive> PARENT_PRIMITIVES;
-
     private static final List<Primitive> CHILD_PRIMITIVES;
 
     static

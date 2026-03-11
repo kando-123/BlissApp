@@ -42,10 +42,12 @@ public class BlissKeyboardFragment extends Fragment
     private BlissKeyboardViewModel mViewModel;
     private final List<View> mRadicalButtons = new ArrayList<>();
     private final List<View> mAlphanumericButtons = new ArrayList<>();
+    private final List<View> mShiftButtons = new ArrayList<>();  // for both keyboards (Issue #9)
     private boolean mIsShiftMode = false;
-    private View mShiftButton;
     private PopupWindow mCurrentPopupWindow;
     private LinearLayout mKeyboardContainer;
+    private View mBlissKeyboard;   // pre‑built bliss layout
+    private View mAlphaKeyboard;   // pre‑built alphanumeric layout
 
     public BlissKeyboardViewModel getViewModel()
     {
@@ -61,37 +63,38 @@ public class BlissKeyboardFragment extends Fragment
         Fragment parent = getParentFragment();
         mViewModel = new ViewModelProvider(parent != null ? parent : this)
                 .get(BlissKeyboardViewModel.class);
-        
+
         mKeyboardContainer = new LinearLayout(getContext());
-        mKeyboardContainer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        mKeyboardContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         mKeyboardContainer.setOrientation(LinearLayout.VERTICAL);
         mKeyboardContainer.setGravity(Gravity.BOTTOM);
         mKeyboardContainer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.keyboard_background));
         int padding = getResources().getDimensionPixelSize(R.dimen.keyboard_padding);
         mKeyboardContainer.setPadding(padding, padding, padding, padding);
 
-        mViewModel.getKeyboardMode().observe(getViewLifecycleOwner(), this::updateKeyboardLayout);
+        // Pre‑build both keyboards (Issue #9)
+        mBlissKeyboard = createBlissKeyboard();
+        mAlphaKeyboard = createAlphanumericKeyboard();
+        mKeyboardContainer.addView(mBlissKeyboard);
+        mKeyboardContainer.addView(mAlphaKeyboard);
+
+        // Observe mode and toggle visibility
+        mViewModel.getKeyboardMode().observe(getViewLifecycleOwner(), mode -> {
+            // Reset shift mode when switching keyboards
+            if (mIsShiftMode) {
+                toggleShiftMode();
+            }
+            if (mode == BlissKeyboardViewModel.KeyboardMode.BLISS) {
+                mBlissKeyboard.setVisibility(View.VISIBLE);
+                mAlphaKeyboard.setVisibility(View.GONE);
+            } else {
+                mBlissKeyboard.setVisibility(View.GONE);
+                mAlphaKeyboard.setVisibility(View.VISIBLE);
+            }
+        });
 
         return mKeyboardContainer;
-    }
-
-    private void updateKeyboardLayout(BlissKeyboardViewModel.KeyboardMode mode) {
-        mKeyboardContainer.removeAllViews();
-        mRadicalButtons.clear();
-        mAlphanumericButtons.clear();
-        mIsShiftMode = false;
-        mShiftButton = null;
-
-        List<List<KeyUI>> rows;
-        if (mode == BlissKeyboardViewModel.KeyboardMode.BLISS) {
-            rows = getBlissKeyboardRows();
-        } else {
-            rows = getAlphanumericKeyboardRows();
-        }
-
-        for (List<KeyUI> rowConfig : rows) {
-            mKeyboardContainer.addView(createRowView(rowConfig));
-        }
     }
 
     @Override
@@ -105,10 +108,31 @@ public class BlissKeyboardFragment extends Fragment
         mCurrentPopupWindow = null;
     }
 
+    // ------------------- Keyboard Creation Methods -------------------
+
+    private View createBlissKeyboard() {
+        LinearLayout root = new LinearLayout(getContext());
+        root.setOrientation(LinearLayout.VERTICAL);
+        for (List<KeyUI> rowConfig : getBlissKeyboardRows()) {
+            root.addView(createRowView(rowConfig));
+        }
+        return root;
+    }
+
+    private View createAlphanumericKeyboard() {
+        LinearLayout root = new LinearLayout(getContext());
+        root.setOrientation(LinearLayout.VERTICAL);
+        for (List<KeyUI> rowConfig : getAlphanumericKeyboardRows()) {
+            root.addView(createRowView(rowConfig));
+        }
+        return root;
+    }
+
     private View createRowView(List<KeyUI> rowConfig)
     {
         LinearLayout rowLayout = new LinearLayout(getContext());
-        rowLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        rowLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         rowLayout.setOrientation(LinearLayout.HORIZONTAL);
         rowLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
@@ -130,7 +154,8 @@ public class BlissKeyboardFragment extends Fragment
         if (keyConfig instanceof BlissKeyUI blissKey)
         {
             ImageButton imageButton = new ImageButton(getContext());
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0, keyHeight, keyConfig.weight);
             params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
             imageButton.setLayoutParams(params);
 
@@ -146,15 +171,17 @@ public class BlissKeyboardFragment extends Fragment
         else if (keyConfig instanceof AlphanumericKeyUI alphaKey)
         {
             FrameLayout frameLayout = new FrameLayout(getContext());
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0, keyHeight, keyConfig.weight);
             params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
             frameLayout.setLayoutParams(params);
             frameLayout.setBackgroundResource(R.drawable.key_background);
 
             TextView mainText = new TextView(getContext());
-            mainText.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            mainText.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             mainText.setGravity(Gravity.CENTER);
-            mainText.setText(getLetterFromPrimitive(alphaKey.letter));
+            mainText.setText(alphaKey.letter.getLetterLabel());
             mainText.setTextColor(Color.BLACK);
             mainText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
             frameLayout.addView(mainText);
@@ -164,7 +191,10 @@ public class BlissKeyboardFragment extends Fragment
                 int altSize = (int)(keyHeight/1.5f);
                 FrameLayout.LayoutParams altParams = new FrameLayout.LayoutParams(altSize, altSize);
                 altParams.gravity = Gravity.TOP | Gravity.END;
-                altParams.setMargins(0, -30, -25, 0);
+                // Use dimension resources instead of hardcoded pixels (Issue #6)
+                int offsetX = getResources().getDimensionPixelOffset(R.dimen.keyboard_alt_image_offset_x);
+                int offsetY = getResources().getDimensionPixelOffset(R.dimen.keyboard_alt_image_offset_y);
+                altParams.setMargins(0, offsetY, offsetX, 0);
                 altImage.setLayoutParams(altParams);
                 altImage.setImageResource(DrawableMapper.getDrawableRes(alphaKey.alternativeDigit));
                 altImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -182,13 +212,15 @@ public class BlissKeyboardFragment extends Fragment
 
             if (action == ControlKey.SWITCH_TO_ALPHANUMERIC || action == ControlKey.SWITCH_TO_BLISS) {
                 FrameLayout frameLayout = new FrameLayout(getContext());
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        0, keyHeight, keyConfig.weight);
                 params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
                 frameLayout.setLayoutParams(params);
                 frameLayout.setBackgroundResource(R.drawable.control_key_background);
 
                 TextView textView = new TextView(getContext());
-                textView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                textView.setLayoutParams(new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 textView.setGravity(Gravity.CENTER);
                 switch (action)
                 {
@@ -209,7 +241,7 @@ public class BlissKeyboardFragment extends Fragment
                 ImageButton imageButton = new ImageButton(getContext());
                 imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
-                
+
                 switch (action)
                 {
                     case POP_SYMBOL:
@@ -218,7 +250,7 @@ public class BlissKeyboardFragment extends Fragment
                         break;
                     case SHIFT:
                         imageButton.setImageResource(R.drawable.indicator_placeholder);
-                        mShiftButton = imageButton;
+                        mShiftButtons.add(imageButton);   // track shift buttons (Issue #9)
                         break;
                     case PUSH_SYMBOL:
                         imageButton.setImageResource(android.R.drawable.ic_menu_add);
@@ -230,25 +262,18 @@ public class BlissKeyboardFragment extends Fragment
                 keyView = imageButton;
             }
 
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, keyHeight, keyConfig.weight);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0, keyHeight, keyConfig.weight);
             params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
             keyView.setLayoutParams(params);
             keyView.setBackgroundResource(R.drawable.control_key_background);
-            
+
             return keyView;
         }
         throw new IllegalArgumentException("Unknown KeyUI type");
     }
 
-    private String getLetterFromPrimitive(Primitive p) {
-        String name = p.name();
-        if (name.startsWith("LETTER_")) {
-            return name.substring(7).toLowerCase();
-        }
-        return "";
-    }
-
-    // --- KEYBOARD CONFIGURATION ---
+    // ----- KEYBOARD CONFIGURATION -----
 
     private BlissKeyUI bliss(Primitive r) { return new BlissKeyUI(r, null, 1f); }
     private BlissKeyUI bliss(Primitive r, Primitive i) { return new BlissKeyUI(r, i, 1f); }
@@ -280,10 +305,10 @@ public class BlissKeyboardFragment extends Fragment
                         bliss(Primitive.SQUARE, Primitive.INDICATOR_THING),
                         bliss(Primitive.CIRCLE, Primitive.INDICATOR_ACTION),
                         bliss(Primitive.WHEEL, Primitive.INDICATOR_CONDITIONAL),
-                        bliss(Primitive.ACUTE_ANGLE, Primitive.INDICATOR_PASSIVE),
-                        bliss(Primitive.ACUTE_TRIANGLE, Primitive.INDICATOR_ACTIVE),
+                        bliss(Primitive.RIGHT_TRIANGLE, Primitive.INDICATOR_DEFINITE),
                         bliss(Primitive.RIGHT_ANGLE, Primitive.INDICATOR_PLURAL),
-                        bliss(Primitive.RIGHT_TRIANGLE, Primitive.INDICATOR_DEFINITE)
+                        bliss(Primitive.ACUTE_TRIANGLE, Primitive.INDICATOR_ACTIVE),
+                        bliss(Primitive.ACUTE_ANGLE, Primitive.INDICATOR_PASSIVE)
                 ),
                 // Row 3: Punctuations and Shift
                 Arrays.asList(
@@ -308,25 +333,40 @@ public class BlissKeyboardFragment extends Fragment
     {
         return Arrays.asList(
                 Arrays.asList(
-                        alpha(Primitive.LETTER_Q, Primitive.DIGIT_ONE), alpha(Primitive.LETTER_W, Primitive.DIGIT_TWO),
-                        alpha(Primitive.LETTER_E, Primitive.DIGIT_THREE), alpha(Primitive.LETTER_R, Primitive.DIGIT_FOUR),
-                        alpha(Primitive.LETTER_T, Primitive.DIGIT_FIVE), alpha(Primitive.LETTER_Y, Primitive.DIGIT_SIX),
-                        alpha(Primitive.LETTER_U, Primitive.DIGIT_SEVEN), alpha(Primitive.LETTER_I, Primitive.DIGIT_EIGHT),
-                        alpha(Primitive.LETTER_O, Primitive.DIGIT_NINE), alpha(Primitive.LETTER_P, Primitive.DIGIT_ZERO)),
+                        alpha(Primitive.LETTER_LOWER_Q, Primitive.DIGIT_ONE),
+                        alpha(Primitive.LETTER_LOWER_W, Primitive.DIGIT_TWO),
+                        alpha(Primitive.LETTER_LOWER_E, Primitive.DIGIT_THREE),
+                        alpha(Primitive.LETTER_LOWER_R, Primitive.DIGIT_FOUR),
+                        alpha(Primitive.LETTER_LOWER_T, Primitive.DIGIT_FIVE),
+                        alpha(Primitive.LETTER_LOWER_Y, Primitive.DIGIT_SIX),
+                        alpha(Primitive.LETTER_LOWER_U, Primitive.DIGIT_SEVEN),
+                        alpha(Primitive.LETTER_LOWER_I, Primitive.DIGIT_EIGHT),
+                        alpha(Primitive.LETTER_LOWER_O, Primitive.DIGIT_NINE),
+                        alpha(Primitive.LETTER_LOWER_P, Primitive.DIGIT_ZERO)
+                ),
                 Arrays.asList(
-                        alpha(Primitive.LETTER_A), alpha(Primitive.LETTER_S), alpha(Primitive.LETTER_D),
-                        alpha(Primitive.LETTER_F), alpha(Primitive.LETTER_G), alpha(Primitive.LETTER_H),
-                        alpha(Primitive.LETTER_J), alpha(Primitive.LETTER_K), alpha(Primitive.LETTER_L)),
+                        alpha(Primitive.LETTER_LOWER_A), alpha(Primitive.LETTER_LOWER_S),
+                        alpha(Primitive.LETTER_LOWER_D), alpha(Primitive.LETTER_LOWER_F),
+                        alpha(Primitive.LETTER_LOWER_G), alpha(Primitive.LETTER_LOWER_H),
+                        alpha(Primitive.LETTER_LOWER_J), alpha(Primitive.LETTER_LOWER_K),
+                        alpha(Primitive.LETTER_LOWER_L)
+                ),
                 Arrays.asList(
-                        ctrl(ControlKey.SHIFT, 1.5f), alpha(Primitive.LETTER_Z), alpha(Primitive.LETTER_X),
-                        alpha(Primitive.LETTER_C), alpha(Primitive.LETTER_V), alpha(Primitive.LETTER_B),
-                        alpha(Primitive.LETTER_N), alpha(Primitive.LETTER_M), ctrl(ControlKey.POP_SYMBOL, 1.5f)),
+                        ctrl(ControlKey.SHIFT, 1.5f),
+                        alpha(Primitive.LETTER_LOWER_Z), alpha(Primitive.LETTER_LOWER_X),
+                        alpha(Primitive.LETTER_LOWER_C), alpha(Primitive.LETTER_LOWER_V),
+                        alpha(Primitive.LETTER_LOWER_B), alpha(Primitive.LETTER_LOWER_N),
+                        alpha(Primitive.LETTER_LOWER_M), ctrl(ControlKey.POP_SYMBOL, 1.5f)
+                ),
                 Arrays.asList(
-                        ctrl(ControlKey.SWITCH_TO_BLISS, 1.5f), ctrl(ControlKey.PUSH_SYMBOL, 4f), ctrl(ControlKey.ENTER, 1.5f))
+                        ctrl(ControlKey.SWITCH_TO_BLISS, 1.5f),
+                        ctrl(ControlKey.PUSH_SYMBOL, 4f),
+                        ctrl(ControlKey.ENTER, 1.5f)
+                )
         );
     }
 
-    // --- EVENT HANDLING LOGIC ---
+    // ----- EVENT HANDLING LOGIC -----
 
     private void setupKeyLogic(View buttonView, KeyUI blueprint)
     {
@@ -364,7 +404,7 @@ public class BlissKeyboardFragment extends Fragment
         {
             buttonView.setOnClickListener(v ->
             {
-                mViewModel.onBlissKeyTapped(alphaKey.letter);
+                mViewModel.onAlphanumericKeyTapped(alphaKey.letter, mIsShiftMode);
                 if (mIsShiftMode) toggleShiftMode();
             });
 
@@ -401,8 +441,12 @@ public class BlissKeyboardFragment extends Fragment
     private void toggleShiftMode()
     {
         mIsShiftMode = !mIsShiftMode;
-        if (mShiftButton != null) mShiftButton.setActivated(mIsShiftMode);
+        // Update all shift buttons (both keyboards)
+        for (View shiftBtn : mShiftButtons) {
+            shiftBtn.setActivated(mIsShiftMode);
+        }
 
+        // Update radical buttons (bliss)
         for (View btn : mRadicalButtons)
         {
             BlissKeyUI blueprint = (BlissKeyUI) btn.getTag();
@@ -429,12 +473,13 @@ public class BlissKeyboardFragment extends Fragment
             }
         }
 
+        // Update alphanumeric buttons
         for (View btn : mAlphanumericButtons)
         {
             AlphanumericKeyUI blueprint = (AlphanumericKeyUI) btn.getTag();
             TextView mainText = (TextView) ((ViewGroup)btn).getChildAt(0);
-            String letter = getLetterFromPrimitive(blueprint.letter);
-            mainText.setText(mIsShiftMode ? letter.toUpperCase() : letter);
+            Primitive target = mIsShiftMode ? blueprint.letter.getUpperVariant() : blueprint.letter.getLowerVariant();
+            mainText.setText(target.getLetterLabel());
         }
     }
 
@@ -448,7 +493,8 @@ public class BlissKeyboardFragment extends Fragment
         View popupView = LayoutInflater.from(context).inflate(R.layout.popup_bliss_variants, root, false);
         LinearLayout container = popupView.findViewById(R.id.popup_container);
 
-        mCurrentPopupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        mCurrentPopupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         mCurrentPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         LinearLayout currentRow = null;
@@ -483,7 +529,7 @@ public class BlissKeyboardFragment extends Fragment
 
         ImageButton btn = new ImageButton(context);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(keyHeight, keyHeight);
-        params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
+        params.setMargins(keyMargin, keyMargin, keyMargin, keyPadding);
         btn.setLayoutParams(params);
 
         btn.setImageResource(DrawableMapper.getDrawableRes(variant));

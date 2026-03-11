@@ -42,12 +42,11 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     private List<CountedItem> countItems(List<Primitive> list)
     {
-        // Use LinkedHashMap to preserve the order in which primitives were added
         Map<Primitive, Integer> counts = new LinkedHashMap<>();
         for (Primitive p : list) {
             counts.put(p, counts.getOrDefault(p, 0) + 1);
         }
-        
+
         List<CountedItem> result = new ArrayList<>();
         for (Map.Entry<Primitive, Integer> entry : counts.entrySet()) {
             result.add(new CountedItem(entry.getKey(), entry.getValue()));
@@ -69,11 +68,11 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         CountedItem countedItem = mItems.get(position);
         Primitive primitive = countedItem.item;
 
-        String letter = getLetterFromPrimitive(primitive);
-        if (!letter.isEmpty()) {
+        String letterLabel = primitive.getLetterLabel();
+        if (letterLabel != null) {
             holder.imageView.setVisibility(View.GONE);
             holder.textView.setVisibility(View.VISIBLE);
-            holder.textView.setText(letter.toUpperCase());
+            holder.textView.setText(letterLabel);
         } else {
             holder.imageView.setVisibility(View.VISIBLE);
             holder.textView.setVisibility(View.GONE);
@@ -82,8 +81,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
         if (countedItem.count > 1)
         {
-            String countText = holder.itemView.getContext()
-                    .getString(R.string.item_count_format, countedItem.count);
+            String countText = String.valueOf(countedItem.count);
             holder.counterView.setText(countText);
             holder.counterView.setVisibility(View.VISIBLE);
         }
@@ -95,14 +93,6 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         holder.itemView.setOnClickListener(v -> {
             mViewModel.removePrimitive(primitive);
         });
-    }
-
-    private String getLetterFromPrimitive(Primitive p) {
-        String name = p.name();
-        if (name.startsWith("LETTER_")) {
-            return name.substring(7);
-        }
-        return "";
     }
 
     @Override

@@ -23,28 +23,38 @@ import pl.polsl.blissapp.ui.repository.SymbolRepository;
 @HiltViewModel
 public class BlissWriterViewModel extends ViewModel
 {
+    public static sealed class MessageItem {
+        public static final class SymbolItem extends MessageItem {
+            public final Symbol symbol;
+            public SymbolItem(Symbol symbol) { this.symbol = symbol; }
+        }
+        public static final class EmptySlot extends MessageItem {
+            public static final EmptySlot INSTANCE = new EmptySlot();
+            private EmptySlot() {}
+        }
+    }
+
     private final SymbolRepository mSymbolRepository;
-    private final MutableLiveData<List<Symbol>> mMessage = new MutableLiveData<>();
+    private final MutableLiveData<List<MessageItem>> mMessage = new MutableLiveData<>();
     private final MutableLiveData<List<Symbol>> mHints = new MutableLiveData<>();
     private final MutableLiveData<List<Primitive>> mFilter = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
-    private static final int MAX_HINT_COUNT = 20; // Feel free to change if more or less are needed
+    private static final int MAX_HINT_COUNT = 20;
 
     @Inject
     public BlissWriterViewModel(SymbolRepository symbolRepository)
     {
         mSymbolRepository = symbolRepository;
 
-        // Initially, the message contains an element, but the element is empty (no symbol).
-        // Graphically, it is an empty tile.
-        List<Symbol> list = new ArrayList<>();
-        list.add(null);
+        List<MessageItem> list = new ArrayList<>();
+        list.add(MessageItem.EmptySlot.INSTANCE);
         mMessage.setValue(list);
         mFilter.setValue(new ArrayList<>());
     }
 
-    LiveData<List<Symbol>> getMessage()
+    // Return type changed to LiveData<List<MessageItem>>
+    LiveData<List<MessageItem>> getMessage()
     {
         return mMessage;
     }
@@ -83,6 +93,7 @@ public class BlissWriterViewModel extends ViewModel
 
         List<Primitive> value = mFilter.getValue();
         assert value != null;
+
         value.remove(primitive);
         mFilter.setValue(value);
         updateHints();
@@ -90,17 +101,14 @@ public class BlissWriterViewModel extends ViewModel
 
     public void selectHint(Symbol symbol)
     {
-        List<Symbol> list = mMessage.getValue();
+        List<MessageItem> list = mMessage.getValue();
         assert list != null;
-        // The list is always non-empty, because when it does not end
-        // with an actual symbol, it ends with a null.
         assert !list.isEmpty();
 
-        /* Substitute the last element (null or an actual symbol) with the new one. */
-        list.set(list.size() - 1, symbol);
+        // replace the last item (which must be EmptySlot) with a SymbolItem
+        list.set(list.size() - 1, new MessageItem.SymbolItem(symbol));
         mMessage.setValue(list);
 
-        // Clear the filter
         mFilter.setValue(new ArrayList<>());
         updateHints();
     }
@@ -109,9 +117,14 @@ public class BlissWriterViewModel extends ViewModel
     {
         Log.d("BlissWriterViewModel", "Updating hints");
 
-        List<Symbol> symbols = mMessage.getValue();
-        assert symbols != null;
-        Symbol symbol = symbols.get(symbols.size() - 1);
+        List<MessageItem> items = mMessage.getValue();
+        assert items != null;
+
+        // Determine the last symbol (if any)
+        Symbol lastSymbol = null;
+        if (!items.isEmpty() && items.get(items.size() - 1) instanceof MessageItem.SymbolItem) {
+            lastSymbol = ((MessageItem.SymbolItem) items.get(items.size() - 1)).symbol;
+        }
 
         List<Primitive> primitives = mFilter.getValue();
         assert primitives != null;
@@ -131,13 +144,13 @@ public class BlissWriterViewModel extends ViewModel
                 mFailure.setValue(data);
             }
         };
-        assert mSymbolRepository != null : "SymbolRepository was called but it had not been injected (it was null)!";
-        mSymbolRepository.getMatchingSymbols(symbol, primitives, MAX_HINT_COUNT, callback);
+        assert mSymbolRepository != null;
+        mSymbolRepository.getMatchingSymbols(lastSymbol, primitives, MAX_HINT_COUNT, callback);
     }
 
     public void popSymbol()
     {
-        List<Symbol> list = mMessage.getValue();
+        List<MessageItem> list = mMessage.getValue();
         assert list != null;
         if (!list.isEmpty())
         {
@@ -145,7 +158,7 @@ public class BlissWriterViewModel extends ViewModel
         }
         if (list.isEmpty())
         {
-            list.add(null);
+            list.add(MessageItem.EmptySlot.INSTANCE);
         }
         mMessage.setValue(list);
         updateHints();
@@ -153,11 +166,11 @@ public class BlissWriterViewModel extends ViewModel
 
     public void confirmSymbol()
     {
-        List<Symbol> list = mMessage.getValue();
+        List<MessageItem> list = mMessage.getValue();
         assert list != null;
-        if (list.get(list.size() - 1) != null)
+        if (list.get(list.size() - 1) instanceof MessageItem.SymbolItem)
         {
-            list.add(null);
+            list.add(MessageItem.EmptySlot.INSTANCE);
             mHints.setValue(Collections.emptyList());
             mFilter.setValue(new ArrayList<>());
             mMessage.setValue(list);
