@@ -2,29 +2,40 @@
     <!-- Base application theme. -->
     <style name="Theme.BlissApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/lavender_primary</item>
+        <item name="colorPrimaryVariant">@color/lavender_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <!-- Customize your theme here. -->
+        <!-- Background/Surface colors -->
+        <item name="android:windowBackground">@color/lavender_surface</item>
+        <item name="colorSurface">@color/white</item>
     </style>
 
-    <style name="Theme.BlissApp.Blue" parent="Theme.BlissApp">
-        <item name="colorPrimary">#2196F3</item>
-        <item name="colorPrimaryVariant">#1976D2</item>
+    <style name="Theme.BlissApp.Lavender" parent="Theme.BlissApp">
+        <item name="colorPrimary">@color/lavender_primary</item>
+        <item name="colorPrimaryVariant">@color/lavender_variant</item>
+        <item name="android:windowBackground">@color/lavender_surface</item>
     </style>
 
-    <style name="Theme.BlissApp.Green" parent="Theme.BlissApp">
-        <item name="colorPrimary">#4CAF50</item>
-        <item name="colorPrimaryVariant">#388E3C</item>
+    <style name="Theme.BlissApp.Ocean" parent="Theme.BlissApp">
+        <item name="colorPrimary">@color/ocean_primary</item>
+        <item name="colorPrimaryVariant">@color/ocean_variant</item>
+        <item name="android:windowBackground">@color/ocean_surface</item>
     </style>
 
-    <style name="Theme.BlissApp.Orange" parent="Theme.BlissApp">
-        <item name="colorPrimary">#FF9800</item>
-        <item name="colorPrimaryVariant">#F57C00</item>
+    <style name="Theme.BlissApp.Forest" parent="Theme.BlissApp">
+        <item name="colorPrimary">@color/forest_primary</item>
+        <item name="colorPrimaryVariant">@color/forest_variant</item>
+        <item name="android:windowBackground">@color/forest_surface</item>
+    </style>
+
+    <style name="Theme.BlissApp.Sunset" parent="Theme.BlissApp">
+        <item name="colorPrimary">@color/sunset_primary</item>
+        <item name="colorPrimaryVariant">@color/sunset_variant</item>
+        <item name="android:windowBackground">@color/sunset_surface</item>
     </style>
 
     <style name="Theme.BlissApp.NoActionBar">
@@ -35,4 +46,9 @@
     <style name="Theme.BlissApp.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.BlissApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="ShapeAppearanceOverlay.BlissApp.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
 </resources>

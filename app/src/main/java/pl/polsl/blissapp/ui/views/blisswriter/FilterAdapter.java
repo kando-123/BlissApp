@@ -10,8 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.data.model.Primitive;
@@ -19,7 +20,7 @@ import pl.polsl.blissapp.ui.mapping.DrawableMapper;
 
 public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder> {
 
-    private final List<Object> mItems;
+    private final List<CountedItem> mItems;
     private final BlissWriterViewModel mViewModel;
 
     public FilterAdapter(BlissWriterViewModel viewModel)
@@ -39,13 +40,19 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         notifyDataSetChanged();
     }
 
-    private List<CountedItem> countItems(List<?> list)
+    private List<CountedItem> countItems(List<Primitive> list)
     {
-        return list.stream()
-                .collect(Collectors.groupingBy(item -> item, Collectors.counting()))
-                .entrySet().stream()
-                .map(entry -> new CountedItem(entry.getKey(), entry.getValue().intValue()))
-                .collect(Collectors.toList());
+        // Use LinkedHashMap to preserve the order in which primitives were added
+        Map<Primitive, Integer> counts = new LinkedHashMap<>();
+        for (Primitive p : list) {
+            counts.put(p, counts.getOrDefault(p, 0) + 1);
+        }
+        
+        List<CountedItem> result = new ArrayList<>();
+        for (Map.Entry<Primitive, Integer> entry : counts.entrySet()) {
+            result.add(new CountedItem(entry.getKey(), entry.getValue()));
+        }
+        return result;
     }
 
     @NonNull
@@ -59,11 +66,17 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        CountedItem countedItem = (CountedItem) mItems.get(position);
-        Object item = countedItem.item;
+        CountedItem countedItem = mItems.get(position);
+        Primitive primitive = countedItem.item;
 
-        if (item instanceof Primitive primitive)
-        {
+        String letter = getLetterFromPrimitive(primitive);
+        if (!letter.isEmpty()) {
+            holder.imageView.setVisibility(View.GONE);
+            holder.textView.setVisibility(View.VISIBLE);
+            holder.textView.setText(letter.toUpperCase());
+        } else {
+            holder.imageView.setVisibility(View.VISIBLE);
+            holder.textView.setVisibility(View.GONE);
             holder.imageView.setImageResource(DrawableMapper.getDrawableRes(primitive));
         }
 
@@ -80,10 +93,16 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (item instanceof Primitive) {
-                mViewModel.removePrimitive((Primitive) item);
-            }
+            mViewModel.removePrimitive(primitive);
         });
+    }
+
+    private String getLetterFromPrimitive(Primitive p) {
+        String name = p.name();
+        if (name.startsWith("LETTER_")) {
+            return name.substring(7);
+        }
+        return "";
     }
 
     @Override
@@ -95,22 +114,24 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     static class ViewHolder extends RecyclerView.ViewHolder
     {
         ImageView imageView;
+        TextView textView;
         TextView counterView;
 
         ViewHolder(View view)
         {
             super(view);
             imageView = view.findViewById(R.id.filter_key_image);
+            textView = view.findViewById(R.id.filter_key_text);
             counterView = view.findViewById(R.id.filter_key_counter);
         }
     }
 
     static class CountedItem
     {
-        Object item;
+        Primitive item;
         int count;
 
-        CountedItem(Object item, int count) {
+        CountedItem(Primitive item, int count) {
             this.item = item;
             this.count = count;
         }

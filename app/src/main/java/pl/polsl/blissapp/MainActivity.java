@@ -2,6 +2,9 @@ package pl.polsl.blissapp;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.MenuItem;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -78,7 +81,41 @@ public class MainActivity extends AppCompatActivity
                     .build();
 
             NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+            
+            // Custom item selection to avoid popping the back stack for settings
+            navigationView.setNavigationItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_settings) {
+                    navController.navigate(id);
+                    drawerLayout.closeDrawers();
+                    return true;
+                }
+                
+                boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
+                if (handled) {
+                    drawerLayout.closeDrawers();
+                }
+                return handled;
+            });
+            
+            // Still call this to handle highlighting of the selected item
             NavigationUI.setupWithNavController(navigationView, navController);
+            
+            // Re-apply the custom listener because setupWithNavController sets its own
+            navigationView.setNavigationItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_settings) {
+                    // Navigate to settings without popping the back stack
+                    navController.navigate(id);
+                    drawerLayout.closeDrawers();
+                    return true;
+                }
+                boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
+                if (handled) {
+                    drawerLayout.closeDrawers();
+                }
+                return handled;
+            });
         }
     }
 

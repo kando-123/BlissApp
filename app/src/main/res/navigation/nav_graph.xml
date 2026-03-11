@@ -22,6 +22,11 @@
     <fragment
         android:id="@+id/nav_settings"
         android:name="pl.polsl.blissapp.ui.settings.SettingsFragment"
-        android:label="Settings" />
+        android:label="Settings">
+        <action
+            android:id="@+id/action_settings_pop"
+            app:popUpTo="@id/mobile_navigation"
+            app:popUpToInclusive="false" />
+    </fragment>
 
 </navigation>

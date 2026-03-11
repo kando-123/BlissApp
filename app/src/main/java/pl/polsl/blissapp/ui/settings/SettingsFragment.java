@@ -35,7 +35,6 @@ public class SettingsFragment extends Fragment {
         List<String> languages = new ArrayList<>();
         languages.add("English");
         languages.add("Polish");
-        languages.add("German");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, languages);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -47,24 +46,26 @@ public class SettingsFragment extends Fragment {
         
         // Restore the current selection
         int savedThemeId = ThemeManager.getSavedTheme(requireContext());
-        if (savedThemeId == R.style.Theme_BlissApp_Blue) {
-            radioGroup.check(R.id.radio_blue);
-        } else if (savedThemeId == R.style.Theme_BlissApp_Green) {
-            radioGroup.check(R.id.radio_green);
-        } else if (savedThemeId == R.style.Theme_BlissApp_Orange) {
-            radioGroup.check(R.id.radio_orange);
+        if (savedThemeId == R.style.Theme_BlissApp_Ocean) {
+            radioGroup.check(R.id.radio_ocean);
+        } else if (savedThemeId == R.style.Theme_BlissApp_Forest) {
+            radioGroup.check(R.id.radio_forest);
+        } else if (savedThemeId == R.style.Theme_BlissApp_Sunset) {
+            radioGroup.check(R.id.radio_sunset);
         } else {
-            radioGroup.check(R.id.radio_purple);
+            radioGroup.check(R.id.radio_lavender);
         }
 
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            int themeId = R.style.Theme_BlissApp;
-            if (checkedId == R.id.radio_blue) {
-                themeId = R.style.Theme_BlissApp_Blue;
-            } else if (checkedId == R.id.radio_green) {
-                themeId = R.style.Theme_BlissApp_Green;
-            } else if (checkedId == R.id.radio_orange) {
-                themeId = R.style.Theme_BlissApp_Orange;
+            int themeId = R.style.Theme_BlissApp; // Default/Lavender
+            if (checkedId == R.id.radio_ocean) {
+                themeId = R.style.Theme_BlissApp_Ocean;
+            } else if (checkedId == R.id.radio_forest) {
+                themeId = R.style.Theme_BlissApp_Forest;
+            } else if (checkedId == R.id.radio_sunset) {
+                themeId = R.style.Theme_BlissApp_Sunset;
+            } else if (checkedId == R.id.radio_lavender) {
+                themeId = R.style.Theme_BlissApp_Lavender;
             }
             
             if (themeId != ThemeManager.getSavedTheme(requireContext())) {
