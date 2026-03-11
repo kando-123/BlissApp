@@ -12,12 +12,19 @@ public class BlissKeyboardViewModel extends ViewModel
 {
     private final MutableLiveData<Primitive> mPrimitiveInput;
     private final MutableLiveData<ControlKey> mControlInput;
+    private final MutableLiveData<KeyboardMode> mKeyboardMode;
+
+    public enum KeyboardMode {
+        BLISS,
+        ALPHANUMERIC
+    }
 
     @Inject
     public BlissKeyboardViewModel()
     {
         mPrimitiveInput = new MutableLiveData<>();
         mControlInput = new MutableLiveData<>();
+        mKeyboardMode = new MutableLiveData<>(KeyboardMode.BLISS);
     }
 
     public void onBlissKeyTapped(Primitive primitive)
@@ -30,8 +37,13 @@ public class BlissKeyboardViewModel extends ViewModel
         mControlInput.setValue(key);
     }
 
+    public void setKeyboardMode(KeyboardMode mode) {
+        mKeyboardMode.setValue(mode);
+    }
+
     public LiveData<Primitive> getPrimitiveInput() { return mPrimitiveInput; }
     public LiveData<ControlKey> getControlInput() { return mControlInput; }
+    public LiveData<KeyboardMode> getKeyboardMode() { return mKeyboardMode; }
 
     public void clearInputs()
     {

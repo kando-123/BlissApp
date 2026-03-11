@@ -6,4 +6,5 @@
     <dimen name="keyboard_padding">4dp</dimen>
     <dimen name="keyboard_popup_offset">10dp</dimen>
     <dimen name="filter_bar_height">70dp</dimen>
+    <dimen name="keyboard_key_elevation">2dp</dimen>
 </resources>

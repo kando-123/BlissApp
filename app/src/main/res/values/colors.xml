@@ -10,6 +10,8 @@
 
     <color name="keyboard_background">#E0E0E0</color>
     <color name="keyboard_key_background">#FAFAFA</color>
+    <color name="keyboard_control_key_background">#F0F0F0</color>
+    <color name="keyboard_control_key_ON_background">#FFAAAAAA</color>
     <color name="keyboard_key_pressed_background">#E0E0E0</color>
     <color name="indicator_key_active_background">#C0C0C0</color>
 </resources>

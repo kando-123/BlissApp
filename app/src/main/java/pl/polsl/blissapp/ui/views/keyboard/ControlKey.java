@@ -4,7 +4,8 @@ public enum ControlKey
 {
     POP_SYMBOL,
     PUSH_SYMBOL,
-    INDICATOR_MODE,
+    SHIFT,
     ENTER,
-    SPACE
+    SWITCH_TO_ALPHANUMERIC,
+    SWITCH_TO_BLISS,
 }

@@ -122,12 +122,6 @@ public class DrawableMapper {
         radicalMap.put(ACUTE_ANGLE_SMALL_SOUTH, R.drawable.radical_acute_angle_small_south);
 
         radicalMap.put(WEIRD_ANGLE, R.drawable.radical_acute_angle_weird);
-        // radicalMap.put(WEIRD_ANGLE_NORTH, R.drawable.radical_weird_angle_north);
-        // radicalMap.put(WEIRD_ANGLE_EAST, R.drawable.radical_weird_angle_east);
-        // radicalMap.put(WEIRD_ANGLE_SOUTHEAST, R.drawable.radical_weird_angle_southeast);
-        // radicalMap.put(WEIRD_ANGLE_SOUTH, R.drawable.radical_weird_angle_south);
-        // radicalMap.put(WEIRD_ANGLE_SOUTHWEST, R.drawable.radical_weird_angle_southwest);
-        // radicalMap.put(WEIRD_ANGLE_WEST, R.drawable.radical_weird_angle_west);
 
         radicalMap.put(ACUTE_TRIANGLE, R.drawable.radical_acute_triangle_large_north);
         radicalMap.put(ACUTE_TRIANGLE_LARGE_NORTH, R.drawable.radical_acute_triangle_large_north);
@@ -159,7 +153,22 @@ public class DrawableMapper {
         radicalMap.put(POINTER_NORTHWEST, R.drawable.radical_pointer_northwest);
 
         radicalMap.put(PUNCTUATION, R.drawable.radical_other_punctuation_question_mark);
+        radicalMap.put(COMMA_MARK, R.drawable.radical_other_punctuation_comma);
+        radicalMap.put(EXCLAMATION_MARK, R.drawable.radical_other_punctuation_exclamation_mark);
+        radicalMap.put(QUESTION_MARK, R.drawable.radical_other_punctuation_question_mark);
+
         radicalMap.put(DIGIT, R.drawable.radical_digit_1);
+        radicalMap.put(DIGIT_ZERO, R.drawable.radical_digit_0);
+        radicalMap.put(DIGIT_ONE, R.drawable.radical_digit_1);
+        radicalMap.put(DIGIT_TWO, R.drawable.radical_digit_2);
+        radicalMap.put(DIGIT_THREE, R.drawable.radical_digit_3);
+        radicalMap.put(DIGIT_FOUR, R.drawable.radical_digit_4);
+        radicalMap.put(DIGIT_FIVE, R.drawable.radical_digit_5);
+        radicalMap.put(DIGIT_SIX, R.drawable.radical_digit_6);
+        radicalMap.put(DIGIT_SEVEN, R.drawable.radical_digit_7);
+        radicalMap.put(DIGIT_EIGHT, R.drawable.radical_digit_8);
+        radicalMap.put(DIGIT_NINE, R.drawable.radical_digit_9);
+
         radicalMap.put(LETTER, R.drawable.radical_digit_0);
 
         // Indicators
@@ -169,7 +178,7 @@ public class DrawableMapper {
         radicalMap.put(INDICATOR_DEFINITE, R.drawable.indicator_definite_form);
         radicalMap.put(INDICATOR_DESCRIPTION, R.drawable.indicator_description);
         radicalMap.put(INDICATOR_DOT, R.drawable.indicator_dot);
-        radicalMap.put(INDICATOR_FUTURE_ACTION, R.drawable.indicator_action);
+        radicalMap.put(INDICATOR_FUTURE_ACTION, R.drawable.indicator_future_action);
         radicalMap.put(INDICATOR_IMPERATIVE, R.drawable.indicator_imperative_form);
         radicalMap.put(INDICATOR_PASSIVE, R.drawable.indicator_passive);
         radicalMap.put(INDICATOR_PAST_ACTION, R.drawable.indicator_past_action);
@@ -179,6 +188,7 @@ public class DrawableMapper {
 
     @DrawableRes
     public static int getDrawableRes(Primitive primitive) {
-        return radicalMap.get(primitive);
+        Integer res = radicalMap.get(primitive);
+        return res != null ? res : R.drawable.indicator_placeholder;
     }
 }
