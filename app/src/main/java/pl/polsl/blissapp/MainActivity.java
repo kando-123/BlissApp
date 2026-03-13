@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.ui.settings.ThemeManager;
 
 @AndroidEntryPoint

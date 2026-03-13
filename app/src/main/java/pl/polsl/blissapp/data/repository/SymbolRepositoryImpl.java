@@ -2,14 +2,18 @@ package pl.polsl.blissapp.data.repository;
 
 import java.util.List;
 
+import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
+import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 public class SymbolRepositoryImpl implements SymbolRepository
 {
+    private final BlissDatabase database = BlissApplication.getDatabase();
+
     /**
      * Retrieves the symbols that match given filter.
      * <p>

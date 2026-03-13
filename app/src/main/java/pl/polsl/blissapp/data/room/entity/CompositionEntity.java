@@ -1,23 +1,23 @@
-package pl.polsl.blissapp.data.room;
+package pl.polsl.blissapp.data.room.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 
 @Entity(tableName = "CompoundSymbols",
-        primaryKeys = {"symbol_index", "component_index", "component_ordinal"},
+        primaryKeys = {"symbol_index", "component_position"},
         foreignKeys =
         {
             @ForeignKey(entity = SymbolEntity.class,
                         parentColumns = "symbol_index",
                         childColumns = "symbol_index",
                         onDelete = ForeignKey.CASCADE),
-            @ForeignKey(entity = SymbolEntity.class,
-                        parentColumns = "symbol_index",
+            @ForeignKey(entity = ComponentEntity.class,
+                        parentColumns = "component_index",
                         childColumns = "component_index",
-                        onDelete = ForeignKey.CASCADE)
+                        onDelete = ForeignKey.RESTRICT)
         })
-public class CompoundSymbolEntity
+public class CompositionEntity
 {
     @ColumnInfo(name = "symbol_index")
     public int symbolIndex;
@@ -26,14 +26,14 @@ public class CompoundSymbolEntity
     public int componentIndex;
 
     @ColumnInfo(name = "component_ordinal")
-    public int componentOrdinal;
+    public int componentPosition;
 
-    public CompoundSymbolEntity(int symbolIndex,
-                                int componentIndex,
-                                int componentOrdinal)
+    public CompositionEntity(int symbolIndex,
+                             int componentIndex,
+                             int componentOrdinal)
     {
         this.symbolIndex = symbolIndex;
         this.componentIndex = componentIndex;
-        this.componentOrdinal = componentOrdinal;
+        this.componentPosition = componentOrdinal;
     }
 }

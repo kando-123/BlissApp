@@ -211,7 +211,8 @@ public enum Primitive
         this.parent = null;
     }
 
-    Primitive(Primitive parent) {
+    Primitive(Primitive parent)
+    {
         assert parent == null || parent.parent == null : "Multi-layer hierarchy detected!";
         this.parent = parent;
     }

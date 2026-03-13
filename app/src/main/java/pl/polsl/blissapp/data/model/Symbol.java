@@ -2,45 +2,36 @@ package pl.polsl.blissapp.data.model;
 
 import static java.lang.Math.min;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
+public record Symbol(int index, String uri, List<Component> components)
 {
-    private final int index;
-    private final String uri;
-
-    protected Symbol(int index, String uri)
+    public Symbol(int index, String uri, List<Component> components)
     {
         this.index = index;
         this.uri = uri;
+        this.components = List.copyOf(components);
     }
 
-    public final int getIndex() { return index; }
-    public final String getUri() { return uri; }
-
-    public boolean isSimple() { return false; }
-    public boolean isCompound() { return false; }
-
-    public SimpleSymbol asSimple() { return null; }
-    public CompoundSymbol asCompound() { return null; }
-
-    public abstract int getRadicalCount();
-    public abstract List<SimpleSymbol> getComponents();
-
-    @Override
-    public boolean equals(Object other)
+    public boolean isEmpty()
     {
-        return other instanceof Symbol that && this.index == that.index;
+        return components.isEmpty();
     }
 
-    @Override
-    public int hashCode()
+    public boolean isSimple()
     {
-        return Integer.hashCode(index);
+        return components.size() == 1;
     }
 
-    protected static final int MATCH_FAILURE = -1;
-    protected static final int EXACT_MATCH = 0;
+    public boolean isCompound()
+    {
+        return components.size() > 1;
+    }
+
+    public static final int MATCH_FAILURE = -1;
+    public static final int EXACT_MATCH = 0;
 
     /**
      * The method evaluates how the provided radicals match the required ones.
@@ -60,9 +51,11 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
      *
      * @param provided
      * @param required
+     *
      * @return
      */
-    protected static int match(List<Primitive> provided, List<Primitive> required)
+    private static int match(List<Primitive> provided, // What this symbol provides
+                             List<Primitive> required) // What the user requires
     {
         // If more is required than is provided, the match is failed.
         if (required.size() > provided.size())
@@ -138,5 +131,41 @@ public abstract sealed class Symbol permits CompoundSymbol, SimpleSymbol
         return result;
     }
 
-    public abstract int matches(Symbol subSymbol, List<Primitive> requiredPrimitives);
+    private static boolean checkBeginning(List<Component> provided, List<Component> required)
+    {
+        if (required.size() > provided.size())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < required.size(); ++i)
+        {
+            if (!provided.get(i).equals(required.get(i)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public int matches(Symbol subSymbol, List<Primitive> requiredPrimitives)
+    {
+        List<Component> requiredComponents = subSymbol == null
+                ? Collections.emptyList()
+                : subSymbol.components;
+
+        if (!checkBeginning(components, requiredComponents))
+        {
+            return MATCH_FAILURE;
+        }
+
+        List<Component> remainingComponents = components.subList(requiredComponents.size(),
+                                                                 components.size());
+
+
+
+        throw new RuntimeException();
+
+        //return match(remainingPrimitives, requiredPrimitives);
+    }
 }
