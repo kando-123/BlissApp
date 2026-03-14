@@ -3,7 +3,9 @@ package pl.polsl.blissapp.data.model;
 import static java.lang.Math.min;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public record Symbol(int index, String uri, List<Component> components)
@@ -33,6 +35,82 @@ public record Symbol(int index, String uri, List<Component> components)
     public static final int MATCH_FAILURE = -1;
     public static final int EXACT_MATCH = 0;
 
+    public int matches(Symbol subSymbol, Map<Primitive, Integer> requiredPrimitives)
+    {
+        List<Component> requiredComponents = subSymbol == null
+                ? Collections.emptyList()
+                : subSymbol.components;
+
+        if (!checkBeginning(components, requiredComponents))
+        {
+            return MATCH_FAILURE;
+        }
+
+        List<Component> remainingComponents = components.subList(requiredComponents.size(), components.size());
+
+        return matchComponents(remainingComponents, requiredPrimitives);
+    }
+
+    private static boolean checkBeginning(List<Component> provided, List<Component> required)
+    {
+        if (required.size() > provided.size())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < required.size(); ++i)
+        {
+            if (!provided.get(i).equals(required.get(i)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int matchComponents(List<Component> providedComponents,
+                                       Map<Primitive, Integer> requiredPrimitives)
+    {
+        int[] variants = new int[providedComponents.size()];
+
+        int minMatch = MATCH_FAILURE;
+        while (true)
+        {
+            Map<Primitive, Integer> providedPrimitives = new EnumMap<>(Primitive.class);
+            for (int i = 0; i < providedComponents.size(); ++i)
+            {
+                Component component = providedComponents.get(i);
+                for (var entry : component.getVariant(variants[i]).entrySet())
+                {
+                    providedPrimitives.merge(entry.getKey(), entry.getValue(), Integer::sum);
+                }
+            }
+            int result = matchPrimitives(providedPrimitives, requiredPrimitives);
+            if (minMatch == MATCH_FAILURE || result < minMatch)
+            {
+                minMatch = result;
+            }
+
+            int i = 0;
+            while (i < providedComponents.size())
+            {
+                if (++variants[i] < providedComponents.get(i).getVariantCount())
+                {
+                    break;
+                }
+                else
+                {
+                    variants[i++] = 0;
+                }
+            }
+            if (i == providedComponents.size())
+            {
+                break;
+            }
+        }
+        return minMatch;
+    }
+
     /**
      * The method evaluates how the provided radicals match the required ones.
      *
@@ -54,11 +132,13 @@ public record Symbol(int index, String uri, List<Component> components)
      *
      * @return
      */
-    private static int match(List<Primitive> provided, // What this symbol provides
-                             List<Primitive> required) // What the user requires
+    private static int matchPrimitives(Map<Primitive, Integer> provided, // What this symbol provides
+                                       Map<Primitive, Integer> required) // What the user requires
     {
         // If more is required than is provided, the match is failed.
-        if (required.size() > provided.size())
+        int requiredCount = required.values().stream().mapToInt(Integer::intValue).sum();
+        int providedCount = provided.values().stream().mapToInt(Integer::intValue).sum();
+        if (requiredCount > providedCount)
         {
             return MATCH_FAILURE;
         }
@@ -68,13 +148,13 @@ public record Symbol(int index, String uri, List<Component> components)
         int[] counter = new int[Primitive.values().length];
 
         // Step 1. Cancel out the identical radicals.
-        for (Primitive primitive : provided)
+        for (var entry : provided.entrySet())
         {
-            ++counter[primitive.ordinal()];
+            counter[entry.getKey().ordinal()] += entry.getValue();
         }
-        for (Primitive primitive : required)
+        for (var entry : required.entrySet())
         {
-            --counter[primitive.ordinal()];
+            counter[entry.getKey().ordinal()] -= entry.getValue();
         }
 
         // Step 2. Try to match the provided specific radicals (the "children") to the required
@@ -129,43 +209,5 @@ public record Symbol(int index, String uri, List<Component> components)
             result += count;
         }
         return result;
-    }
-
-    private static boolean checkBeginning(List<Component> provided, List<Component> required)
-    {
-        if (required.size() > provided.size())
-        {
-            return false;
-        }
-
-        for (int i = 0; i < required.size(); ++i)
-        {
-            if (!provided.get(i).equals(required.get(i)))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public int matches(Symbol subSymbol, List<Primitive> requiredPrimitives)
-    {
-        List<Component> requiredComponents = subSymbol == null
-                ? Collections.emptyList()
-                : subSymbol.components;
-
-        if (!checkBeginning(components, requiredComponents))
-        {
-            return MATCH_FAILURE;
-        }
-
-        List<Component> remainingComponents = components.subList(requiredComponents.size(),
-                                                                 components.size());
-
-
-
-        throw new RuntimeException();
-
-        //return match(remainingPrimitives, requiredPrimitives);
     }
 }
