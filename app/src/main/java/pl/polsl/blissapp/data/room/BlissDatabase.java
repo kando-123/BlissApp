@@ -14,7 +14,7 @@ import pl.polsl.blissapp.data.room.entity.*;
             SymbolEntity.class,
             ComponentEntity.class,
             PrimitiveEntity.class,
-            ComponentEntity.class,
+            CompositionEntity.class,
             DefinitionEntity.class,
             TranslationEntity.class
         },

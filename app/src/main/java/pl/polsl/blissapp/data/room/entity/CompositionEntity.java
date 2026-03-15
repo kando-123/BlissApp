@@ -25,15 +25,15 @@ public class CompositionEntity
     @ColumnInfo(name = "component_index")
     public int componentIndex;
 
-    @ColumnInfo(name = "component_ordinal")
+    @ColumnInfo(name = "component_position")
     public int componentPosition;
 
     public CompositionEntity(int symbolIndex,
                              int componentIndex,
-                             int componentOrdinal)
+                             int componentPosition)
     {
         this.symbolIndex = symbolIndex;
         this.componentIndex = componentIndex;
-        this.componentPosition = componentOrdinal;
+        this.componentPosition = componentPosition;
     }
 }

@@ -74,7 +74,8 @@ public record Symbol(int index, String uri, List<Component> components)
         int[] variants = new int[providedComponents.size()];
 
         int minMatch = MATCH_FAILURE;
-        while (true)
+        boolean hasNext;
+        do
         {
             Map<Primitive, Integer> providedPrimitives = new EnumMap<>(Primitive.class);
             for (int i = 0; i < providedComponents.size(); ++i)
@@ -85,29 +86,26 @@ public record Symbol(int index, String uri, List<Component> components)
                     providedPrimitives.merge(entry.getKey(), entry.getValue(), Integer::sum);
                 }
             }
+
             int result = matchPrimitives(providedPrimitives, requiredPrimitives);
             if (minMatch == MATCH_FAILURE || result < minMatch)
             {
                 minMatch = result;
             }
 
-            int i = 0;
-            while (i < providedComponents.size())
+            hasNext = false;
+            for (int i = 0; i < providedComponents.size(); ++i)
             {
                 if (++variants[i] < providedComponents.get(i).getVariantCount())
                 {
+                    hasNext = true;
                     break;
                 }
-                else
-                {
-                    variants[i++] = 0;
-                }
-            }
-            if (i == providedComponents.size())
-            {
-                break;
+                variants[i] = 0;
             }
         }
+        while (hasNext);
+
         return minMatch;
     }
 

@@ -286,16 +286,16 @@ public class BlissKeyboardFragment extends Fragment
         return Arrays.asList(
                 // Row 1: Radicals with Indicators
                 Arrays.asList(
-                        bliss(Primitive.SEMICIRCLE, Primitive.DIGIT_ONE),
-                        bliss(Primitive.ARC, Primitive.DIGIT_TWO),
-                        bliss(Primitive.ARROW, Primitive.DIGIT_THREE),
-                        bliss(Primitive.BUILDING, Primitive.DIGIT_FOUR),
-                        bliss(Primitive.CROSSHATCH, Primitive.DIGIT_FIVE),
-                        bliss(Primitive.CROSS, Primitive.DIGIT_SIX),
-                        bliss(Primitive.POINTER, Primitive.DIGIT_SEVEN),
-                        bliss(Primitive.EAR, Primitive.DIGIT_EIGHT),
-                        bliss(Primitive.HEART, Primitive.DIGIT_NINE),
-                        bliss(Primitive.DOT, Primitive.DIGIT_ZERO)
+                        bliss(Primitive.SEMICIRCLE, Primitive.DIGIT_1),
+                        bliss(Primitive.ARC, Primitive.DIGIT_2),
+                        bliss(Primitive.ARROW, Primitive.DIGIT_3),
+                        bliss(Primitive.BUILDING, Primitive.DIGIT_4),
+                        bliss(Primitive.CROSSHATCH, Primitive.DIGIT_5),
+                        bliss(Primitive.CROSS, Primitive.DIGIT_6),
+                        bliss(Primitive.POINTER, Primitive.DIGIT_7),
+                        bliss(Primitive.EAR, Primitive.DIGIT_8),
+                        bliss(Primitive.HEART, Primitive.DIGIT_9),
+                        bliss(Primitive.DOT, Primitive.DIGIT_0)
                 ),
                 // Row 2: More Radicals
                 Arrays.asList(
@@ -333,16 +333,16 @@ public class BlissKeyboardFragment extends Fragment
     {
         return Arrays.asList(
                 Arrays.asList(
-                        alpha(Primitive.LETTER_LOWER_Q, Primitive.DIGIT_ONE),
-                        alpha(Primitive.LETTER_LOWER_W, Primitive.DIGIT_TWO),
-                        alpha(Primitive.LETTER_LOWER_E, Primitive.DIGIT_THREE),
-                        alpha(Primitive.LETTER_LOWER_R, Primitive.DIGIT_FOUR),
-                        alpha(Primitive.LETTER_LOWER_T, Primitive.DIGIT_FIVE),
-                        alpha(Primitive.LETTER_LOWER_Y, Primitive.DIGIT_SIX),
-                        alpha(Primitive.LETTER_LOWER_U, Primitive.DIGIT_SEVEN),
-                        alpha(Primitive.LETTER_LOWER_I, Primitive.DIGIT_EIGHT),
-                        alpha(Primitive.LETTER_LOWER_O, Primitive.DIGIT_NINE),
-                        alpha(Primitive.LETTER_LOWER_P, Primitive.DIGIT_ZERO)
+                        alpha(Primitive.LETTER_LOWER_Q, Primitive.DIGIT_1),
+                        alpha(Primitive.LETTER_LOWER_W, Primitive.DIGIT_2),
+                        alpha(Primitive.LETTER_LOWER_E, Primitive.DIGIT_3),
+                        alpha(Primitive.LETTER_LOWER_R, Primitive.DIGIT_4),
+                        alpha(Primitive.LETTER_LOWER_T, Primitive.DIGIT_5),
+                        alpha(Primitive.LETTER_LOWER_Y, Primitive.DIGIT_6),
+                        alpha(Primitive.LETTER_LOWER_U, Primitive.DIGIT_7),
+                        alpha(Primitive.LETTER_LOWER_I, Primitive.DIGIT_8),
+                        alpha(Primitive.LETTER_LOWER_O, Primitive.DIGIT_9),
+                        alpha(Primitive.LETTER_LOWER_P, Primitive.DIGIT_0)
                 ),
                 Arrays.asList(
                         alpha(Primitive.LETTER_LOWER_A), alpha(Primitive.LETTER_LOWER_S),
