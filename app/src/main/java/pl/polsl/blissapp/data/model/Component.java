@@ -6,42 +6,34 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public class Component
+public record Component(int index, List<Map<Primitive, Integer>> variants)
 {
-    private final int mIndex;
-    private final List<Map<Primitive, Integer>> mVariants;
-
     public Component(int index, List<Map<Primitive, Integer>> variants)
     {
-        this.mIndex = index;
+        this.index = index;
         if (variants.isEmpty())
         {
             throw new IllegalArgumentException("Variants cannot be empty.");
         }
-        mVariants = new ArrayList<>(variants.size());
+        this.variants = new ArrayList<>(variants.size());
         for (Map<Primitive, Integer> variant : variants)
         {
             if (variant.isEmpty())
             {
                 throw new IllegalArgumentException("Variant cannot be empty.");
             }
-            mVariants.add(Map.copyOf(variant));
+            this.variants.add(Map.copyOf(variant));
         }
-        mVariants.sort(Comparator.comparingInt(Map::size));
-    }
-
-    public int getIndex()
-    {
-        return mIndex;
+        this.variants.sort(Comparator.comparingInt(Map::size));
     }
 
     public Map<Primitive, Integer> getVariant(int i)
     {
-        return mVariants.get(i);
+        return variants.get(i);
     }
 
     public int getVariantCount()
     {
-        return mVariants.size();
+        return variants.size();
     }
 }
