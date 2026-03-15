@@ -17,14 +17,12 @@ public class DrawableMapper
         radicalMap.put(ACUTE_ANGLE,             R.drawable.radical_acute_angle_large_north);
         radicalMap.put(ACUTE_ANGLE_LARGE_NORTH, R.drawable.radical_acute_angle_large_north);
         radicalMap.put(ACUTE_ANGLE_LARGE_SOUTH, R.drawable.radical_acute_angle_large_south);
-        radicalMap.put(ACUTE_ANGLE_SMALL_EAST,  R.drawable.radical_acute_angle_small_east);
         radicalMap.put(ACUTE_ANGLE_SMALL_NORTH, R.drawable.radical_acute_angle_small_north);
         radicalMap.put(ACUTE_ANGLE_SMALL_SOUTH, R.drawable.radical_acute_angle_small_south);
         radicalMap.put(ACUTE_ANGLE_SMALL_WEST,  R.drawable.radical_acute_angle_small_west);
 
         radicalMap.put(ACUTE_TRIANGLE,                 R.drawable.radical_acute_triangle_large_north);
         radicalMap.put(ACUTE_TRIANGLE_LARGE_NORTH,     R.drawable.radical_acute_triangle_large_north);
-        radicalMap.put(ACUTE_TRIANGLE_LARGE_NORTHEAST, R.drawable.radical_acute_triangle_large_northeast);
         radicalMap.put(ACUTE_TRIANGLE_LARGE_SOUTH,     R.drawable.radical_acute_triangle_large_south);
         radicalMap.put(ACUTE_TRIANGLE_SMALL_NORTH,     R.drawable.radical_acute_triangle_small_north);
         radicalMap.put(ACUTE_TRIANGLE_SMALL_SOUTH,     R.drawable.radical_acute_triangle_small_south);
@@ -82,7 +80,7 @@ public class DrawableMapper
         radicalMap.put(HORIZONTAL_LINE_LARGE, R.drawable.radical_horizontal_line_large);
         radicalMap.put(HORIZONTAL_LINE_SMALL, R.drawable.radical_horizontal_line_small);
 
-        radicalMap.put(OPEN_RECTANGLE,                      R.drawable.radical_open_rectangle);
+        radicalMap.put(OPEN_RECTANGLE,                      R.drawable.radical_open_rectangle_horizontal_north);
         radicalMap.put(OPEN_RECTANGLE_HORIZONTAL_NORTH,     R.drawable.radical_open_rectangle_horizontal_north);
         radicalMap.put(OPEN_RECTANGLE_HORIZONTAL_EAST,      R.drawable.radical_open_rectangle_horizontal_east);
         radicalMap.put(OPEN_RECTANGLE_HORIZONTAL_SOUTH,     R.drawable.radical_open_rectangle_horizontal_south);
@@ -99,7 +97,7 @@ public class DrawableMapper
         radicalMap.put(OPEN_SQUARE_SMALL_NORTH, R.drawable.radical_open_square_small_north);
         radicalMap.put(OPEN_SQUARE_SMALL_SOUTH, R.drawable.radical_open_square_small_south);
 
-        radicalMap.put(PIN,                     R.drawable.radical_pin);
+        radicalMap.put(PIN,                     R.drawable.radical_pin_large_north);
         radicalMap.put(PIN_LARGE_NORTH,         R.drawable.radical_pin_large_north);
         radicalMap.put(PIN_LARGE_NORTH_SLANTED, R.drawable.radical_pin_large_north_slanted);
         radicalMap.put(PIN_LARGE_NORTHEAST,     R.drawable.radical_pin_large_northeast);
@@ -128,8 +126,9 @@ public class DrawableMapper
         radicalMap.put(EXCLAMATION_MARK, R.drawable.radical_exclamation_mark);
         radicalMap.put(PERCENT_MARK,     R.drawable.radical_percent_mark);
         radicalMap.put(QUESTION_MARK,    R.drawable.radical_question_mark);
+        radicalMap.put(COMMA_MARK,    R.drawable.radical_comma);
 
-        radicalMap.put(RECTANGLE,            R.drawable.radical_rectangle_vertical);
+        radicalMap.put(RECTANGLE,            R.drawable.radical_rectangle_horizontal);
         radicalMap.put(RECTANGLE_DIAGONAL,   R.drawable.radical_rectangle_diagonal);
         radicalMap.put(RECTANGLE_HORIZONTAL, R.drawable.radical_rectangle_horizontal);
         radicalMap.put(RECTANGLE_VERTICAL,   R.drawable.radical_rectangle_vertical);
@@ -182,7 +181,7 @@ public class DrawableMapper
         radicalMap.put(WAVY_LINE_HORIZONTAL, R.drawable.radical_wavy_line_horizontal);
         radicalMap.put(WAVY_LINE_VERTICAL,   R.drawable.radical_wavy_line_vertical);
 
-        radicalMap.put(WEIRD_ANGLE,           R.drawable.radical_weird_angle);
+        radicalMap.put(WEIRD_ANGLE,           R.drawable.radical_weird_angle_southwest);
         radicalMap.put(WEIRD_ANGLE_EAST,      R.drawable.radical_weird_angle_east);
         radicalMap.put(WEIRD_ANGLE_NORTH,     R.drawable.radical_weird_angle_north);
         radicalMap.put(WEIRD_ANGLE_NORTHEAST, R.drawable.radical_weird_angle_northeast);
@@ -208,11 +207,11 @@ public class DrawableMapper
         radicalMap.put(INDICATOR_ACTION,        R.drawable.indicator_action);
         radicalMap.put(INDICATOR_ACTIVE,        R.drawable.indicator_active);
         radicalMap.put(INDICATOR_CONDITIONAL,   R.drawable.indicator_conditional);
-        radicalMap.put(INDICATOR_DEFINITE,      R.drawable.indicator_definite);
+        radicalMap.put(INDICATOR_DEFINITE,      R.drawable.indicator_definite_form);
         radicalMap.put(INDICATOR_DESCRIPTION,   R.drawable.indicator_description);
         radicalMap.put(INDICATOR_DOT,           R.drawable.indicator_dot);
         radicalMap.put(INDICATOR_FUTURE_ACTION, R.drawable.indicator_future_action);
-        radicalMap.put(INDICATOR_IMPERATIVE,    R.drawable.indicator_imperative);
+        radicalMap.put(INDICATOR_IMPERATIVE,    R.drawable.indicator_imperative_form);
         radicalMap.put(INDICATOR_PASSIVE,       R.drawable.indicator_passive);
         radicalMap.put(INDICATOR_PAST_ACTION,   R.drawable.indicator_past_action);
         radicalMap.put(INDICATOR_PLURAL,        R.drawable.indicator_plural);
