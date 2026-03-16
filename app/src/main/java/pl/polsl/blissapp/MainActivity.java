@@ -34,8 +34,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        super.onCreate(savedInstanceState);
         ThemeManager.applyTheme(this);
+        super.onCreate(savedInstanceState);
 
         // 1. Enable edge-to-edge drawing
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);

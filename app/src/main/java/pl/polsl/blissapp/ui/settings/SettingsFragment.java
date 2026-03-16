@@ -45,31 +45,31 @@ public class SettingsFragment extends Fragment {
         RadioGroup radioGroup = root.findViewById(R.id.radio_group_color);
         
         // Restore the current selection
-        int savedThemeId = ThemeManager.getSavedTheme(requireContext());
-        if (savedThemeId == R.style.Theme_BlissApp_Ocean) {
+        String savedThemeKey = ThemeManager.getSavedThemeKey(requireContext());
+        if (ThemeManager.THEME_OCEAN.equals(savedThemeKey)) {
             radioGroup.check(R.id.radio_ocean);
-        } else if (savedThemeId == R.style.Theme_BlissApp_Forest) {
+        } else if (ThemeManager.THEME_FOREST.equals(savedThemeKey)) {
             radioGroup.check(R.id.radio_forest);
-        } else if (savedThemeId == R.style.Theme_BlissApp_Sunset) {
+        } else if (ThemeManager.THEME_SUNSET.equals(savedThemeKey)) {
             radioGroup.check(R.id.radio_sunset);
         } else {
             radioGroup.check(R.id.radio_lavender);
         }
 
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            int themeId = R.style.Theme_BlissApp; // Default/Lavender
+            String themeKey = ThemeManager.THEME_LAVENDER;
             if (checkedId == R.id.radio_ocean) {
-                themeId = R.style.Theme_BlissApp_Ocean;
+                themeKey = ThemeManager.THEME_OCEAN;
             } else if (checkedId == R.id.radio_forest) {
-                themeId = R.style.Theme_BlissApp_Forest;
+                themeKey = ThemeManager.THEME_FOREST;
             } else if (checkedId == R.id.radio_sunset) {
-                themeId = R.style.Theme_BlissApp_Sunset;
+                themeKey = ThemeManager.THEME_SUNSET;
             } else if (checkedId == R.id.radio_lavender) {
-                themeId = R.style.Theme_BlissApp_Lavender;
+                themeKey = ThemeManager.THEME_LAVENDER;
             }
             
-            if (themeId != ThemeManager.getSavedTheme(requireContext())) {
-                ThemeManager.changeTheme(requireActivity(), themeId);
+            if (!themeKey.equals(ThemeManager.getSavedThemeKey(requireContext()))) {
+                ThemeManager.changeTheme(requireActivity(), themeKey);
             }
         });
     }

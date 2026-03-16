@@ -38,7 +38,7 @@
         <item name="android:windowBackground">@color/sunset_surface</item>
     </style>
 
-    <style name="Theme.BlissApp.NoActionBar">
+    <style name="Theme.BlissApp.NoActionBar" parent="Theme.BlissApp">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
