@@ -2,12 +2,11 @@ package pl.polsl.blissapp;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.MenuItem;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,7 +22,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.ui.settings.ThemeManager;
 
 @AndroidEntryPoint
@@ -34,6 +32,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        // Install the splash screen before ThemeManager applies the theme
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
 
