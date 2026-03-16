@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme (Shared logic and common attributes) -->
     <style name="Theme.BlissApp.Base" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -6,28 +7,37 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
 
-        <!-- Background/Surface colors -->
+        <!-- Background/Surface colors (Defaults) -->
         <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/black</item>
 
         <!-- Common flags (inherited by all) -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+        <!-- Edge-to-edge support in theme -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- No default windowLightStatusBar – will be set per variant -->
     </style>
 
     <!-- Modern Splash Screen Theme -->
     <style name="Theme.BlissApp.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_combined</item>
-        <item name="postSplashScreenTheme">@style/Theme.BlissApp.Lavender</item>
+        <item name="postSplashScreenTheme">@style/Theme.BlissApp.Base</item>
     </style>
 
-    <!-- Specific Color Themes -->
+    <!-- Specific Color Themes (light mode) -->
     <style name="Theme.BlissApp.Lavender" parent="Theme.BlissApp.Base">
         <item name="colorPrimary">@color/lavender_primary</item>
         <item name="colorPrimaryVariant">@color/lavender_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:windowBackground">@color/lavender_surface</item>
+        <item name="android:colorBackground">@color/lavender_surface</item>
+        <item name="colorSurface">@color/white</item>
+        <!-- Status bar icons: dark (true) because primary is dark? Actually lavender_primary might be dark, so we want light icons. Adjust as needed -->
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.BlissApp.Ocean" parent="Theme.BlissApp.Base">
@@ -35,6 +45,9 @@
         <item name="colorPrimaryVariant">@color/ocean_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:windowBackground">@color/ocean_surface</item>
+        <item name="android:colorBackground">@color/ocean_surface</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.BlissApp.Forest" parent="Theme.BlissApp.Base">
@@ -42,6 +55,9 @@
         <item name="colorPrimaryVariant">@color/forest_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:windowBackground">@color/forest_surface</item>
+        <item name="android:colorBackground">@color/forest_surface</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.BlissApp.Sunset" parent="Theme.BlissApp.Base">
@@ -49,12 +65,15 @@
         <item name="colorPrimaryVariant">@color/sunset_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:windowBackground">@color/sunset_surface</item>
+        <item name="android:colorBackground">@color/sunset_surface</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <!-- Default Theme for the application -->
     <style name="Theme.BlissApp" parent="Theme.BlissApp.Starting" />
 
-    <style name="Theme.BlissApp.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <!-- Additional styles used in layouts -->
     <style name="Theme.BlissApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="ShapeAppearanceOverlay.BlissApp.Rounded" parent="">

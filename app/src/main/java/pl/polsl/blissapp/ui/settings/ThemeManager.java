@@ -18,6 +18,7 @@ public class ThemeManager {
 
     public static void changeTheme(Activity activity, String themeKey) {
         saveTheme(activity, themeKey);
+        // Important: Recreate the activity to apply the new theme
         activity.recreate();
     }
 
@@ -35,7 +36,7 @@ public class ThemeManager {
         return prefs.getString(PREF_THEME_KEY, THEME_LAVENDER);
     }
 
-    private static int getThemeResource(Context context) {
+    public static int getThemeResource(Context context) {
         String themeKey = getSavedThemeKey(context);
 
         switch (themeKey) {

@@ -69,7 +69,10 @@ public class BlissKeyboardFragment extends Fragment
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         mKeyboardContainer.setOrientation(LinearLayout.VERTICAL);
         mKeyboardContainer.setGravity(Gravity.BOTTOM);
-        mKeyboardContainer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.keyboard_background));
+        
+        // Use background with a subtle top border to soften the "sudden" end (Issue #BetterTransition)
+        mKeyboardContainer.setBackgroundResource(R.drawable.keyboard_background_with_border);
+
         int padding = getResources().getDimensionPixelSize(R.dimen.keyboard_padding);
         mKeyboardContainer.setPadding(padding, padding, padding, padding);
 
