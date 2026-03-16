@@ -251,6 +251,8 @@ public enum Primitive
         return parent;
     }
 
+    public Primitive getRoot() { return parent == null ? this : parent; }
+
     public boolean isLetter()
     {
         return parent == LETTER_LOWER || parent == LETTER_UPPER;
