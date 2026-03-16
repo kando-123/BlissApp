@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="50dp"
+    android:viewportWidth="200"
+    android:viewportHeight="50">
+    <!--
+       The total text width is approximately 170 units (from 0 to 170).
+       To center it in a 200 unit wide viewport, we translate by (200 - 170) / 2 = 15.
+    -->
+    <group
+        android:translateX="15"
+        android:translateY="10">
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M0,0 v30 h8 c6,0 6,-15 0,-15 h-8 m8,0 c6,0 6,-15 0,-15 h-8" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M16,-5 v35" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:strokeLineCap="round" android:fillColor="@android:color/transparent" android:pathData="M23,10 v20 M23,3 v2" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M37,12 c-4,0 -6,2 -6,5 c0,5 10,4 10,9 c0,3 -2,4 -6,4 c-3,0 -5,-1 -5,-3" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M51,12 c-4,0 -6,2 -6,5 c0,5 10,4 10,9 c0,3 -2,4 -6,4 c-3,0 -5,-1 -5,-3" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M65,0 v30 h6 c8,0 12,-6 12,-15 c0,-9 -4,-15 -12,-15 h-6" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M88,20 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M98,-5 v35" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M106,10 v28 M106,18 m0,-4 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M125,-5 v35 M125,12 c6,-2 10,2 10,8 v10" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:strokeLineCap="round" android:fillColor="@android:color/transparent" android:pathData="M142,10 v20 M142,3 v2" />
+        <path android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:fillColor="@android:color/transparent" android:pathData="M150,10 v20 M150,12 c6,-2 10,2 10,8 v10" />
+    </group>
+</vector>
