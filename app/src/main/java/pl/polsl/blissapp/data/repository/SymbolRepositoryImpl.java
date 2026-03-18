@@ -1,11 +1,17 @@
 package pl.polsl.blissapp.data.repository;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import android.util.Log;
 import android.util.LruCache;
 
 import androidx.sqlite.db.SimpleSQLiteQuery;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,11 +25,40 @@ import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.data.room.dto.SymbolDto;
+import pl.polsl.blissapp.data.room.dto.VariantDto;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 public class SymbolRepositoryImpl implements SymbolRepository
 {
     private final BlissDatabase database = BlissApplication.getDatabase();
+
+    private final LruCache<Integer, List<Integer>> mSymbolComponentsCache = new LruCache<>(500)
+    {
+        @Override
+        protected List<Integer> create(Integer symbolIdx)
+        {
+            return database.symbolDao().getComponents(symbolIdx);
+        }
+    };
+    private final LruCache<Integer, List<Map<Primitive, Integer>>> mComponentVariantsCache = new LruCache<>(500)
+    {
+        @Override
+        protected List<Map<Primitive, Integer>> create(Integer componentIdx)
+        {
+            List<VariantDto> variantDtos = database.symbolDao().getVariants(componentIdx);
+            List<Map<Primitive, Integer>> variants =
+                    new ArrayList<>(variantDtos.get(variantDtos.size() - 1).variant + 1);
+            for (int i = 0; i < variants.size(); ++i)
+            {
+                variants.add(new HashMap<>());
+            }
+            for (VariantDto dto : variantDtos)
+            {
+                variants.get(dto.variant).put(Primitive.valueOf(dto.primitiveCode), dto.primitiveCount);
+            }
+            return variants;
+        }
+    };
 
     /**
      * Retrieves the symbols that match given filter.
@@ -37,6 +72,9 @@ public class SymbolRepositoryImpl implements SymbolRepository
      * <p>
      * The returned list contains at most {@code maxCount} elements. They are sorted according to
      * how exact the match is, i.e. increasingly with respect to the value of {@code matches} method.
+     * <p>
+     * The callback will be invoked from another thread.
+     *
      *
      * @param prefixSymbol the symbol that the results are expected to begin with, or null
      * @param suffixPrimitives the primitives that the set of primitives of the simple symbol,
@@ -57,43 +95,38 @@ public class SymbolRepositoryImpl implements SymbolRepository
             return;
         }
 
-        List<Component> prefixComponents = prefixSymbol != null
-                ? prefixSymbol.components()
-                : Collections.emptyList();
-        SimpleSQLiteQuery query = getQuery(prefixComponents, suffixPrimitives);
-
-        // final String tag = "SymbolRepositoryImpl";
-        // Log.d(tag, "Getting the matching symbols");
         Thread worker = new Thread(() ->
         {
-            // Log.d(tag, "Starting the worker thread");
             try
             {
-                // Log.d(tag, "Querying database");
+                List<Integer> prefixComponents = prefixSymbol != null
+                        ? mSymbolComponentsCache.get(prefixSymbol.index())
+                        : Collections.emptyList();
+
+                SimpleSQLiteQuery query = SymbolRepositoryImpl.this.getQuery(prefixComponents, suffixPrimitives);
                 List<SymbolDto> dtos = database.symbolDao().getSymbols(query);
-                // Log.d(tag, "Done querying database");
-
-                // if (dtos.isEmpty())
-                //     Log.d(tag, "No symbols found");
-                // else for (SymbolDto dto : dtos)
-                //     Log.d(tag, "Found symbol #" + dto.index + " URI='" + dto.resourceUri + "'");
-
                 List<Symbol> symbols = dtos.stream()
-                        .map(dto -> new Symbol(dto.index, dto.resourceUri, Collections.emptyList()))
+                        .map(dto -> new Symbol(dto.index, dto.resourceUri))
                         .collect(Collectors.toList());
-                callback.onSuccess(symbols);
+
+                List<Symbol> hints = new ArrayList<>(maxCount);
+
+                for (Symbol symbol : symbols)
+                {
+
+                }
+
+                callback.onSuccess(hints);
             }
             catch (Exception exc)
             {
-                // Log.d(tag, "Error querying database", exc);
                 callback.onFailure(exc);
             }
-            // Log.d(tag, "Finished the worker thread");
         });
         worker.start();
     }
 
-    private SimpleSQLiteQuery getQuery(List<Component> prefixComponents, Map<Primitive, Integer> suffixPrimitives)
+    private SimpleSQLiteQuery getQuery(List<Integer> prefixComponents, Map<Primitive, Integer> suffixPrimitives)
     {
         Set<Primitive> rootSet = suffixPrimitives.keySet().stream()
                 .map(Primitive::getRoot)
@@ -164,7 +197,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
         return new SimpleSQLiteQuery(query);
     }
 
-    private String prefixFilterClause(List<Component> prefix)
+    private String prefixFilterClause(List<Integer> prefix)
     {
         if (prefix.isEmpty())
         {
@@ -174,7 +207,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
         StringBuilder clause = new StringBuilder("WHERE ");
         for (int i = 0; i < prefix.size(); ++i)
         {
-            int index = prefix.get(i).index();
+            int index = prefix.get(i);
             if (i > 0)
             {
                 clause.append("OR ");
@@ -207,7 +240,184 @@ public class SymbolRepositoryImpl implements SymbolRepository
         return vector.toString();
     }
 
+    public static final int MATCH_FAILURE = -1;
+    public static final int EXACT_MATCH = 0;
 
+    private static boolean checkBeginning(List<Component> provided, List<Component> required)
+    {
+        if (required.size() > provided.size())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < required.size(); ++i)
+        {
+            if (!provided.get(i).equals(required.get(i)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int matchSuffix(List<Integer> suffixComponents,
+                            Map<Primitive, Integer> requiredPrimitives)
+    {
+        // Counter of which variant of each component is being considered in current variance
+        final int suffixSize = suffixComponents.size();
+        int[] varianceCounter = new int[suffixSize];
+
+        // All the variants of all the components in the suffix
+        List<List<Map<Primitive, Integer>>> allVariants = new ArrayList<>(suffixComponents.size());
+        for (var suffixComponent : suffixComponents)
+        {
+            allVariants.add(mComponentVariantsCache.get(suffixComponent));
+        }
+
+        int minMatch = MATCH_FAILURE;
+        boolean hasNext;
+        do
+        {
+            // Count the primitives for the current variance
+            Map<Primitive, Integer> variancePrimitives = new EnumMap<>(Primitive.class);
+            for (int i = 0; i < suffixSize; ++i)
+            {
+                // All the variants of the component
+                List<Map<Primitive, Integer>> componentVariants = allVariants.get(i);
+
+                // The variant of the component that is considered in this variance
+                Map<Primitive, Integer> variant = componentVariants.get(varianceCounter[i]);
+
+                // Add to the variance primitive multiset
+                for (var entry : variant.entrySet())
+                {
+                    Primitive primitive = entry.getKey();
+                    int count = entry.getValue();
+                    variancePrimitives.merge(primitive, count, Integer::sum);
+                }
+            }
+
+            int result = matchPrimitives(variancePrimitives, requiredPrimitives);
+            if (minMatch == MATCH_FAILURE || result < minMatch)
+            {
+                minMatch = result;
+            }
+
+            hasNext = false;
+            for (int i = 0; i < suffixSize; ++i)
+            {
+                if (++varianceCounter[i] < allVariants.get(i).size())
+                {
+                    hasNext = true;
+                    break;
+                }
+                varianceCounter[i] = 0;
+            }
+        }
+        while (hasNext);
+
+        return minMatch;
+    }
+
+    /**
+     * The method evaluates how the provided radicals match the required ones.
+     *
+     * <p>If for every required radical, there is a matching radical provided, the match is fully
+     * successful and 0 is returned. A provided radical matches a required one if they are equal,
+     * or if the provided radical is a child of the required radical (a specific radical satisfies
+     * a general requirement).</p>
+     *
+     * <p>A general requirement may be covered by equal or child radicals provided. A specific
+     * requirement may be covered by equal or sibling radicals provided. If a requirement is not
+     * covered, the match is failed and -1 is returned.</p>
+     *
+     * <p>The returned result is equal to the number of sibling matches plus the number of radicals
+     * excessively provided in the symbol, which translates to a non-negative number, with smaller
+     * numbers indicating a better match.</p>
+     *
+     * @param provided
+     * @param required
+     *
+     * @return
+     */
+    private static int matchPrimitives(Map<Primitive, Integer> provided, // What this symbol provides
+                                       Map<Primitive, Integer> required) // What the user requires
+    {
+        // If more is required than is provided, the match is failed.
+        int requiredCount = required.values().stream().mapToInt(Integer::intValue).sum();
+        int providedCount = provided.values().stream().mapToInt(Integer::intValue).sum();
+        if (requiredCount > providedCount)
+        {
+            return MATCH_FAILURE;
+        }
+
+        // Count the radicals provided as positive,
+        // count the radicals required as negative.
+        int[] counter = new int[Primitive.values().length];
+
+        // Step 1. Cancel out the identical radicals.
+        for (var entry : provided.entrySet())
+        {
+            counter[entry.getKey().ordinal()] += entry.getValue();
+        }
+        for (var entry : required.entrySet())
+        {
+            counter[entry.getKey().ordinal()] -= entry.getValue();
+        }
+
+        // Step 2. Try to match the provided specific radicals (the "children") to the required
+        // general radicals (the "parents").
+        for (Primitive child : Primitive.getChildPrimitives())
+        {
+            Primitive parent = child.getParent();
+            assert parent != null;
+
+            if (counter[child.ordinal()] > 0)
+            {
+                counter[parent.ordinal()] += counter[child.ordinal()];
+                counter[child.ordinal()] = 0;
+            }
+        }
+
+        // If any "parent" has a negative score now, it means that the more general requirement
+        // (the parent) was not covered by the provided specific radicals (the children).
+        if (Primitive.getParentPrimitives().stream().anyMatch(r -> counter[r.ordinal()] < 0))
+        {
+            return MATCH_FAILURE;
+        }
+
+        // Step 3. If a radical is provided in one form but required in another form (a "sibling"),
+        // the symbol still may count as a match, but with a lower preference (result > 0).
+        // The points will be aggregated in the parent's counters.
+        int result = 0;
+        for (Primitive child : Primitive.getChildPrimitives())
+        {
+            Primitive parent = child.getParent();
+            assert parent != null;
+
+            // Count the reductions to the result.
+            if (counter[child.ordinal()] < 0 && counter[parent.ordinal()] > 0)
+            {
+                result += min(-counter[child.ordinal()], +counter[parent.ordinal()]);
+            }
+
+            // Pass the score to the parent.
+            counter[parent.ordinal()] += counter[child.ordinal()];
+            counter[child.ordinal()] = 0;
+        }
+
+        // If we still have an unsatisfied requirement (a negative counter), the match is failed.
+        // If there are excessively provided symbols, the result is worse (> 0).
+        for (int count : counter)
+        {
+            if (count < 0)
+            {
+                return MATCH_FAILURE;
+            }
+            result += count;
+        }
+        return result;
+    }
 
     @Override
     public void getMeanings(Symbol symbol,
