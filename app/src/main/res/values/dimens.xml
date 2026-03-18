@@ -16,4 +16,8 @@
 
     <dimen name="keyboard_alt_image_offset_x">-25dp</dimen>
     <dimen name="keyboard_alt_image_offset_y">-30dp</dimen>
+
+    <dimen name="keyboard_handle_height">24dp</dimen>
+    <dimen name="keyboard_handle_thickness">4dp</dimen>
+    <dimen name="keyboard_handle_width">60dp</dimen>
 </resources>

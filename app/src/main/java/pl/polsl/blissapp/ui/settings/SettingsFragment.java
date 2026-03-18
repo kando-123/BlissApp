@@ -44,7 +44,7 @@ public class SettingsFragment extends Fragment {
     private void setupThemeSelection(View root) {
         RadioGroup radioGroup = root.findViewById(R.id.radio_group_color);
         
-        // Restore the current selection
+        // Restore the current selection without triggering the listener
         String savedThemeKey = ThemeManager.getSavedThemeKey(requireContext());
         if (ThemeManager.THEME_OCEAN.equals(savedThemeKey)) {
             radioGroup.check(R.id.radio_ocean);
@@ -56,6 +56,7 @@ public class SettingsFragment extends Fragment {
             radioGroup.check(R.id.radio_lavender);
         }
 
+        // Set the listener AFTER restoring the state to avoid immediate recreation loop
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             String themeKey = ThemeManager.THEME_LAVENDER;
             if (checkedId == R.id.radio_ocean) {
@@ -68,6 +69,7 @@ public class SettingsFragment extends Fragment {
                 themeKey = ThemeManager.THEME_LAVENDER;
             }
             
+            // Only change if the theme is actually different
             if (!themeKey.equals(ThemeManager.getSavedThemeKey(requireContext()))) {
                 ThemeManager.changeTheme(requireActivity(), themeKey);
             }

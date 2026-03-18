@@ -7,55 +7,66 @@
     android:orientation="vertical"
     android:background="?android:attr/windowBackground">
 
-    <!-- Message Display Area -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_message"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.2"
-        android:layout_margin="12dp"
-        android:background="@drawable/writer_surface_background"
-        android:padding="8dp"
-        android:orientation="horizontal"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_bliss_symbol" />
-
-    <!-- Hints/Predictions Area -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_hints"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/writer_surface_background"
-        android:padding="8dp"
-        android:orientation="horizontal"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_bliss_symbol" />
-
-    <!-- Filters/Radicals Area -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/writer_surface_background"
-        android:minHeight="64dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
 
+        <!-- Message Display Area -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_filters"
+            android:id="@+id/rv_message"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/writer_surface_background"
+            android:padding="8dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_bliss_symbol" />
+
+        <!-- Hints/Predictions Area -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_hints"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/writer_surface_background"
+            android:padding="8dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_bliss_symbol" />
+
+        <!-- Filters/Radicals Area -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:orientation="horizontal"
-            tools:listitem="@layout/item_filter_key" />
+            android:gravity="center_vertical"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/writer_surface_background"
+            android:minHeight="64dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:orientation="horizontal"
+                tools:listitem="@layout/item_filter_key" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Keyboard Area -->

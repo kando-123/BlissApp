@@ -1,15 +1,10 @@
 package pl.polsl.blissapp;
 
-import android.graphics.Color;
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -25,52 +20,37 @@ import dagger.hilt.android.AndroidEntryPoint;
 import pl.polsl.blissapp.ui.settings.ThemeManager;
 
 @AndroidEntryPoint
-public class MainActivity extends AppCompatActivity
-{
+public class MainActivity extends AppCompatActivity {
+
     private AppBarConfiguration appBarConfiguration;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        // Install the splash screen before ThemeManager applies the theme
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+    protected void onCreate(Bundle savedInstanceState) {
+        // 1. Install splash screen only on fresh launch
+        if (savedInstanceState == null) {
+            SplashScreen.installSplashScreen(this);
+        }
 
+        // 2. Apply the saved theme before super.onCreate
         ThemeManager.applyTheme(this);
         super.onCreate(savedInstanceState);
 
-        // 1. Enable edge-to-edge drawing
+        // 3. Enable edge-to-edge (draw behind status bar)
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
 
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // 2. Handle System Insets for the Toolbar (moves it lower)
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(0, insets.top, 0, 0);
-            return windowInsets;
-        });
-
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-
-        // 3. Handle System Insets for the Navigation Drawer
-        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(0, insets.top, 0, 0);
-            return windowInsets;
-        });
-
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
 
-        if (navHostFragment != null)
-        {
+        if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
 
             Set<Integer> topLevelDestinations = new HashSet<>();
@@ -83,31 +63,12 @@ public class MainActivity extends AppCompatActivity
                     .build();
 
             NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-            
-            // Custom item selection to avoid popping the back stack for settings
-            navigationView.setNavigationItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_settings) {
-                    navController.navigate(id);
-                    drawerLayout.closeDrawers();
-                    return true;
-                }
-                
-                boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
-                if (handled) {
-                    drawerLayout.closeDrawers();
-                }
-                return handled;
-            });
-            
-            // Still call this to handle highlighting of the selected item
             NavigationUI.setupWithNavController(navigationView, navController);
-            
-            // Re-apply the custom listener because setupWithNavController sets its own
+
+            // Handle navigation item clicks (including Settings)
             navigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.nav_settings) {
-                    // Navigate to settings without popping the back stack
                     navController.navigate(id);
                     drawerLayout.closeDrawers();
                     return true;
@@ -123,7 +84,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = ((NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment)).getNavController();
+        NavController navController = ((NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment)).getNavController();
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
     }
 }
