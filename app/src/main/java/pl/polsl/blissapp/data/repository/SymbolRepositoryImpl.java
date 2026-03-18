@@ -1,9 +1,13 @@
 package pl.polsl.blissapp.data.repository;
 
+import android.util.Log;
 import android.util.LruCache;
 
-import java.util.ArrayList;
+import androidx.sqlite.db.SimpleSQLiteQuery;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,14 +18,12 @@ import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
+import pl.polsl.blissapp.data.room.dto.SymbolDto;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 public class SymbolRepositoryImpl implements SymbolRepository
 {
     private final BlissDatabase database = BlissApplication.getDatabase();
-
-    private final LruCache<Integer, Component> componentCache = new LruCache<>(500);
-    private final LruCache<Integer, Symbol> symbolCache = new LruCache<>(1000);
 
     /**
      * Retrieves the symbols that match given filter.
@@ -36,16 +38,16 @@ public class SymbolRepositoryImpl implements SymbolRepository
      * The returned list contains at most {@code maxCount} elements. They are sorted according to
      * how exact the match is, i.e. increasingly with respect to the value of {@code matches} method.
      *
-     * @param symbol the symbol that the results are expected to begin with, or null
-     * @param primitives the primitives that the set of primitives of the simple symbol,
+     * @param prefixSymbol the symbol that the results are expected to begin with, or null
+     * @param suffixPrimitives the primitives that the set of primitives of the simple symbol,
      *                   or the set of remaining primitives of the compound symbol,
      *                   are required to contain
      * @param maxCount the maximum number of symbols to return
      * @param callback the callback that will be called with the results, or failure
      */
     @Override
-    public void getMatchingSymbols(Symbol symbol,
-                                   List<Primitive> primitives,
+    public void getMatchingSymbols(Symbol prefixSymbol,
+                                   Map<Primitive, Integer> suffixPrimitives,
                                    int maxCount,
                                    Callback<List<Symbol>, Exception> callback)
     {
@@ -55,166 +57,157 @@ public class SymbolRepositoryImpl implements SymbolRepository
             return;
         }
 
-        List<Symbol> symbols = new ArrayList<>(maxCount);
-        List<Component> components = symbol.components();
-        Set<Primitive> roots = primitives.stream()
+        List<Component> prefixComponents = prefixSymbol != null
+                ? prefixSymbol.components()
+                : Collections.emptyList();
+        SimpleSQLiteQuery query = getQuery(prefixComponents, suffixPrimitives);
+
+        // final String tag = "SymbolRepositoryImpl";
+        // Log.d(tag, "Getting the matching symbols");
+        Thread worker = new Thread(() ->
+        {
+            // Log.d(tag, "Starting the worker thread");
+            try
+            {
+                // Log.d(tag, "Querying database");
+                List<SymbolDto> dtos = database.symbolDao().getSymbols(query);
+                // Log.d(tag, "Done querying database");
+
+                // if (dtos.isEmpty())
+                //     Log.d(tag, "No symbols found");
+                // else for (SymbolDto dto : dtos)
+                //     Log.d(tag, "Found symbol #" + dto.index + " URI='" + dto.resourceUri + "'");
+
+                List<Symbol> symbols = dtos.stream()
+                        .map(dto -> new Symbol(dto.index, dto.resourceUri, Collections.emptyList()))
+                        .collect(Collectors.toList());
+                callback.onSuccess(symbols);
+            }
+            catch (Exception exc)
+            {
+                // Log.d(tag, "Error querying database", exc);
+                callback.onFailure(exc);
+            }
+            // Log.d(tag, "Finished the worker thread");
+        });
+        worker.start();
+    }
+
+    private SimpleSQLiteQuery getQuery(List<Component> prefixComponents, Map<Primitive, Integer> suffixPrimitives)
+    {
+        Set<Primitive> rootSet = suffixPrimitives.keySet().stream()
                 .map(Primitive::getRoot)
                 .collect(Collectors.toSet());
-
-        String query = getQuery(components, roots, primitives.size());
-
-
-
-    }
-
-    private String getQuery(List<Component> components, Set<Primitive> roots, int nPrimitives)
-    {
-        StringBuilder query = new StringBuilder("""
-                WITH "QualifiedSymbols" AS
+        int nPrimitives = suffixPrimitives.values().stream().mapToInt(Integer::intValue).sum();
+        String query = """
+                WITH "PrefixedSymbol" AS
                 (
-                    SELECT
-                        "symbol_index"
-                    FROM
-                        "Composition"
-                """)
-                .append(createInitialComponentsFilter(components))
-                .append("""
+                    SELECT DISTINCT "symbol_index" FROM "Composition"
+                """
+                + prefixFilterClause(prefixComponents)
+                + """
                 ),
-                "ExcessComponents" AS
+                "SuffixComponents" AS
                 (
-                    SELECT
-                        "symbol_index", "component_index", "component_position"
-                    FROM
-                        "Composition"
-                    JOIN
-                        "QualifiedSymbols" ON "Composition"."symbol_index" = "QualifiedSymbols"."symbol_index"
-                    WHERE
-                        "Composition"."component_position" >=\s""").append(components.size())
-                .append("""
+                    SELECT C."symbol_index", C."component_index", C."component_position"
+                    FROM "Composition" C
+                    JOIN "PrefixedSymbol" PS ON C."symbol_index" = PS."symbol_index"
+                    WHERE C."component_position" >=\s""" + prefixComponents.size()
+                + """
                 ),
-                "MatchingRoots" AS
+                "RemainingComponent" AS
                 (
-                    SELECT
-                        "ExcessComponents"."symbol_index"
-                    FROM
-                        "ExcessComponents"
-                    JOIN
-                        "Definition" ON "ExcessComponents"."component_index" = "Definition"."component_index"
-                    JOIN
-                        "Primitive" ON "Definition"."primitive_code" = "Primitive"."primitive_code"
-                    WHERE
-                        IFNULL("Primitive"."parent_code", "Primitive"."primitive_code") IN\s""").append(getRootList(roots))
-                .append("""
-                    GROUP BY
-                        "ExcessComponents"."symbol_index"
-                    HAVING
-                        COUNT(DISTINCT IFNULL("Primitive"."parent_code", "Primitive"."primitive_code")) =\s""").append(roots.size())
-                .append("""
+                    SELECT DISTINCT "component_index"
+                    FROM "SuffixComponents"
                 ),
-                "RemainingCounts" AS
+                "VariantSize" AS
                 (
-                    SELECT
-                        "ExcessComponents"."symbol_index",
-                        MIN("VariantSum"."variant_sum") AS "min_primitive_count"
-                    FROM
-                        "ExcessComponents"
-                    JOIN
-                        "MatchingRoots" ON "ExcessComponents"."symbol_index" = "MatchingRoots"."symbol_index"
-                    JOIN
-                        (
-                            SELECT
-                                "component_index",
-                                "variant",
-                                SUM("primitive_count") AS "variant_sum"
-                            FROM
-                                "Definition"
-                            GROUP BY
-                                "component_index",
-                                "variant"
-                        )
-                        AS "VariantSum" ON "ExcessComponents"."component_index" = "VariantSum"."component_index"
-                    GROUP BY
-                        "ExcessComponents"."symbol_index",
-                        "ExcessComponents"."component_position"
+                    SELECT D."component_index", D."variant", SUM(D."primitive_count") AS "variant_size"
+                    FROM "Definition" D
+                    JOIN "RemainingComponent" RC ON RC."component_index" = D."component_index"
+                    GROUP BY D."component_index", D."variant"
                 ),
-                "Indices" AS
+                "ComponentSize" AS
                 (
-                    SELECT
-                        "QualifiedSymbols"."symbol_index",
-                        IFNULL(SUM("RemainingCounts"."min_primitive_count"), 0) AS "total_min_size"
-                    FROM
-                        "QualifiedSymbols"
-                    JOIN
-                        "RemainingCounts" ON "QualifiedSymbols"."symbol_index" = "RemainingCounts"."symbol_index"
-                    WHERE
-                        "QualifiedSymbols"."symbol_index" IN "MatchingRoots"
-                    GROUP BY
-                        "QualifiedSymbols"."symbol_index"
-                    HAVING
-                        "total_min_size" >=\s""").append(nPrimitives)
-                .append("""
+                    SELECT "component_index", MIN("variant_size") AS "min_size", MAX("variant_size") AS "max_size"
+                    FROM "VariantSize"
+                    GROUP BY "component_index"
+                ),
+                "PromisingSymbol" AS
+                (
+                    SELECT SC."symbol_index"
+                    FROM "SuffixComponents" SC
+                    JOIN "Definition" D ON SC."component_index" = D."component_index"
+                    JOIN "Primitive" P ON D."primitive_code" = P."primitive_code"
+                """ + primitiveRootFilter(rootSet)
+                + """
+                    GROUP BY SC."symbol_index"
+                    HAVING COUNT(DISTINCT IFNULL(P."parent_code", P."primitive_code")) =\s""" + rootSet.size()
+                + """
+                ),
+                "QualifiedSymbol" AS
+                (
+                	SELECT PS."symbol_index", SUM(CS."min_size") AS "min_size", SUM(CS."max_size") AS "max_size"
+                	FROM "PromisingSymbol" PS
+                	JOIN "Composition" C ON C."symbol_index" = PS."symbol_index"
+                	JOIN "ComponentSize" CS ON CS."component_index" = C."component_index"
+                	GROUP BY PS."symbol_index"
+                	HAVING SUM(CS."max_size") >=\s""" + nPrimitives
+                + """
                 )
-                SELECT
-                    "Symbol"."symbol_index",
-                    "Symbol"."resource_uri",
-                    "Composition"."component_position",
-                    "Composition"."component_index",
-                    "Definition"."variant",
-                    "Definition"."primitive_code",
-                    "Definition"."primitive_count",
-                    "Indices"."total_min_weight"
-                FROM
-                    "Symbol"
-                JOIN
-                    "Composition" ON "Symbol"."symbol_index" = "Composition"."symbol_index"
-                JOIN
-                    "Definition" ON "Composition"."component_index" = "Definition"."component_index"
-                JOIN
-                    "Indices" ON "Symbol"."symbol_index" IN "Indices"."symbol_index"
-                ORDER BY
-                    "Indices"."total_min_weight" ASC,
-                    "Symbol"."symbol_index",
-                    "Composition"."component_position",
-                    "Definition"."variant"
-                """);
-        return query.toString();
+                SELECT S."symbol_index", S."resource_uri"
+                FROM "Symbol" S
+                JOIN "QualifiedSymbol" QS ON S."symbol_index" = QS."symbol_index"
+                ORDER BY QS."min_size", QS."max_size";
+                """;
+        Log.v("Query", query);
+        return new SimpleSQLiteQuery(query);
     }
 
-    private String createInitialComponentsFilter(List<Component> components)
+    private String prefixFilterClause(List<Component> prefix)
     {
-        StringBuilder clause = new StringBuilder();
-        if (!components.isEmpty())
+        if (prefix.isEmpty())
         {
-            clause.append("WHERE ");
-            for (int i = 0; i < components.size(); ++i)
-            {
-                int index = components.get(i).index();
-                if (i > 0)
-                {
-                    clause.append("OR ");
-                }
-                clause.append("(\"component_position\" = ")
-                        .append(i)
-                        .append(" AND \"component_index\" = ")
-                        .append(index)
-                        .append(") ");
-            }
-            clause.append("GROUP BY \"symbol_index\" HAVING COUNT(*) = ")
-                    .append(components.size());
+            return "";
         }
+
+        StringBuilder clause = new StringBuilder("WHERE ");
+        for (int i = 0; i < prefix.size(); ++i)
+        {
+            int index = prefix.get(i).index();
+            if (i > 0)
+            {
+                clause.append("OR ");
+            }
+            clause.append("(\"component_position\" = ")
+                    .append(i)
+                    .append(" AND \"component_index\" = ")
+                    .append(index)
+                    .append(") ");
+        }
+        clause.append("GROUP BY \"symbol_index\" HAVING COUNT(*) = ")
+                .append(prefix.size());
+
         return clause.toString();
     }
 
-    private String getRootList(Set<Primitive> roots)
+    private String primitiveRootFilter(Set<Primitive> roots)
     {
-        StringBuilder vector = new StringBuilder("(");
+        if (roots.isEmpty())
+        {
+            return "";
+        }
+
+        StringBuilder vector = new StringBuilder("WHERE IFNULL(P.\"parent_code\", P.\"primitive_code\") IN (");
         int i = 0;
         for (Primitive root : roots)
         {
-            vector.append("'").append(root.name()).append("'").append(++i < roots.size() ? ", " : ")");
+            vector.append("'").append(root.name()).append("'").append(++i < roots.size() ? "," : ")");
         }
         return vector.toString();
     }
+
+
 
     @Override
     public void getMeanings(Symbol symbol,

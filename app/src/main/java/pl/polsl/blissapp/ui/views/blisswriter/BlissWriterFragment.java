@@ -1,5 +1,6 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +40,7 @@ public class BlissWriterFragment extends Fragment
         return inflater.inflate(R.layout.fragment_bliss_writer, container, false);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
@@ -79,6 +81,7 @@ public class BlissWriterFragment extends Fragment
         hints.observe(getViewLifecycleOwner(), symbols ->
         {
             /* Render the hints. */
+            Toast.makeText(getContext(), String.format("%d symbols hinted", symbols.size()), Toast.LENGTH_SHORT).show();
         });
 
         LiveData<List<Primitive>> filter = mWriterViewModel.getFilter();

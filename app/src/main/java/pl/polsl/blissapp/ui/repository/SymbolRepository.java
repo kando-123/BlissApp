@@ -1,6 +1,7 @@
 package pl.polsl.blissapp.ui.repository;
 
 import java.util.List;
+import java.util.Map;
 
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
@@ -28,7 +29,7 @@ public interface SymbolRepository
      * @param callback the callback that will be called with the results, or failure
      */
     void getMatchingSymbols(Symbol symbol,
-                            List<Primitive> primitives,
+                            Map<Primitive, Integer> primitives,
                             int maxCount,
                             Callback<List<Symbol>, Exception> callback);
 

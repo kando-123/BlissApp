@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 
-@Entity(tableName = "CompoundSymbols",
+@Entity(tableName = "Composition",
         primaryKeys = {"symbol_index", "component_position"},
         foreignKeys =
         {

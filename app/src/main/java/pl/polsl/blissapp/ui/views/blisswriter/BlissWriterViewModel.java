@@ -134,14 +134,14 @@ public class BlissWriterViewModel extends ViewModel
             @Override
             public void onSuccess(List<Symbol> data)
             {
-                mHints.setValue(data);
+                mHints.postValue(data);
             }
 
             @Override
             public void onFailure(Exception data)
             {
-                mHints.setValue(Collections.emptyList());
-                mFailure.setValue(data);
+                mHints.postValue(Collections.emptyList());
+                mFailure.postValue(data);
             }
         };
         assert mSymbolRepository != null;
