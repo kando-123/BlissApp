@@ -166,6 +166,13 @@ public class SymbolRepositoryImpl implements SymbolRepository
                     }
                 }
 
+                // Flush the candidates
+                while (hints.size() < maxCount && !candidates.isEmpty())
+                {
+                    SymbolDto symbol = candidates.remove().dto;
+                    hints.add(new Symbol(symbol.index, symbol.resourceUri));
+                }
+
                 callback.onSuccess(hints);
             }
             catch (Exception exc)
