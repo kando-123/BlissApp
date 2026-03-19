@@ -14,12 +14,14 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.Component;
 import pl.polsl.blissapp.data.model.MeaningfulSymbol;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
@@ -32,6 +34,10 @@ public class SymbolRepositoryImpl implements SymbolRepository
 {
     private final BlissDatabase database = BlissApplication.getDatabase();
 
+    /**
+     * Retrieves the list of components (component indices) for the given symbol.
+     * Internally, the list is either cached or fetched from the database.
+     */
     private final LruCache<Integer, List<Integer>> mSymbolComponentsCache = new LruCache<>(500)
     {
         @Override
@@ -40,46 +46,47 @@ public class SymbolRepositoryImpl implements SymbolRepository
             return database.symbolDao().getComponents(symbolIdx);
         }
     };
+
+    /**
+     * Retrieves the list of variants for the given component.
+     * Internally, the list is either cached or fetched from the database.
+     */
     private final LruCache<Integer, List<Map<Primitive, Integer>>> mComponentVariantsCache = new LruCache<>(500)
     {
         @Override
         protected List<Map<Primitive, Integer>> create(Integer componentIdx)
         {
             List<VariantDto> variantDtos = database.symbolDao().getVariants(componentIdx);
-            List<Map<Primitive, Integer>> variants =
-                    new ArrayList<>(variantDtos.get(variantDtos.size() - 1).variant + 1);
-            for (int i = 0; i < variants.size(); ++i)
-            {
-                variants.add(new HashMap<>());
-            }
+            TreeMap<Integer, Map<Primitive, Integer>> variants = new TreeMap<>();
             for (VariantDto dto : variantDtos)
             {
-                variants.get(dto.variant).put(Primitive.valueOf(dto.primitiveCode), dto.primitiveCount);
+                variants.computeIfAbsent(dto.variant, v -> new HashMap<>())
+                        .put(Primitive.valueOf(dto.primitiveCode), dto.primitiveCount);
             }
-            return variants;
+            List<Map<Primitive, Integer>> list = new ArrayList<>(variants.size());
+
+            for (Map.Entry<Integer, Map<Primitive, Integer>> entry;
+                 !variants.isEmpty();
+                 variants.remove(entry.getKey()))
+            {
+                entry = variants.pollFirstEntry();
+                list.add(entry.getValue());
+            }
+
+            return list;
         }
     };
 
     /**
-     * Retrieves the symbols that match given filter.
+     * Retrieves the symbols that begin with given prefix, if any, and have a suffix that contains
+     * given primitives, with parent and sibling matches allowed. At most {@code maxCount} symbols
+     * will be returned. They will be ordered so that the best matches come first, followed by the
+     * worse ones.
      * <p>
-     * If {@code symbol} is {@code null}, the result contains {@code SimpleSymbol}s that contain
-     * all given {@code primitives} (and possibly some else).
-     * <p>
-     * If {@code symbol} is not {@code null}, the result contains {@code CompoundSymbol}s that
-     * begin with the given {@code symbol}, and whose remaining part contains all given {@code
-     * primitives} (and possibly some else).
-     * <p>
-     * The returned list contains at most {@code maxCount} elements. They are sorted according to
-     * how exact the match is, i.e. increasingly with respect to the value of {@code matches} method.
-     * <p>
-     * The callback will be invoked from another thread.
-     *
+     * <em>Important</em>: The callback will be invoked from another thread.
      *
      * @param prefixSymbol the symbol that the results are expected to begin with, or null
-     * @param suffixPrimitives the primitives that the set of primitives of the simple symbol,
-     *                   or the set of remaining primitives of the compound symbol,
-     *                   are required to contain
+     * @param suffixPrimitives the primitives that the suffix components are expected to contain
      * @param maxCount the maximum number of symbols to return
      * @param callback the callback that will be called with the results, or failure
      */
@@ -103,23 +110,67 @@ public class SymbolRepositoryImpl implements SymbolRepository
                         ? mSymbolComponentsCache.get(prefixSymbol.index())
                         : Collections.emptyList();
 
-                SimpleSQLiteQuery query = SymbolRepositoryImpl.this.getQuery(prefixComponents, suffixPrimitives);
+                SimpleSQLiteQuery query = getQuery(prefixComponents, suffixPrimitives);
+
+                Log.d("Hint", "Querying database...");
                 List<SymbolDto> dtos = database.symbolDao().getSymbols(query);
-                List<Symbol> symbols = dtos.stream()
-                        .map(dto -> new Symbol(dto.index, dto.resourceUri))
-                        .collect(Collectors.toList());
+                Log.d("Hint", "...done querying database; " + dtos.size() + " records found.");
 
                 List<Symbol> hints = new ArrayList<>(maxCount);
 
-                for (Symbol symbol : symbols)
+                record Candidate(SymbolDto dto, int match) implements Comparable<Candidate>
                 {
+                    @Override
+                    public int compareTo(Candidate that) { return Integer.compare(this.match, that.match); }
+                }
+                Queue<Candidate> candidates = new PriorityQueue<>();
 
+                final int nPrimitives = suffixPrimitives.values().stream().mapToInt(Integer::intValue).sum();
+                for (SymbolDto dto : dtos)
+                {
+                    // The best possible match for this dto's symbol is achieved when all the required
+                    // primitives find a good (i.e. exact or parent) match - no penalty points.
+                    // Then, as many penalty points are counted as the difference between the minimal
+                    // size and the number of required primitives.
+                    final int bestPossibleMatch = Math.max(dto.minSize - nPrimitives, 0);
+
+                    // Add all the symbols that are better than the best match achievable for this very dto.
+                    while (hints.size() < maxCount && !candidates.isEmpty() && candidates.element().match < bestPossibleMatch)
+                    {
+                        SymbolDto symbol = candidates.remove().dto;
+                        hints.add(new Symbol(symbol.index, symbol.resourceUri));
+                    }
+
+                    // Match this dto
+                    if (hints.size() < maxCount)
+                    {
+                        // Get suffix components
+                        List<Integer> components = mSymbolComponentsCache.get(dto.index);
+                        List<Integer> suffixComponents = components.subList(prefixComponents.size(), components.size());
+
+                        // Do match
+                        int match = matchSuffix(suffixComponents, suffixPrimitives);
+
+                        if (match == 0) // Add immediately in case of exact match
+                        {
+                            hints.add(new Symbol(dto.index, dto.resourceUri));
+                        }
+                        else if (match > 0) // Enqueue if it is an inexact match
+                        {
+                            candidates.add(new Candidate(dto, match));
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 callback.onSuccess(hints);
             }
             catch (Exception exc)
             {
+                Log.d("Hint", "Failure", exc);
                 callback.onFailure(exc);
             }
         });
@@ -188,7 +239,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 	HAVING SUM(CS."max_size") >=\s""" + nPrimitives
                 + """
                 )
-                SELECT S."symbol_index", S."resource_uri"
+                SELECT S."symbol_index", S."resource_uri", QS."min_size"
                 FROM "Symbol" S
                 JOIN "QualifiedSymbol" QS ON S."symbol_index" = QS."symbol_index"
                 ORDER BY QS."min_size", QS."max_size";
@@ -241,38 +292,26 @@ public class SymbolRepositoryImpl implements SymbolRepository
     }
 
     public static final int MATCH_FAILURE = -1;
-    public static final int EXACT_MATCH = 0;
-
-    private static boolean checkBeginning(List<Component> provided, List<Component> required)
-    {
-        if (required.size() > provided.size())
-        {
-            return false;
-        }
-
-        for (int i = 0; i < required.size(); ++i)
-        {
-            if (!provided.get(i).equals(required.get(i)))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     private int matchSuffix(List<Integer> suffixComponents,
                             Map<Primitive, Integer> requiredPrimitives)
     {
-        // Counter of which variant of each component is being considered in current variance
         final int suffixSize = suffixComponents.size();
+
+        // Counter of the variants used in incumbent variance:
+        //     if position [i] contains value of j,
+        //     then the i-th component is used in its j-th variant.
+        // *The "i-th" in "the i-th component" is the position in the list, not the index in the DB!
         int[] varianceCounter = new int[suffixSize];
 
-        // All the variants of all the components in the suffix
-        List<List<Map<Primitive, Integer>>> allVariants = new ArrayList<>(suffixComponents.size());
-        for (var suffixComponent : suffixComponents)
+        // Fetch the variants of the components
+        List<List<Map<Primitive, Integer>>> allComponentsVariants = new ArrayList<>(suffixComponents.size());
+        for (var componentIndex : suffixComponents) // componentIndex is the in-DB index
         {
-            allVariants.add(mComponentVariantsCache.get(suffixComponent));
+            allComponentsVariants.add(mComponentVariantsCache.get(componentIndex));
         }
+        // From here, the component's in-DB index is irrelevant
+        // and the component is referred to only by its in-list position.
 
         int minMatch = MATCH_FAILURE;
         boolean hasNext;
@@ -280,16 +319,18 @@ public class SymbolRepositoryImpl implements SymbolRepository
         {
             // Count the primitives for the current variance
             Map<Primitive, Integer> variancePrimitives = new EnumMap<>(Primitive.class);
+
+            // For every component in the suffix:
             for (int i = 0; i < suffixSize; ++i)
             {
-                // All the variants of the component
-                List<Map<Primitive, Integer>> componentVariants = allVariants.get(i);
+                // All variants of the component
+                List<Map<Primitive, Integer>> theComponentVariants = allComponentsVariants.get(i);
 
                 // The variant of the component that is considered in this variance
-                Map<Primitive, Integer> variant = componentVariants.get(varianceCounter[i]);
+                Map<Primitive, Integer> theVariant = theComponentVariants.get(varianceCounter[i]);
 
                 // Add to the variance primitive multiset
-                for (var entry : variant.entrySet())
+                for (var entry : theVariant.entrySet())
                 {
                     Primitive primitive = entry.getKey();
                     int count = entry.getValue();
@@ -303,10 +344,11 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 minMatch = result;
             }
 
+            // Advance the counter
             hasNext = false;
             for (int i = 0; i < suffixSize; ++i)
             {
-                if (++varianceCounter[i] < allVariants.get(i).size())
+                if (++varianceCounter[i] < allComponentsVariants.get(i).size())
                 {
                     hasNext = true;
                     break;
@@ -335,13 +377,13 @@ public class SymbolRepositoryImpl implements SymbolRepository
      * excessively provided in the symbol, which translates to a non-negative number, with smaller
      * numbers indicating a better match.</p>
      *
-     * @param provided
-     * @param required
+     * @param provided What this symbol provides
+     * @param required What the user requires
      *
      * @return
      */
-    private static int matchPrimitives(Map<Primitive, Integer> provided, // What this symbol provides
-                                       Map<Primitive, Integer> required) // What the user requires
+    private static int matchPrimitives(Map<Primitive, Integer> provided,
+                                       Map<Primitive, Integer> required)
     {
         // If more is required than is provided, the match is failed.
         int requiredCount = required.values().stream().mapToInt(Integer::intValue).sum();

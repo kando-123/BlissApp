@@ -29,7 +29,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         mItems = new ArrayList<>();
     }
 
-    public void update(List<Primitive> filter)
+    public void update(Map<Primitive, Integer> filter)
     {
         mItems.clear();
         if (filter != null)
@@ -40,15 +40,11 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         notifyDataSetChanged();
     }
 
-    private List<CountedItem> countItems(List<Primitive> list)
+    private List<CountedItem> countItems(Map<Primitive, Integer> counts)
     {
-        Map<Primitive, Integer> counts = new LinkedHashMap<>();
-        for (Primitive p : list) {
-            counts.put(p, counts.getOrDefault(p, 0) + 1);
-        }
-
         List<CountedItem> result = new ArrayList<>();
-        for (Map.Entry<Primitive, Integer> entry : counts.entrySet()) {
+        for (Map.Entry<Primitive, Integer> entry : counts.entrySet())
+        {
             result.add(new CountedItem(entry.getKey(), entry.getValue()));
         }
         return result;

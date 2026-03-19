@@ -2,6 +2,7 @@ package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.Map;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import pl.polsl.blissapp.R;
@@ -80,11 +82,14 @@ public class BlissWriterFragment extends Fragment
         LiveData<List<Symbol>> hints = mWriterViewModel.getHints();
         hints.observe(getViewLifecycleOwner(), symbols ->
         {
-            /* Render the hints. */
-            Toast.makeText(getContext(), String.format("%d symbols hinted", symbols.size()), Toast.LENGTH_SHORT).show();
+            // Replace with rendering
+            for (Symbol symbol : symbols)
+            {
+                Log.d("Hint", symbol.toString());
+            }
         });
 
-        LiveData<List<Primitive>> filter = mWriterViewModel.getFilter();
+        LiveData<Map<Primitive, Integer>> filter = mWriterViewModel.getFilter();
         filter.observe(getViewLifecycleOwner(), mFilterAdapter::update);
 
         LiveData<Exception> failure = mWriterViewModel.getFailure();

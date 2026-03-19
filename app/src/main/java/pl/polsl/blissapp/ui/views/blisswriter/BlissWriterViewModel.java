@@ -10,7 +10,9 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -37,7 +39,7 @@ public class BlissWriterViewModel extends ViewModel
     private final SymbolRepository mSymbolRepository;
     private final MutableLiveData<List<MessageItem>> mMessage = new MutableLiveData<>();
     private final MutableLiveData<List<Symbol>> mHints = new MutableLiveData<>();
-    private final MutableLiveData<List<Primitive>> mFilter = new MutableLiveData<>();
+    private final MutableLiveData<Map<Primitive, Integer>> mFilter = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
     private static final int MAX_HINT_COUNT = 20;
@@ -50,7 +52,7 @@ public class BlissWriterViewModel extends ViewModel
         List<MessageItem> list = new ArrayList<>();
         list.add(MessageItem.EmptySlot.INSTANCE);
         mMessage.setValue(list);
-        mFilter.setValue(new ArrayList<>());
+        mFilter.setValue(new LinkedHashMap<>());
     }
 
     // Return type changed to LiveData<List<MessageItem>>
@@ -64,7 +66,7 @@ public class BlissWriterViewModel extends ViewModel
         return mHints;
     }
 
-    LiveData<List<Primitive>> getFilter()
+    LiveData<Map<Primitive, Integer>> getFilter()
     {
         return mFilter;
     }
@@ -80,9 +82,9 @@ public class BlissWriterViewModel extends ViewModel
 
         Log.d("BlissWriterViewModel", "Putting primitive: " + primitive.name());
 
-        List<Primitive> value = mFilter.getValue();
+        Map<Primitive, Integer> value = mFilter.getValue();
         assert value != null;
-        value.add(primitive);
+        value.compute(primitive, (ignore, count) -> count == null ? 1 : count + 1);
         mFilter.setValue(value);
         updateHints();
     }
@@ -91,10 +93,10 @@ public class BlissWriterViewModel extends ViewModel
     {
         Log.d("BlissWriterViewModel", "Removing primitive: " + primitive.name());
 
-        List<Primitive> value = mFilter.getValue();
+        Map<Primitive, Integer> value = mFilter.getValue();
         assert value != null;
 
-        value.remove(primitive);
+        value.compute(primitive, (key, count) -> count == null || count <= 1 ? null : count - 1);
         mFilter.setValue(value);
         updateHints();
     }
@@ -109,7 +111,7 @@ public class BlissWriterViewModel extends ViewModel
         list.set(list.size() - 1, new MessageItem.SymbolItem(symbol));
         mMessage.setValue(list);
 
-        mFilter.setValue(new ArrayList<>());
+        mFilter.setValue(new LinkedHashMap<>());
         updateHints();
     }
 
@@ -126,7 +128,7 @@ public class BlissWriterViewModel extends ViewModel
             lastSymbol = ((MessageItem.SymbolItem) items.get(items.size() - 1)).symbol;
         }
 
-        List<Primitive> primitives = mFilter.getValue();
+        Map<Primitive, Integer> primitives = mFilter.getValue();
         assert primitives != null;
 
         var callback = new Callback<List<Symbol>, Exception>()
@@ -172,7 +174,7 @@ public class BlissWriterViewModel extends ViewModel
         {
             list.add(MessageItem.EmptySlot.INSTANCE);
             mHints.setValue(Collections.emptyList());
-            mFilter.setValue(new ArrayList<>());
+            mFilter.setValue(new LinkedHashMap<>());
             mMessage.setValue(list);
         }
     }
