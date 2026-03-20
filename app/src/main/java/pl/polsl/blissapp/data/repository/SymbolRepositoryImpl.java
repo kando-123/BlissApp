@@ -3,7 +3,6 @@ package pl.polsl.blissapp.data.repository;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import android.telecom.Call;
 import android.util.Log;
 import android.util.LruCache;
 
@@ -29,6 +28,7 @@ import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.data.room.dto.SymbolDto;
 import pl.polsl.blissapp.data.room.dto.VariantDto;
+import pl.polsl.blissapp.data.room.entity.SymbolImageEntity;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
 public class SymbolRepositoryImpl implements SymbolRepository
@@ -139,7 +139,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                     while (hints.size() < maxCount && !candidates.isEmpty() && candidates.element().match < bestPossibleMatch)
                     {
                         SymbolDto symbol = candidates.remove().dto;
-                        hints.add(new Symbol(symbol.index, symbol.resourceUri));
+                        hints.add(new Symbol(symbol.index));
                     }
 
                     // Match this dto
@@ -154,7 +154,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
 
                         if (match == 0) // Add immediately in case of exact match
                         {
-                            hints.add(new Symbol(dto.index, dto.resourceUri));
+                            hints.add(new Symbol(dto.index));
                         }
                         else if (match > 0) // Enqueue if it is an inexact match
                         {
@@ -171,7 +171,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 while (hints.size() < maxCount && !candidates.isEmpty())
                 {
                     SymbolDto symbol = candidates.remove().dto;
-                    hints.add(new Symbol(symbol.index, symbol.resourceUri));
+                    hints.add(new Symbol(symbol.index));
                 }
 
                 callback.onSuccess(hints);
@@ -247,7 +247,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 	HAVING SUM(CS."max_size") >=\s""" + nPrimitives
                 + """
                 )
-                SELECT S."symbol_index", S."resource_uri", QS."min_size"
+                SELECT S."symbol_index", QS."min_size"
                 FROM "Symbol" S
                 JOIN "QualifiedSymbol" QS ON S."symbol_index" = QS."symbol_index"
                 ORDER BY QS."min_size", QS."max_size";
@@ -469,12 +469,40 @@ public class SymbolRepositoryImpl implements SymbolRepository
         return result;
     }
 
-    public void getSvg(Symbol symbol,
-                       Callback<String, Exception> callback)
+    @Override
+    public void getSvg(Symbol symbol, Callback<String, Exception> callback)
     {
+        Thread worker = new Thread(() ->
+        {
+            try
+            {
+                SymbolImageEntity imageEntity = database.symbolDao().getSymbolImage(symbol.index());
+                if (imageEntity == null)
+                {
+                    callback.onFailure(new Exception("Symbol image not found in database"));
+                    return;
+                }
 
+                String svgTemplate = "<svg xmlns=\"http://www.w3.org/2000/svg\" fill-rule=\"evenodd\" preserveAspectRatio=\"none\" stroke-linecap=\"round\" width=\"%s\" height=\"4.5in\" viewBox=\"0 0 %s 324\">\n" +
+                        "    <style type=\"text/css\">\n" +
+                        "        .p { stroke: rgb(0,0,0); stroke-width: 7; stroke-linejoin: round; }\n" +
+                        "        .f { font-size: 78px; font-family: Arial; }\n" +
+                        "    </style>\n" +
+                        "    %s\n" +
+                        "</svg>";
+
+                String svg = String.format(svgTemplate, imageEntity.width, imageEntity.view_box_width, imageEntity.content);
+
+                callback.onSuccess(svg);
+            }
+            catch (Exception e)
+            {
+                callback.onFailure(e);
+            }
+        });
+        worker.start();
     }
-
+    
     @Override
     public void getMeanings(Symbol symbol,
                             Callback<List<String>, Exception> callback)

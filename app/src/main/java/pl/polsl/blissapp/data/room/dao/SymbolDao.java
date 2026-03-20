@@ -10,6 +10,7 @@ import java.util.List;
 
 import pl.polsl.blissapp.data.room.dto.SymbolDto;
 import pl.polsl.blissapp.data.room.dto.VariantDto;
+import pl.polsl.blissapp.data.room.entity.SymbolImageEntity;
 
 @Dao
 public interface SymbolDao
@@ -43,12 +44,12 @@ public interface SymbolDao
 
     @Query("""
         SELECT
-            "svg_value"
+            *
         FROM
             "SymbolImage"
         WHERE
             "symbol_index" = :symbolIdx;
         """)
     @Nullable
-    String getSvgImage(int symbolIdx);
+    SymbolImageEntity getSymbolImage(int symbolIdx);
 }

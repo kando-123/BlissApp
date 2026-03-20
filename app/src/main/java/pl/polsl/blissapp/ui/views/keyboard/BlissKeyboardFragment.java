@@ -1,6 +1,7 @@
 package pl.polsl.blissapp.ui.views.keyboard;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
@@ -535,9 +536,17 @@ public class BlissKeyboardFragment extends Fragment
         params.setMargins(keyMargin, keyMargin, keyMargin, keyPadding);
         btn.setLayoutParams(params);
 
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+        int color = typedValue.resourceId != 0 
+                ? ContextCompat.getColor(context, typedValue.resourceId) 
+                : typedValue.data;
+
         btn.setImageResource(DrawableMapper.getDrawableRes(variant));
         btn.setContentDescription(variant.name());
         btn.setBackgroundResource(R.drawable.key_background);
+        btn.setBackgroundTintList(ColorStateList.valueOf(color));
+        btn.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
         btn.setScaleType(ImageView.ScaleType.FIT_CENTER);
         btn.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
 

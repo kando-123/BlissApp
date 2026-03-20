@@ -20,8 +20,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_message"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1.2"
+            android:layout_height="120dp"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginBottom="12dp"
@@ -42,8 +41,6 @@
             android:layout_marginBottom="12dp"
             android:background="@drawable/writer_surface_background"
             android:padding="8dp"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_bliss_symbol" />
 
         <!-- Filters/Radicals Area -->

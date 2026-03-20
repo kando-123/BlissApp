@@ -1,5 +1,9 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,10 +11,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
+
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +70,24 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         CountedItem countedItem = mItems.get(position);
         Primitive primitive = countedItem.item;
 
+        Context context = holder.itemView.getContext();
+        boolean isVariant = primitive.getParent() != null;
+
+        if (isVariant) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+            int color = typedValue.resourceId != 0 
+                    ? ContextCompat.getColor(context, typedValue.resourceId) 
+                    : typedValue.data;
+            holder.cardView.setCardBackgroundColor(color);
+            holder.imageView.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
+            holder.textView.setTextColor(Color.BLACK);
+        } else {
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.keyboard_key_background));
+            holder.imageView.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
+            holder.textView.setTextColor(Color.BLACK);
+        }
+
         String letterLabel = primitive.getLetterLabel();
         if (letterLabel != null) {
             holder.imageView.setVisibility(View.GONE);
@@ -86,9 +110,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             holder.counterView.setVisibility(View.GONE);
         }
 
-        holder.itemView.setOnClickListener(v -> {
-            mViewModel.removePrimitive(primitive);
-        });
+        holder.itemView.setOnClickListener(v -> mViewModel.removePrimitive(primitive));
     }
 
     @Override
@@ -97,15 +119,17 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         return mItems.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder
+    public static class ViewHolder extends RecyclerView.ViewHolder
     {
-        ImageView imageView;
-        TextView textView;
-        TextView counterView;
+        public MaterialCardView cardView;
+        public ImageView imageView;
+        public TextView textView;
+        public TextView counterView;
 
         ViewHolder(View view)
         {
             super(view);
+            cardView = view.findViewById(R.id.filter_key_card);
             imageView = view.findViewById(R.id.filter_key_image);
             textView = view.findViewById(R.id.filter_key_text);
             counterView = view.findViewById(R.id.filter_key_counter);

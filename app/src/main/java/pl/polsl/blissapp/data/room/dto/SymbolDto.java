@@ -7,9 +7,6 @@ public class SymbolDto
     @ColumnInfo(name = "symbol_index")
     public int index;
 
-    @ColumnInfo(name = "resource_uri")
-    public String resourceUri;
-
     @ColumnInfo(name = "min_size")
     public int minSize;
 }
