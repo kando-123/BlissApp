@@ -33,6 +33,9 @@ public interface SymbolRepository
                             int maxCount,
                             Callback<List<Symbol>, Exception> callback);
 
+    void getSvg(Symbol symbol,
+                Callback<String, Exception> callback);
+
     /**
      * Gets the meanings of the given symbol.
      *

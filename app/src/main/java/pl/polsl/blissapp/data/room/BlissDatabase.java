@@ -13,10 +13,17 @@ import pl.polsl.blissapp.data.room.entity.*;
 @Database(
         entities =
         {
-            SymbolEntity.class, ComponentEntity.class, PrimitiveEntity.class,
-            CompositionEntity.class, DefinitionEntity.class, TranslationEntity.class
+            SymbolEntity.class,
+            ComponentEntity.class,
+            PrimitiveEntity.class,
+
+            CompositionEntity.class,
+            DefinitionEntity.class,
+            TranslationEntity.class,
+
+            SymbolImageEntity.class
         },
-        version = 1)
+        version = 2)
 public abstract class BlissDatabase extends RoomDatabase
 {
     private static volatile BlissDatabase INSTANCE;
@@ -33,6 +40,7 @@ public abstract class BlissDatabase extends RoomDatabase
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             BlissDatabase.class, "Symbol.db")
                             .createFromAsset("databases/Symbol.db")
+                            .fallbackToDestructiveMigration(true)
                             .build();
                     Log.d("BlissDatabase", "Database created");
                 }

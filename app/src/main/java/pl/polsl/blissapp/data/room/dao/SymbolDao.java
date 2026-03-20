@@ -1,5 +1,6 @@
 package pl.polsl.blissapp.data.room.dao;
 
+import androidx.annotation.Nullable;
 import androidx.room.Dao;
 import androidx.room.Query;
 import androidx.room.RawQuery;
@@ -39,4 +40,15 @@ public interface SymbolDao
         	"variant" ASC;
         """)
     List<VariantDto> getVariants(int componentIdx);
+
+    @Query("""
+        SELECT
+            "svg_value"
+        FROM
+            "SymbolImage"
+        WHERE
+            "symbol_index" = :symbolIdx;
+        """)
+    @Nullable
+    String getSvgImage(int symbolIdx);
 }

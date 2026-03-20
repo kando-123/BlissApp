@@ -3,6 +3,7 @@ package pl.polsl.blissapp.data.repository;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import android.telecom.Call;
 import android.util.Log;
 import android.util.LruCache;
 
@@ -466,6 +467,12 @@ public class SymbolRepositoryImpl implements SymbolRepository
             result += count;
         }
         return result;
+    }
+
+    public void getSvg(Symbol symbol,
+                       Callback<String, Exception> callback)
+    {
+
     }
 
     @Override
