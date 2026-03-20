@@ -1,7 +1,5 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
@@ -22,160 +20,253 @@ import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
+/**
+ * ViewModel that manages the Bliss writer state: message composition, primitive filter,
+ * symbol hints, and user actions.
+ */
 @HiltViewModel
-public class BlissWriterViewModel extends ViewModel
-{
-    public static sealed class MessageItem {
+public class BlissWriterViewModel extends ViewModel {
+
+    // ---------- Nested data classes ----------
+    public static abstract sealed class MessageItem {
         public static final class SymbolItem extends MessageItem {
             public final Symbol symbol;
             public SymbolItem(Symbol symbol) { this.symbol = symbol; }
         }
         public static final class EmptySlot extends MessageItem {
-            public static final EmptySlot INSTANCE = new EmptySlot();
-            private EmptySlot() {}
+            public EmptySlot() {}
         }
     }
 
-    private final SymbolRepository mSymbolRepository;
-    private final MutableLiveData<List<MessageItem>> mMessage = new MutableLiveData<>();
-    private final MutableLiveData<List<Symbol>> mHints = new MutableLiveData<>();
-    private final MutableLiveData<Map<Primitive, Integer>> mFilter = new MutableLiveData<>();
-    private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
+    public static class WriterState {
+        public final List<MessageItem> items;   // immutable list
+        public final int cursorIndex;
+
+        public WriterState(List<MessageItem> items, int cursorIndex) {
+            this.items = Collections.unmodifiableList(new ArrayList<>(items));
+            this.cursorIndex = cursorIndex;
+        }
+    }
+
+    // ---------- Dependencies ----------
+    private final SymbolRepository symbolRepository;
+
+    // ---------- LiveData ----------
+    private final MutableLiveData<WriterState> state = new MutableLiveData<>();
+    private final MutableLiveData<List<Symbol>> hints = new MutableLiveData<>();
+    private final MutableLiveData<Map<Primitive, Integer>> filter = new MutableLiveData<>();
+    private final MutableLiveData<Exception> failure = new MutableLiveData<>();
 
     private static final int MAX_HINT_COUNT = 20;
 
     @Inject
-    public BlissWriterViewModel(SymbolRepository symbolRepository)
-    {
-        mSymbolRepository = symbolRepository;
+    public BlissWriterViewModel(SymbolRepository symbolRepository) {
+        this.symbolRepository = symbolRepository;
 
-        List<MessageItem> list = new ArrayList<>();
-        list.add(MessageItem.EmptySlot.INSTANCE);
-        mMessage.setValue(list);
-        mFilter.setValue(new LinkedHashMap<>());
+        // Initial state: one empty slot, cursor at 0.
+        List<MessageItem> initialItems = new ArrayList<>();
+        initialItems.add(new MessageItem.EmptySlot());
+        state.setValue(new WriterState(initialItems, 0));
+
+        // Start with empty filter
+        filter.setValue(new LinkedHashMap<>());
     }
 
-    // Return type changed to LiveData<List<MessageItem>>
-    LiveData<List<MessageItem>> getMessage()
-    {
-        return mMessage;
-    }
+    // ---------- Public LiveData getters ----------
+    public LiveData<WriterState> getState() { return state; }
+    public LiveData<List<Symbol>> getHints() { return hints; }
+    public LiveData<Map<Primitive, Integer>> getFilter() { return filter; }
+    public LiveData<Exception> getFailure() { return failure; }
 
-    LiveData<List<Symbol>> getHints()
-    {
-        return mHints;
-    }
-
-    LiveData<Map<Primitive, Integer>> getFilter()
-    {
-        return mFilter;
-    }
-
-    LiveData<Exception> getFailure()
-    {
-        return mFailure;
-    }
-
-    public void putPrimitive(@Nullable Primitive primitive)
-    {
-        if (primitive == null) { return; }
-
-        Log.d("BlissWriterViewModel", "Putting primitive: " + primitive.name());
-
-        Map<Primitive, Integer> value = mFilter.getValue();
-        assert value != null;
-        value.compute(primitive, (ignore, count) -> count == null ? 1 : count + 1);
-        mFilter.setValue(value);
+    // ---------- Public actions ----------
+    /**
+     * Adds a primitive to the current filter. Updates hints accordingly.
+     */
+    public void putPrimitive(@Nullable Primitive primitive) {
+        if (primitive == null) return;
+        Map<Primitive, Integer> current = new LinkedHashMap<>(filter.getValue());
+        current.compute(primitive, (k, count) -> count == null ? 1 : count + 1);
+        filter.setValue(current);
         updateHints();
     }
 
-    public void removePrimitive(@NonNull Primitive primitive)
-    {
-        Log.d("BlissWriterViewModel", "Removing primitive: " + primitive.name());
-
-        Map<Primitive, Integer> value = mFilter.getValue();
-        assert value != null;
-
-        value.compute(primitive, (key, count) -> count == null || count <= 1 ? null : count - 1);
-        mFilter.setValue(value);
+    /**
+     * Removes a primitive from the current filter. Updates hints accordingly.
+     */
+    public void removePrimitive(@NonNull Primitive primitive) {
+        Map<Primitive, Integer> current = new LinkedHashMap<>(filter.getValue());
+        current.compute(primitive, (k, count) -> count == null || count <= 1 ? null : count - 1);
+        filter.setValue(current);
         updateHints();
     }
 
-    public void selectHint(Symbol symbol)
-    {
-        List<MessageItem> list = mMessage.getValue();
-        assert list != null;
-        assert !list.isEmpty();
+    /**
+     * Moves the cursor to the specified position in the current message.
+     * Resets the filter and updates hints.
+     */
+    public void setCursorIndex(int index) {
+        WriterState current = state.getValue();
+        if (current == null) return;
+        if (index < 0 || index >= current.items.size()) return;
 
-        // replace the last item (which must be EmptySlot) with a SymbolItem
-        list.set(list.size() - 1, new MessageItem.SymbolItem(symbol));
-        mMessage.setValue(list);
-
-        mFilter.setValue(new LinkedHashMap<>());
+        state.setValue(new WriterState(current.items, index));
         updateHints();
     }
 
-    private void updateHints()
-    {
-        Log.d("BlissWriterViewModel", "Updating hints");
+    /**
+     * Replaces the item at the current cursor position with the chosen symbol.
+     * The message is then rebuilt to enforce the alternating pattern.
+     * Filter is cleared and hints updated.
+     */
+    public void selectHint(Symbol symbol) {
+        WriterState current = state.getValue();
+        if (current == null) return;
 
-        List<MessageItem> items = mMessage.getValue();
-        assert items != null;
+        List<MessageItem> newItems = new ArrayList<>(current.items);
+        int cursorIdx = current.cursorIndex;
+        newItems.set(cursorIdx, new MessageItem.SymbolItem(symbol));
 
-        // Determine the last symbol (if any)
-        Symbol lastSymbol = null;
-        if (!items.isEmpty() && items.get(items.size() - 1) instanceof MessageItem.SymbolItem) {
-            lastSymbol = ((MessageItem.SymbolItem) items.get(items.size() - 1)).symbol;
+        WriterState rebuilt = rebuildState(newItems, cursorIdx);
+        state.setValue(rebuilt);
+        filter.setValue(new LinkedHashMap<>());
+        updateHints();
+    }
+
+    /**
+     * Moves cursor to the next gap (if on a symbol) or to the next symbol (if on a gap).
+     * Used by the "space" / confirm key.
+     */
+    public void confirmSymbol() {
+        WriterState current = state.getValue();
+        if (current == null) return;
+        List<MessageItem> items = current.items;
+        int cursorIdx = current.cursorIndex;
+
+        if (items.get(cursorIdx) instanceof MessageItem.SymbolItem) {
+            // Move to the gap after this symbol
+            setCursorIndex(cursorIdx + 1);
+        } else if (cursorIdx + 1 < items.size()) {
+            // On a gap, move to the next symbol (if exists)
+            setCursorIndex(cursorIdx + 1);
+        }
+        // If already at last gap, do nothing
+    }
+
+    /**
+     * Removes the symbol at or before the cursor.
+     * - If cursor is on a symbol: remove it, cursor moves to the preceding gap.
+     * - If cursor is on a gap and not the first item: remove the symbol to the left,
+     * cursor moves to the gap before that symbol.
+     */
+    public void popSymbol() {
+        WriterState current = state.getValue();
+        if (current == null || current.items.isEmpty()) return;
+
+        List<MessageItem> items = new ArrayList<>(current.items);
+        int cursorIdx = current.cursorIndex;
+
+        MessageItem currentItem = items.get(cursorIdx);
+
+        if (currentItem instanceof MessageItem.SymbolItem) {
+            // Delete the symbol
+            items.remove(cursorIdx);
+            // Target the gap that was before the removed symbol
+            WriterState rebuilt = rebuildState(items, Math.max(0, cursorIdx - 1));
+            state.setValue(rebuilt);
+        } else if (cursorIdx > 0) {
+            // On a gap -> delete the symbol to the left
+            items.remove(cursorIdx - 1);
+            // Target the gap that was before the deleted symbol
+            WriterState rebuilt = rebuildState(items, Math.max(0, cursorIdx - 2));
+            state.setValue(rebuilt);
+        } // else first gap, nothing to delete
+
+        updateHints();
+    }
+
+    // ---------- Private helpers ----------
+    /**
+     * Rebuilds the message list to enforce the alternating pattern:
+     * empty, symbol, empty, symbol, ... , empty.
+     * @param rawItems          The items before rebuilding (may contain consecutive gaps).
+     * @param targetItemIndex   Index in rawItems of the item that should be selected after rebuild.
+     * @return A new WriterState with the rebuilt list and correct cursor index.
+     */
+    private WriterState rebuildState(List<MessageItem> rawItems, int targetItemIndex) {
+        // Extract all symbols in order
+        List<MessageItem.SymbolItem> symbols = new ArrayList<>();
+        for (MessageItem item : rawItems) {
+            if (item instanceof MessageItem.SymbolItem si) symbols.add(si);
         }
 
-        Map<Primitive, Integer> primitives = mFilter.getValue();
-        assert primitives != null;
+        // Build new alternating list: gap, (symbol, gap) repeated
+        List<MessageItem> newList = new ArrayList<>();
+        newList.add(new MessageItem.EmptySlot()); // initial gap
+        for (MessageItem.SymbolItem symbol : symbols) {
+            newList.add(symbol);
+            newList.add(new MessageItem.EmptySlot());
+        }
 
-        var callback = new Callback<List<Symbol>, Exception>()
-        {
-            @Override
-            public void onSuccess(List<Symbol> data)
-            {
-                mHints.postValue(data);
+        // Determine new cursor index based on target item's type and position in rawItems
+        MessageItem target = rawItems.get(targetItemIndex);
+        int newCursorIndex;
+
+        if (target instanceof MessageItem.SymbolItem) {
+            // Find which symbol (by order) in the raw list
+            int symbolPos = 0;
+            for (MessageItem item : rawItems) {
+                if (item instanceof MessageItem.SymbolItem) {
+                    if (item == target) break;
+                    symbolPos++;
+                }
             }
-
-            @Override
-            public void onFailure(Exception data)
-            {
-                mHints.postValue(Collections.emptyList());
-                mFailure.postValue(data);
+            // In new list, the i-th symbol is at index 2*i + 1
+            newCursorIndex = 2 * symbolPos + 1;
+        } else {
+            // Target is an empty slot – count how many symbols appear before it
+            int symbolsBefore = 0;
+            for (int i = 0; i < targetItemIndex; i++) {
+                if (rawItems.get(i) instanceof MessageItem.SymbolItem) symbolsBefore++;
             }
-        };
-        assert mSymbolRepository != null;
-        mSymbolRepository.getMatchingSymbols(lastSymbol, primitives, MAX_HINT_COUNT, callback);
+            // The gap after `symbolsBefore` symbols is at index 2 * symbolsBefore
+            newCursorIndex = 2 * symbolsBefore;
+        }
+
+        // Clamp to valid range (should be safe, but just in case)
+        newCursorIndex = Math.min(newCursorIndex, newList.size() - 1);
+
+        return new WriterState(newList, newCursorIndex);
     }
 
-    public void popSymbol()
-    {
-        List<MessageItem> list = mMessage.getValue();
-        assert list != null;
-        if (!list.isEmpty())
-        {
-            list.remove(list.size() - 1);
-        }
-        if (list.isEmpty())
-        {
-            list.add(MessageItem.EmptySlot.INSTANCE);
-        }
-        mMessage.setValue(list);
-        updateHints();
-    }
+    /**
+     * Fetches new symbol hints based on the current context symbol and filter primitives.
+     * Updates the hints LiveData or posts an error.
+     */
+    private void updateHints() {
+        WriterState currentState = state.getValue();
+        if (currentState == null) return;
 
-    public void confirmSymbol()
-    {
-        List<MessageItem> list = mMessage.getValue();
-        assert list != null;
-        if (list.get(list.size() - 1) instanceof MessageItem.SymbolItem)
-        {
-            list.add(MessageItem.EmptySlot.INSTANCE);
-            mHints.setValue(Collections.emptyList());
-            mFilter.setValue(new LinkedHashMap<>());
-            mMessage.setValue(list);
+        Symbol contextSymbol = null;
+        MessageItem current = currentState.items.get(currentState.cursorIndex);
+        if (current instanceof MessageItem.SymbolItem symbolItem) {
+            contextSymbol = symbolItem.symbol;
         }
+
+        Map<Primitive, Integer> currentFilter = filter.getValue();
+        if (currentFilter == null) currentFilter = new LinkedHashMap<>();
+
+        symbolRepository.getMatchingSymbols(contextSymbol, currentFilter, MAX_HINT_COUNT,
+                new Callback<List<Symbol>, Exception>() {
+                    @Override
+                    public void onSuccess(List<Symbol> data) {
+                        hints.postValue(data);
+                    }
+
+                    @Override
+                    public void onFailure(Exception data) {
+                        hints.postValue(Collections.emptyList());
+                        failure.postValue(data);
+                    }
+                });
     }
 }

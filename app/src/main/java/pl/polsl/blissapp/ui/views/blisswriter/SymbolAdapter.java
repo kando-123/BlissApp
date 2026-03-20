@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,126 +23,196 @@ import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 
+/**
+ * RecyclerView adapter that can display either symbol items (with SVG) or empty slot items.
+ */
 public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder> {
 
-    private final List<Symbol> mSymbols = new ArrayList<>();
-    private final SymbolRepository mSymbolRepository;
-    private final OnSymbolClickListener mListener;
-    private final int mLayoutResId;
+    private static final int VIEW_TYPE_SYMBOL = 0;
+    private static final int VIEW_TYPE_EMPTY = 1;
 
-    public interface OnSymbolClickListener {
-        void onSymbolClick(Symbol symbol);
+    private final List<Object> items = new ArrayList<>();
+    private final SymbolRepository symbolRepository;
+    private final OnItemClickListener listener;
+    private final int symbolLayoutResId;
+    private final Integer emptyLayoutResId;
+
+    // 1. Interface to notify when an SVG has finished rendering and resizing
+    public interface OnImageRenderedListener {
+        void onImageRendered(int position);
     }
 
-    public SymbolAdapter(SymbolRepository symbolRepository, int layoutResId, OnSymbolClickListener listener) {
-        mSymbolRepository = symbolRepository;
-        mLayoutResId = layoutResId;
-        mListener = listener;
+    private OnImageRenderedListener imageRenderedListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(int position, Object item);
     }
 
-    public void update(List<Symbol> newSymbols) {
-        if (newSymbols == null) {
-            newSymbols = new ArrayList<>();
-        }
+    public SymbolAdapter(SymbolRepository symbolRepository, int symbolLayoutResId,
+                         OnItemClickListener listener) {
+        this(symbolRepository, symbolLayoutResId, null, listener);
+    }
 
-        final List<Symbol> oldSymbols = new ArrayList<>(mSymbols);
-        final List<Symbol> finalNewSymbols = newSymbols;
+    public SymbolAdapter(SymbolRepository symbolRepository,
+                         int symbolLayoutResId,
+                         @Nullable Integer emptyLayoutResId,
+                         OnItemClickListener listener) {
+        this.symbolRepository = symbolRepository;
+        this.symbolLayoutResId = symbolLayoutResId;
+        this.emptyLayoutResId = emptyLayoutResId;
+        this.listener = listener;
+    }
+
+    // 2. Setter for the render listener
+    public void setOnImageRenderedListener(OnImageRenderedListener listener) {
+        this.imageRenderedListener = listener;
+    }
+
+    public void update(List<?> newItems) {
+        List<Object> oldItems = new ArrayList<>(items);
+        List<Object> finalNewItems = newItems != null ? new ArrayList<>(newItems) : new ArrayList<>();
 
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
-            public int getOldListSize() {
-                return oldSymbols.size();
+            public int getOldListSize() { return oldItems.size(); }
+            @Override
+            public int getNewListSize() { return finalNewItems.size(); }
+
+            @Override
+            public boolean areItemsTheSame(int oldPos, int newPos) {
+                Object o1 = oldItems.get(oldPos);
+                Object o2 = finalNewItems.get(newPos);
+
+                if (o1 instanceof Symbol s1 && o2 instanceof Symbol s2) {
+                    return s1.index() == s2.index();
+                }
+
+                if (o1 instanceof BlissWriterViewModel.MessageItem.SymbolItem s1 &&
+                        o2 instanceof BlissWriterViewModel.MessageItem.SymbolItem s2) {
+                    return s1 == s2;
+                }
+
+                if (o1 instanceof BlissWriterViewModel.MessageItem.EmptySlot &&
+                        o2 instanceof BlissWriterViewModel.MessageItem.EmptySlot) {
+                    return true;
+                }
+
+                return Objects.equals(o1, o2);
             }
 
             @Override
-            public int getNewListSize() {
-                return finalNewSymbols.size();
-            }
-
-            @Override
-            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                return oldSymbols.get(oldItemPosition).index() == finalNewSymbols.get(newItemPosition).index();
-            }
-
-            @Override
-            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-                return Objects.equals(oldSymbols.get(oldItemPosition), finalNewSymbols.get(newItemPosition));
+            public boolean areContentsTheSame(int oldPos, int newPos) {
+                return Objects.equals(oldItems.get(oldPos), finalNewItems.get(newPos));
             }
         });
 
-        mSymbols.clear();
-        mSymbols.addAll(newSymbols);
+        items.clear();
+        items.addAll(finalNewItems);
         diffResult.dispatchUpdatesTo(this);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (emptyLayoutResId != null &&
+                items.get(position) instanceof BlissWriterViewModel.MessageItem.EmptySlot) {
+            return VIEW_TYPE_EMPTY;
+        }
+        return VIEW_TYPE_SYMBOL;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(mLayoutResId, parent, false);
-        return new ViewHolder(view);
+        int layoutId = (viewType == VIEW_TYPE_EMPTY) ? emptyLayoutResId : symbolLayoutResId;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
+        // 3. Pass the listener into the ViewHolder
+        return new ViewHolder(view, imageRenderedListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Symbol symbol = mSymbols.get(position);
-        holder.bind(symbol, mSymbolRepository);
+        Object item = items.get(position);
+        Symbol symbol = null;
+        if (item instanceof Symbol s) {
+            symbol = s;
+        } else if (item instanceof BlissWriterViewModel.MessageItem.SymbolItem s) {
+            symbol = s.symbol;
+        }
+
+        holder.clearImage();
+
         holder.itemView.setOnClickListener(v -> {
-            if (mListener != null) {
-                mListener.onSymbolClick(symbol);
+            if (listener != null) {
+                listener.onItemClick(holder.getBindingAdapterPosition(), item);
             }
         });
+
+        if (symbol != null) {
+            holder.loadSymbol(symbol, symbolRepository);
+        }
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.clearImage();
     }
 
     @Override
     public int getItemCount() {
-        return mSymbols.size();
+        return items.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private final ImageView mImageView;
+        private final ImageView imageView;
+        private final OnImageRenderedListener renderListener;
 
-        ViewHolder(View view) {
+        ViewHolder(View view, OnImageRenderedListener renderListener) {
             super(view);
-            mImageView = view.findViewById(R.id.img_symbol);
+            imageView = view.findViewById(R.id.img_symbol);
+            this.renderListener = renderListener;
         }
 
-        void bind(Symbol symbol, SymbolRepository repository) {
-            // Check if we are already displaying this symbol to avoid flickering
-            if (Objects.equals(mImageView.getTag(), symbol.index())) {
-                return;
+        void clearImage() {
+            if (imageView != null) {
+                imageView.setImageDrawable(null);
+                imageView.setTag(null);
             }
+        }
 
-            mImageView.setTag(symbol.index());
-            mImageView.setImageDrawable(null); // Clear previous image while loading
+        void loadSymbol(Symbol symbol, SymbolRepository repository) {
+            if (imageView == null) return;
+            imageView.setTag(symbol.index());
 
             repository.getSvg(symbol, new Callback<String, Exception>() {
                 @Override
                 public void onSuccess(String svgString) {
-                    // Verify that the view is still intended for this symbol
-                    if (!Objects.equals(mImageView.getTag(), symbol.index())) {
-                        return;
-                    }
+                    if (!Objects.equals(imageView.getTag(), symbol.index())) return;
 
                     try {
                         SVG svg = SVG.getFromString(svgString);
                         PictureDrawable drawable = new PictureDrawable(svg.renderToPicture());
-                        mImageView.post(() -> {
-                            // Final check before setting drawable
-                            if (Objects.equals(mImageView.getTag(), symbol.index())) {
-                                mImageView.setImageDrawable(drawable);
+                        imageView.post(() -> {
+                            if (Objects.equals(imageView.getTag(), symbol.index())) {
+                                imageView.setImageDrawable(drawable);
+
+                                // 4. Post once more to allow the view to measure its new dynamic width
+                                imageView.post(() -> {
+                                    int pos = getBindingAdapterPosition();
+                                    if (renderListener != null && pos != RecyclerView.NO_POSITION) {
+                                        renderListener.onImageRendered(pos);
+                                    }
+                                });
                             }
                         });
-                    } catch (SVGParseException e) {
-                        e.printStackTrace();
+                    } catch (SVGParseException ignored) {
+                        // fallback: keep image cleared
                     }
                 }
 
                 @Override
                 public void onFailure(Exception data) {
-                    if (Objects.equals(mImageView.getTag(), symbol.index())) {
-                        // Optional: set error icon
-                    }
+                    // On error, leave the image cleared
                 }
             });
         }

@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/img_symbol"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
-    android:padding="4dp">
-
-    <ImageView
-        android:id="@+id/img_symbol"
-        android:layout_width="60dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:padding="4dp"
-        android:scaleType="fitCenter"
-        android:contentDescription="Bliss Symbol" />
-
-</FrameLayout>
+    android:adjustViewBounds="true"
+    android:minWidth="48dp"
+    android:padding="4dp"
+    android:scaleType="fitCenter"
+    android:background="@android:color/transparent"
+    android:contentDescription="Bliss Message Symbol" />
