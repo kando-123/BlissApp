@@ -249,7 +249,24 @@ public class BlissWriterFragment extends Fragment {
         hintsAdapter = new SymbolAdapter(symbolRepository, R.layout.item_bliss_symbol,
                 (position, item) -> writerViewModel.selectHint((Symbol) item));
         hintsView.setAdapter(hintsAdapter);
-        hintsView.setLayoutManager(new GridLayoutManager(getContext(), 4));
+
+        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
+        hintsView.setLayoutManager(layoutManager);
+
+        hintsView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                int width = right - left - hintsView.getPaddingLeft() - hintsView.getPaddingRight();
+                if (width > 0) {
+                    float defaultSize = getResources().getDimension(R.dimen.writer_hint_default_size);
+                    int spanCount = Math.max(1, (int) Math.ceil(width / defaultSize));
+                    if (layoutManager.getSpanCount() != spanCount) {
+                        layoutManager.setSpanCount(spanCount);
+                    }
+                }
+            }
+        });
     }
 
     private void setupMessageView(View root) {
