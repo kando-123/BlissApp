@@ -57,7 +57,7 @@ public class BlissWriterViewModel extends ViewModel {
     private final MutableLiveData<Map<Primitive, Integer>> filter = new MutableLiveData<>();
     private final MutableLiveData<Exception> failure = new MutableLiveData<>();
 
-    private static final int MAX_HINT_COUNT = 32;
+    private static final int MAX_HINT_COUNT = 48;
 
     @Inject
     public BlissWriterViewModel(SymbolRepository symbolRepository) {
@@ -150,6 +150,7 @@ public class BlissWriterViewModel extends ViewModel {
             setCursorIndex(cursorIdx + 1);
         }
         // If already at last gap, do nothing
+        updateHints();
     }
 
     /**

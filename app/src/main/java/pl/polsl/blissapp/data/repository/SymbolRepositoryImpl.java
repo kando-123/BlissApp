@@ -505,7 +505,12 @@ public class SymbolRepositoryImpl implements SymbolRepository
         });
         worker.start();
     }
-    
+
+    private String getLanguage()
+    {
+        return "English";
+    }
+
     @Override
     public void getMeanings(Symbol symbol,
                             Callback<List<String>, Exception> callback)

@@ -21,5 +21,5 @@
     <dimen name="keyboard_handle_thickness">4dp</dimen>
     <dimen name="keyboard_handle_width">60dp</dimen>
 
-    <dimen name="writer_hint_default_size">80dp</dimen>
+    <dimen name="writer_hint_default_size">100dp</dimen>
 </resources>
