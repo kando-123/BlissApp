@@ -57,7 +57,7 @@ public class BlissWriterViewModel extends ViewModel {
     private final MutableLiveData<Map<Primitive, Integer>> filter = new MutableLiveData<>();
     private final MutableLiveData<Exception> failure = new MutableLiveData<>();
 
-    private static final int MAX_HINT_COUNT = 20;
+    private static final int MAX_HINT_COUNT = 32;
 
     @Inject
     public BlissWriterViewModel(SymbolRepository symbolRepository) {

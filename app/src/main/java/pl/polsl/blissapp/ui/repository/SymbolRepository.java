@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.MeaningfulSymbol;
+import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 
@@ -52,5 +52,5 @@ public interface SymbolRepository
      * @param callback
      */
     void getTranslations(String input,
-                         Callback<List<MeaningfulSymbol>, Exception> callback);
+                         Callback<List<Translation>, Exception> callback);
 }

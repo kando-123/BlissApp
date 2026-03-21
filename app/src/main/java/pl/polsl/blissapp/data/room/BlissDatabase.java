@@ -8,6 +8,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import pl.polsl.blissapp.data.room.dao.SymbolDao;
+import pl.polsl.blissapp.data.room.dao.TranslationDao;
 import pl.polsl.blissapp.data.room.entity.*;
 
 @Database(
@@ -23,7 +24,7 @@ import pl.polsl.blissapp.data.room.entity.*;
 
             SymbolImageEntity.class
         },
-        version = 2)
+        version = 3)
 public abstract class BlissDatabase extends RoomDatabase
 {
     private static volatile BlissDatabase INSTANCE;
@@ -50,4 +51,5 @@ public abstract class BlissDatabase extends RoomDatabase
     }
 
     public abstract SymbolDao symbolDao();
+    public abstract TranslationDao translationDao();
 }

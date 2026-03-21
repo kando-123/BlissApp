@@ -1,6 +1,5 @@
 package pl.polsl.blissapp.data.repository;
 
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import android.util.Log;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
-import pl.polsl.blissapp.data.model.MeaningfulSymbol;
+import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
@@ -483,13 +482,17 @@ public class SymbolRepositoryImpl implements SymbolRepository
                     return;
                 }
 
-                String svgTemplate = "<svg xmlns=\"http://www.w3.org/2000/svg\" fill-rule=\"evenodd\" preserveAspectRatio=\"none\" stroke-linecap=\"round\" width=\"%s\" height=\"4.5in\" viewBox=\"0 0 %s 324\">\n" +
-                        "    <style type=\"text/css\">\n" +
-                        "        .p { stroke: rgb(0,0,0); stroke-width: 7; stroke-linejoin: round; }\n" +
-                        "        .f { font-size: 78px; font-family: Arial; }\n" +
-                        "    </style>\n" +
-                        "    %s\n" +
-                        "</svg>";
+                String svgTemplate = """
+                    <svg xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" \
+                    preserveAspectRatio="none" stroke-linecap="round" width="%sin" \
+                    height="4.5in" viewBox="0 0 %s 324">
+                        <style type="text/css">
+                            .p { stroke: rgb(0,0,0); stroke-width: 7; stroke-linejoin: round; }
+                            .f { font-size: 78px; font-family: Arial; }
+                        </style>
+                        %s
+                    </svg>
+                    """;
 
                 String svg = String.format(svgTemplate, imageEntity.width, imageEntity.view_box_width, imageEntity.content);
 
@@ -512,7 +515,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
 
     @Override
     public void getTranslations(String input,
-                                Callback<List<MeaningfulSymbol>, Exception> callback)
+                                Callback<List<Translation>, Exception> callback)
     {
 
     }

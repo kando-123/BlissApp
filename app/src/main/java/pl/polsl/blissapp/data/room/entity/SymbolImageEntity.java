@@ -1,6 +1,5 @@
 package pl.polsl.blissapp.data.room.entity;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -21,21 +20,19 @@ public class SymbolImageEntity
     @ColumnInfo(name = "symbol_index")
     public int symbolIndex;
 
-    @Nullable
     @ColumnInfo(name = "width")
-    public String width;
+    public double width;
 
-    @Nullable
     @ColumnInfo(name = "view_box_width")
-    public String view_box_width;
+    public double view_box_width;
 
     @Nullable
     @ColumnInfo(name = "content")
     public String content;
 
     public SymbolImageEntity(int symbolIndex,
-                             @Nullable String width,
-                             @Nullable String view_box_width,
+                             double width,
+                             double view_box_width,
                              @Nullable String content)
     {
         this.symbolIndex = symbolIndex;
