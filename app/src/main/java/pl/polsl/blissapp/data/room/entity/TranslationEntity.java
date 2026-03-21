@@ -6,14 +6,14 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "Translation",
-        foreignKeys =
+@Entity(tableName = "Translation" // ,
+        /*foreignKeys =
         {
             @ForeignKey(entity = SymbolEntity.class,
                     parentColumns = "symbol_index",
                     childColumns = "symbol_index",
                     onDelete = ForeignKey.CASCADE)
-        })
+        }*/)
 public class TranslationEntity
 {
     @PrimaryKey
