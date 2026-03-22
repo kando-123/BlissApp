@@ -23,7 +23,7 @@ public interface TranslationDao
         FROM
             "Translation"
         WHERE
-            "symbol_index" = :symbolIdx AND "language_code" = :language
+            "symbol_index" = :symbolIdx AND "language_code" = :language;
         """)
     List<String> getMeanings(int symbolIdx, String language);
 
@@ -41,6 +41,8 @@ public interface TranslationDao
             "Translation"
         WHERE
             "translation" LIKE '%' || :input || '%' AND "language_code" = :language
+        ORDER BY
+            "symbol_index";
         """)
     List<TranslationDto> getTranslations(String input, String language);
 }

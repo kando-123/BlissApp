@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
+import pl.polsl.blissapp.common.exception.NoResultsException;
 import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.data.room.dto.SymbolDto;
+import pl.polsl.blissapp.data.room.dto.TranslationDto;
 import pl.polsl.blissapp.data.room.dto.VariantDto;
 import pl.polsl.blissapp.data.room.entity.SymbolImageEntity;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
@@ -515,13 +517,64 @@ public class SymbolRepositoryImpl implements SymbolRepository
     public void getMeanings(Symbol symbol,
                             Callback<List<String>, Exception> callback)
     {
-
+        Thread worker = new Thread(() ->
+        {
+            String language = getLanguage();
+            List<String> meanings = database.translationDao().getMeanings(symbol.index(), language);
+            if (meanings != null && !meanings.isEmpty())
+            {
+                callback.onSuccess(meanings);
+            }
+            else
+            {
+                callback.onFailure(new NoResultsException());
+            }
+        });
+        worker.start();
     }
 
     @Override
     public void getTranslations(String input,
                                 Callback<List<Translation>, Exception> callback)
     {
+        Thread worker = new Thread(() ->
+        {
+            String language = getLanguage();
+            List<TranslationDto> dtos = database.translationDao().getTranslations(input, language);
 
+            if (dtos != null && !dtos.isEmpty())
+            {
+                List<Translation> result = new ArrayList<>();
+
+                int symbolIndex = dtos.get(0).symbolIndex;
+                List<String> translations = new ArrayList<>();
+                translations.add(dtos.get(0).translation);
+                for (int i = 1; i < dtos.size(); ++i)
+                {
+                    int index = dtos.get(i).symbolIndex;
+                    String translation = dtos.get(i).translation;
+
+                    if (index == symbolIndex)
+                    {
+                        translations.add(translation);
+                    }
+                    else
+                    {
+                        result.add(new Translation(new Symbol(symbolIndex), translations));
+                        symbolIndex = index;
+                        translations = new ArrayList<>();
+                        translations.add(translation);
+                    }
+                }
+                result.add(new Translation(new Symbol(symbolIndex), translations));
+
+                callback.onSuccess(result);
+            }
+            else
+            {
+                callback.onFailure(new NoResultsException());
+            }
+        });
+        worker.start();
     }
 }
