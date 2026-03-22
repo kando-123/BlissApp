@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground">
+
+    <!-- Top part: List/Graph of created symbols -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_constructed_symbols"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/composition_area"
+        app:layout_constraintVertical_weight="1"
+        tools:listitem="@layout/item_bliss_symbol" />
+
+    <!-- Middle part: Composition area -->
+    <FrameLayout
+        android:id="@+id/composition_area"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_margin="12dp"
+        android:background="@drawable/writer_surface_background"
+        app:layout_constraintTop_toBottomOf="@+id/rv_constructed_symbols"
+        app:layout_constraintBottom_toTopOf="@+id/keyboard_fragment_container">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_crafting_table"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_bliss_symbol" />
+
+        <TextView
+            android:id="@+id/tv_cheering"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="CHEER!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Bottom part: Keyboard -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/keyboard_fragment_container"
+        android:name="pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
