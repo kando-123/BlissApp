@@ -13,8 +13,10 @@ import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.repository.SymbolRepositoryImpl;
+import pl.polsl.blissapp.data.repository.TranslationRepositoryImpl;
 import pl.polsl.blissapp.ui.repository.AlchemyRepository;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
+import pl.polsl.blissapp.ui.repository.TranslationRepository;
 
 @Module
 @InstallIn(SingletonComponent.class)
@@ -24,8 +26,12 @@ public class InjectionModule
     @Singleton
     public SymbolRepository provideSymbolRepository()
     {
-        // Replace with a real implementation.
         return new SymbolRepositoryImpl();
+    }
+
+    public TranslationRepository provideTranslationRepository()
+    {
+        return new TranslationRepositoryImpl();
     }
 
     @Provides
