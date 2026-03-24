@@ -285,7 +285,7 @@
     "image": "PATH_TO_IMG_DIR/a_(lowercase).svg",
     "prims": [
       [
-        "LETTER_A"
+        "LETTER_LOWER_A"
       ]
     ]
   },
@@ -295,7 +295,7 @@
     "image": "PATH_TO_IMG_DIR/b_(lowercase).svg",
     "prims": [
       [
-        "LETTER_B"
+        "LETTER_LOWER_B"
       ]
     ]
   },
@@ -305,7 +305,7 @@
     "image": "PATH_TO_IMG_DIR/c_(lowercase).svg",
     "prims": [
       [
-        "LETTER_C"
+        "LETTER_LOWER_C"
       ]
     ]
   },
@@ -315,7 +315,7 @@
     "image": "PATH_TO_IMG_DIR/d_(lowercase).svg",
     "prims": [
       [
-        "LETTER_D"
+        "LETTER_LOWER_D"
       ]
     ]
   },
@@ -325,7 +325,7 @@
     "image": "PATH_TO_IMG_DIR/e_(lowercase).svg",
     "prims": [
       [
-        "LETTER_E"
+        "LETTER_LOWER_E"
       ]
     ]
   },
@@ -335,7 +335,7 @@
     "image": "PATH_TO_IMG_DIR/f_(lowercase).svg",
     "prims": [
       [
-        "LETTER_F"
+        "LETTER_LOWER_F"
       ]
     ]
   },
@@ -345,7 +345,7 @@
     "image": "PATH_TO_IMG_DIR/g_(lowercase).svg",
     "prims": [
       [
-        "LETTER_G"
+        "LETTER_LOWER_G"
       ]
     ]
   },
@@ -355,7 +355,7 @@
     "image": "PATH_TO_IMG_DIR/h_(lowercase).svg",
     "prims": [
       [
-        "LETTER_H"
+        "LETTER_LOWER_H"
       ]
     ]
   },
@@ -365,7 +365,7 @@
     "image": "PATH_TO_IMG_DIR/i_(lowercase).svg",
     "prims": [
       [
-        "LETTER_I"
+        "LETTER_LOWER_I"
       ]
     ]
   },
@@ -375,7 +375,7 @@
     "image": "PATH_TO_IMG_DIR/j_(lowercase).svg",
     "prims": [
       [
-        "LETTER_J"
+        "LETTER_LOWER_J"
       ]
     ]
   },
@@ -385,7 +385,7 @@
     "image": "PATH_TO_IMG_DIR/k_(lowercase).svg",
     "prims": [
       [
-        "LETTER_K"
+        "LETTER_LOWER_K"
       ]
     ]
   },
@@ -395,7 +395,7 @@
     "image": "PATH_TO_IMG_DIR/l_(lowercase).svg",
     "prims": [
       [
-        "LETTER_L"
+        "LETTER_LOWER_L"
       ]
     ]
   },
@@ -405,7 +405,7 @@
     "image": "PATH_TO_IMG_DIR/m_(lowercase).svg",
     "prims": [
       [
-        "LETTER_M"
+        "LETTER_LOWER_M"
       ]
     ]
   },
@@ -415,7 +415,7 @@
     "image": "PATH_TO_IMG_DIR/n_(lowercase).svg",
     "prims": [
       [
-        "LETTER_N"
+        "LETTER_LOWER_N"
       ]
     ]
   },
@@ -425,7 +425,7 @@
     "image": "PATH_TO_IMG_DIR/o_(lowercase).svg",
     "prims": [
       [
-        "LETTER_O"
+        "LETTER_LOWER_O"
       ]
     ]
   },
@@ -435,7 +435,7 @@
     "image": "PATH_TO_IMG_DIR/p_(lowercase).svg",
     "prims": [
       [
-        "LETTER_P"
+        "LETTER_LOWER_P"
       ]
     ]
   },
@@ -445,7 +445,7 @@
     "image": "PATH_TO_IMG_DIR/q_(lowercase).svg",
     "prims": [
       [
-        "LETTER_Q"
+        "LETTER_LOWER_Q"
       ]
     ]
   },
@@ -455,7 +455,7 @@
     "image": "PATH_TO_IMG_DIR/r_(lowercase).svg",
     "prims": [
       [
-        "LETTER_R"
+        "LETTER_LOWER_R"
       ]
     ]
   },
@@ -465,7 +465,7 @@
     "image": "PATH_TO_IMG_DIR/s_(lowercase).svg",
     "prims": [
       [
-        "LETTER_S"
+        "LETTER_LOWER_S"
       ]
     ]
   },
@@ -475,7 +475,7 @@
     "image": "PATH_TO_IMG_DIR/t_(lowercase).svg",
     "prims": [
       [
-        "LETTER_T"
+        "LETTER_LOWER_T"
       ]
     ]
   },
@@ -485,7 +485,7 @@
     "image": "PATH_TO_IMG_DIR/u_(lowercase).svg",
     "prims": [
       [
-        "LETTER_U"
+        "LETTER_LOWER_U"
       ]
     ]
   },
@@ -495,7 +495,7 @@
     "image": "PATH_TO_IMG_DIR/v_(lowercase).svg",
     "prims": [
       [
-        "LETTER_V"
+        "LETTER_LOWER_V"
       ]
     ]
   },
@@ -505,7 +505,7 @@
     "image": "PATH_TO_IMG_DIR/w_(lowercase).svg",
     "prims": [
       [
-        "LETTER_W"
+        "LETTER_LOWER_W"
       ]
     ]
   },
@@ -515,7 +515,7 @@
     "image": "PATH_TO_IMG_DIR/x_(lowercase).svg",
     "prims": [
       [
-        "LETTER_X"
+        "LETTER_LOWER_X"
       ]
     ]
   },
@@ -525,7 +525,7 @@
     "image": "PATH_TO_IMG_DIR/y_(lowercase).svg",
     "prims": [
       [
-        "LETTER_Y"
+        "LETTER_LOWER_Y"
       ]
     ]
   },
@@ -535,7 +535,7 @@
     "image": "PATH_TO_IMG_DIR/z_(lowercase).svg",
     "prims": [
       [
-        "LETTER_Z"
+        "LETTER_LOWER_Z"
       ]
     ]
   },
@@ -545,7 +545,7 @@
     "image": "PATH_TO_IMG_DIR/A_(uppercase).svg",
     "prims": [
       [
-        "LETTER_A"
+        "LETTER_UPPER_A"
       ]
     ]
   },
@@ -555,7 +555,7 @@
     "image": "PATH_TO_IMG_DIR/B_(uppercase).svg",
     "prims": [
       [
-        "LETTER_B"
+        "LETTER_UPPER_B"
       ]
     ]
   },
@@ -565,7 +565,7 @@
     "image": "PATH_TO_IMG_DIR/C_(uppercase).svg",
     "prims": [
       [
-        "LETTER_C"
+        "LETTER_UPPER_C"
       ]
     ]
   },
@@ -575,7 +575,7 @@
     "image": "PATH_TO_IMG_DIR/D_(uppercase).svg",
     "prims": [
       [
-        "LETTER_D"
+        "LETTER_UPPER_D"
       ]
     ]
   },
@@ -585,7 +585,7 @@
     "image": "PATH_TO_IMG_DIR/E_(uppercase).svg",
     "prims": [
       [
-        "LETTER_E"
+        "LETTER_UPPER_E"
       ]
     ]
   },
@@ -595,7 +595,7 @@
     "image": "PATH_TO_IMG_DIR/F_(uppercase).svg",
     "prims": [
       [
-        "LETTER_F"
+        "LETTER_UPPER_F"
       ]
     ]
   },
@@ -605,7 +605,7 @@
     "image": "PATH_TO_IMG_DIR/G_(uppercase).svg",
     "prims": [
       [
-        "LETTER_G"
+        "LETTER_UPPER_G"
       ]
     ]
   },
@@ -615,7 +615,7 @@
     "image": "PATH_TO_IMG_DIR/H_(uppercase).svg",
     "prims": [
       [
-        "LETTER_H"
+        "LETTER_UPPER_H"
       ]
     ]
   },
@@ -625,7 +625,7 @@
     "image": "PATH_TO_IMG_DIR/I_(uppercase).svg",
     "prims": [
       [
-        "LETTER_I"
+        "LETTER_UPPER_I"
       ]
     ]
   },
@@ -635,7 +635,7 @@
     "image": "PATH_TO_IMG_DIR/J_(uppercase).svg",
     "prims": [
       [
-        "LETTER_J"
+        "LETTER_UPPER_J"
       ]
     ]
   },
@@ -645,7 +645,7 @@
     "image": "PATH_TO_IMG_DIR/K_(uppercase).svg",
     "prims": [
       [
-        "LETTER_K"
+        "LETTER_UPPER_K"
       ]
     ]
   },
@@ -655,7 +655,7 @@
     "image": "PATH_TO_IMG_DIR/L_(uppercase).svg",
     "prims": [
       [
-        "LETTER_L"
+        "LETTER_UPPER_L"
       ]
     ]
   },
@@ -665,7 +665,7 @@
     "image": "PATH_TO_IMG_DIR/M_(uppercase).svg",
     "prims": [
       [
-        "LETTER_M"
+        "LETTER_UPPER_M"
       ]
     ]
   },
@@ -675,7 +675,7 @@
     "image": "PATH_TO_IMG_DIR/N_(uppercase).svg",
     "prims": [
       [
-        "LETTER_N"
+        "LETTER_UPPER_N"
       ]
     ]
   },
@@ -685,7 +685,7 @@
     "image": "PATH_TO_IMG_DIR/O_(uppercase).svg",
     "prims": [
       [
-        "LETTER_O"
+        "LETTER_UPPER_O"
       ]
     ]
   },
@@ -695,7 +695,7 @@
     "image": "PATH_TO_IMG_DIR/P_(uppercase).svg",
     "prims": [
       [
-        "LETTER_P"
+        "LETTER_UPPER_P"
       ]
     ]
   },
@@ -705,7 +705,7 @@
     "image": "PATH_TO_IMG_DIR/Q_(uppercase).svg",
     "prims": [
       [
-        "LETTER_Q"
+        "LETTER_UPPER_Q"
       ]
     ]
   },
@@ -715,7 +715,7 @@
     "image": "PATH_TO_IMG_DIR/R_(uppercase).svg",
     "prims": [
       [
-        "LETTER_R"
+        "LETTER_UPPER_R"
       ]
     ]
   },
@@ -725,7 +725,7 @@
     "image": "PATH_TO_IMG_DIR/S_(uppercase).svg",
     "prims": [
       [
-        "LETTER_S"
+        "LETTER_UPPER_S"
       ]
     ]
   },
@@ -735,7 +735,7 @@
     "image": "PATH_TO_IMG_DIR/T_(uppercase).svg",
     "prims": [
       [
-        "LETTER_T"
+        "LETTER_UPPER_T"
       ]
     ]
   },
@@ -745,7 +745,7 @@
     "image": "PATH_TO_IMG_DIR/U_(uppercase).svg",
     "prims": [
       [
-        "LETTER_U"
+        "LETTER_UPPER_U"
       ]
     ]
   },
@@ -755,7 +755,7 @@
     "image": "PATH_TO_IMG_DIR/V_(uppercase).svg",
     "prims": [
       [
-        "LETTER_V"
+        "LETTER_UPPER_V"
       ]
     ]
   },
@@ -765,7 +765,7 @@
     "image": "PATH_TO_IMG_DIR/W_(uppercase).svg",
     "prims": [
       [
-        "LETTER_W"
+        "LETTER_UPPER_W"
       ]
     ]
   },
@@ -775,7 +775,7 @@
     "image": "PATH_TO_IMG_DIR/X_(uppercase).svg",
     "prims": [
       [
-        "LETTER_X"
+        "LETTER_UPPER_X"
       ]
     ]
   },
@@ -785,7 +785,7 @@
     "image": "PATH_TO_IMG_DIR/Y_(uppercase).svg",
     "prims": [
       [
-        "LETTER_Y"
+        "LETTER_UPPER_Y"
       ]
     ]
   },
@@ -795,7 +795,7 @@
     "image": "PATH_TO_IMG_DIR/Z_(uppercase).svg",
     "prims": [
       [
-        "LETTER_Z"
+        "LETTER_UPPER_Z"
       ]
     ]
   },
@@ -815,7 +815,7 @@
     "image": "PATH_TO_IMG_DIR/indicator_(active).svg",
     "prims": [
       [
-        "ACUTE_ANGLE_SMALL_EAST"
+        "INDICATOR_ACTIVE"
       ]
     ]
   },
@@ -3483,7 +3483,7 @@
     "prims": [
       [
         "ACUTE_TRIANGLE_LARGE_NORTH",
-        "ACUTE_TRIANGLE_LARGE_NORTHEAST"
+        "ACUTE_TRIANGLE_LARGE_SOUTH"
       ]
     ]
   },
@@ -4461,7 +4461,7 @@
     "image": "PATH_TO_IMG_DIR/indicator_(imperative_form).svg",
     "prims": [
       [
-        "LETTER"
+        "EXCLAMATION_MARK"
       ]
     ]
   },
@@ -4481,7 +4481,7 @@
     "image": "PATH_TO_IMG_DIR/indicator_(neutral)_(OLD).svg",
     "prims": [
       [
-        "LETTER"
+        "VERTICAL_LINE_SMALL"
       ]
     ]
   },
@@ -13217,9 +13217,9 @@
     "image": "PATH_TO_IMG_DIR/alphabet,letters_(uppercase)_(Latin_alphabet).svg",
     "prims": [
       [
-        "LETTER_A",
-        "LETTER_B",
-        "LETTER_C"
+        "LETTER_UPPER_A",
+        "LETTER_UPPER_B",
+        "LETTER_UPPER_C"
       ]
     ]
   },
