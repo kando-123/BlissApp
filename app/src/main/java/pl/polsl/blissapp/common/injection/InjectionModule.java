@@ -29,6 +29,8 @@ public class InjectionModule
         return new SymbolRepositoryImpl();
     }
 
+    @Provides
+    @Singleton
     public TranslationRepository provideTranslationRepository()
     {
         return new TranslationRepositoryImpl();

@@ -21,8 +21,6 @@ import pl.polsl.blissapp.ui.repository.TranslationRepository;
 @AndroidEntryPoint
 public class NaturalLanguageWriterFragment extends Fragment
 {
-    @Inject
-    TranslationRepository mTranslationRepository;
 
     @Nullable
     @Override

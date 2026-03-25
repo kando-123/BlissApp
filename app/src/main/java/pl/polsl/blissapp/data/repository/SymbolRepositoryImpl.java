@@ -348,7 +348,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
             }
 
             int result = matchPrimitives(variancePrimitives, requiredPrimitives);
-            if (minMatch == MATCH_FAILURE || result < minMatch)
+            if (minMatch == MATCH_FAILURE || (result < minMatch && result >= 0))
             {
                 minMatch = result;
             }
@@ -365,7 +365,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 varianceCounter[i] = 0;
             }
         }
-        while (hasNext);
+        while (hasNext && minMatch != 0);
 
         return minMatch;
     }
