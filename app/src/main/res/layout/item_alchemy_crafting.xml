@@ -21,14 +21,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/img_symbol"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:contentDescription="Bliss Crafting Item" />
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/img_symbol"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Bliss Crafting Item" />
+
+            <TextView
+                android:id="@+id/tv_letter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone"
+                tools:text="A"
+                tools:visibility="visible" />
+
+        </FrameLayout>
 
     </com.google.android.material.card.MaterialCardView>
 
