@@ -39,19 +39,13 @@ public class BlissWriterFragment extends Fragment
     private SymbolAdapter mHintsAdapter;
     private SymbolAdapter mMessageAdapter;
 
-    private View cursorVertical;
-    private View cursorHorizontal;
-    private View cursorContainer;
-    private RecyclerView messageRecyclerView;
+    private View mCursorVertical;
+    private View mCursorHorizontal;
+    private View mCursorContainer;
+    private RecyclerView mMessageRecyclerView;
 
-    private BlissWriterViewModel writerViewModel;
-    private BlissKeyboardViewModel keyboardViewModel;
-    private FilterAdapter filterAdapter;
-    private SymbolAdapter hintsAdapter;
-    private SymbolAdapter messageAdapter;
-
-    private int currentCursorIndex = 0;
-    private List<BlissWriterViewModel.MessageItem> currentItems;
+    private int mCurrentCursorIndex = 0;
+    private List<BlissWriterViewModel.MessageItem> mCurrentItems;
 
     @Inject
     SymbolRepository mSymbolRepository;
@@ -96,10 +90,10 @@ public class BlissWriterFragment extends Fragment
                     mWriterViewModel.popSymbol();
                     break;
                 case LEFT_SYMBOL:
-                    writerViewModel.moveCursorLeft();
+                    mWriterViewModel.moveCursorLeft();
                     break;
                 case RIGHT_SYMBOL:
-                    writerViewModel.moveCursorRight();
+                    mWriterViewModel.moveCursorRight();
                     break;
             }
         });
@@ -110,7 +104,7 @@ public class BlissWriterFragment extends Fragment
             mCurrentCursorIndex = state.cursorIndex;
             mMessageAdapter.update(state.items);
 
-            messageRecyclerView.post(() -> scrollToCursor(currentCursorIndex));
+            mMessageRecyclerView.post(() -> scrollToCursor(mCurrentCursorIndex));
             scheduleCursorUpdate();
         });
 
@@ -120,7 +114,7 @@ public class BlissWriterFragment extends Fragment
         mWriterViewModel.getFilter().observe(getViewLifecycleOwner(),
                 mFilterAdapter::update);
 
-        writerViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
+        mWriterViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
                 Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show());
 
         mMessageRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -136,7 +130,7 @@ public class BlissWriterFragment extends Fragment
             return true;
         });
 
-        cursorContainer.post(() -> {
+        mCursorContainer.post(() -> {
             Animation blink = AnimationUtils.loadAnimation(requireContext(), R.anim.blink);
             if (blink != null) {
                 mCursorContainer.startAnimation(blink);
@@ -152,16 +146,16 @@ public class BlissWriterFragment extends Fragment
                 new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onSingleTapUp(@NonNull MotionEvent e) {
-                LinearLayoutManager layoutManager = (LinearLayoutManager) messageRecyclerView.getLayoutManager();
+                LinearLayoutManager layoutManager = (LinearLayoutManager) mMessageRecyclerView.getLayoutManager();
                 if (layoutManager == null) return false;
 
                 int lastVisiblePos = layoutManager.findLastVisibleItemPosition();
-                int totalItemCount = messageAdapter.getItemCount();
+                int totalItemCount = mMessageAdapter.getItemCount();
 
                 if (lastVisiblePos == totalItemCount - 1 && lastVisiblePos >= 0) {
                     View lastVisibleView = layoutManager.findViewByPosition(lastVisiblePos);
                     if (lastVisibleView != null && e.getX() > lastVisibleView.getRight()) {
-                        messageAdapter.triggerLastItemClick();
+                        mMessageAdapter.triggerLastItemClick();
                         return true;
                     }
                 }
@@ -169,7 +163,7 @@ public class BlissWriterFragment extends Fragment
             }
         });
 
-        messageRecyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+        mMessageRecyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
                 gestureDetector.onTouchEvent(e);
@@ -283,8 +277,8 @@ public class BlissWriterFragment extends Fragment
     private void setupFilterView(View root)
     {
         RecyclerView filterView = root.findViewById(R.id.rv_filters);
-        filterAdapter = new FilterAdapter(writerViewModel);
-        filterView.setAdapter(filterAdapter);
+        mFilterAdapter = new FilterAdapter(mWriterViewModel);
+        filterView.setAdapter(mFilterAdapter);
         filterView.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
     }
@@ -314,20 +308,20 @@ public class BlissWriterFragment extends Fragment
     }
 
     private void setupMessageView() {
-        messageAdapter = new SymbolAdapter(symbolRepository,
+        mMessageAdapter = new SymbolAdapter(mSymbolRepository,
                 R.layout.item_bliss_message_symbol,
                 R.layout.item_bliss_cursor,
                 (position, item) -> mWriterViewModel.setCursorIndex(position));
 
-        messageAdapter.setOnImageRenderedListener(position -> {
-            if (position == currentCursorIndex) {
-                scrollToCursor(currentCursorIndex);
+        mMessageAdapter.setOnImageRenderedListener(position -> {
+            if (position == mCurrentCursorIndex) {
+                scrollToCursor(mCurrentCursorIndex);
                 scheduleCursorUpdate();
             }
         });
 
-        messageRecyclerView.setAdapter(messageAdapter);
-        messageRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(),
+        mMessageRecyclerView.setAdapter(mMessageAdapter);
+        mMessageRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
     }
 }
