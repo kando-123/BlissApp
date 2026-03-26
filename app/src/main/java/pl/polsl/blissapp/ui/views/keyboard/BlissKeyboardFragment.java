@@ -72,7 +72,8 @@ public class BlissKeyboardFragment extends Fragment
         mKeyboardContainer.setBackgroundResource(R.drawable.keyboard_background_with_border);
 
         int padding = getResources().getDimensionPixelSize(R.dimen.keyboard_padding);
-        mKeyboardContainer.setPadding(padding, padding, padding, padding);
+        int bottomOffset = getResources().getDimensionPixelSize(R.dimen.keyboard_bottom_offset);
+        mKeyboardContainer.setPadding(padding, padding, padding, padding + bottomOffset);
 
         mBlissKeyboard = createBlissKeyboard();
         mAlphaKeyboard = createAlphanumericKeyboard();

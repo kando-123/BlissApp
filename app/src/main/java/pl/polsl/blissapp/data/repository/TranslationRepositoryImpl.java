@@ -16,18 +16,13 @@ public class TranslationRepositoryImpl implements TranslationRepository
 {
     private final BlissDatabase database = BlissApplication.getDatabase();
 
-    private String getLanguage()
-    {
-        return "English";
-    }
-
     @Override
     public void getMeanings(Symbol symbol,
+                            String language,
                             Callback<List<String>, Exception> callback)
     {
         Thread worker = new Thread(() ->
         {
-            String language = getLanguage();
             List<String> meanings = database.translationDao().getMeanings(symbol.index(), language);
             if (meanings != null && !meanings.isEmpty())
             {
@@ -43,11 +38,11 @@ public class TranslationRepositoryImpl implements TranslationRepository
 
     @Override
     public void getTranslations(String input,
+                                String language,
                                 Callback<List<Translation>, Exception> callback)
     {
         Thread worker = new Thread(() ->
         {
-            String language = getLanguage();
             String pattern = "%" + input + "%";
             List<TranslationDto> dtos = database.translationDao().getTranslations(pattern, language);
 

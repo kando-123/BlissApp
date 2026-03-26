@@ -1,6 +1,11 @@
 package pl.polsl.blissapp;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.splashscreen.SplashScreen;
@@ -52,6 +57,21 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
+        // Hide keyboard when drawer starts opening
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                if (newState == DrawerLayout.STATE_DRAGGING || newState == DrawerLayout.STATE_SETTLING) {
+                    hideKeyboard();
+                }
+            }
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                hideKeyboard();
+            }
+        });
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
@@ -84,6 +104,16 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return handled;
             });
+        }
+    }
+
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
         }
     }
 
