@@ -13,12 +13,13 @@
 
     <string name="settings_title_language">Język aplikacji</string>
     <string name="settings_title_theme">Motyw aplikacji</string>
-    <string name="theme_lavender">Lawenda</string>
-    <string name="theme_ocean">Ocean</string>
-    <string name="theme_forest">Las</string>
-    <string name="theme_sunset">Wieczór</string>
+    <string name="theme_lavender">Lawendowy</string>
+    <string name="theme_ocean">Oceaniczny</string>
+    <string name="theme_forest">Leśny</string>
+    <string name="theme_sunset">Słoneczny</string>
 
     <string name="fab_content_description">Przycisk akcji</string>
     <string name="image_view_item_transform_content_description">Podgląd elementu</string>
     <string name="item_count_format">x%1$d</string>
+    <string name="alchemy_daily_goal">Cel dzienny: %1$d symboli</string>
 </resources>

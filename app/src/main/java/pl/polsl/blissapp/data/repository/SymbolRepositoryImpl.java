@@ -512,4 +512,113 @@ public class SymbolRepositoryImpl implements SymbolRepository
         });
         worker.start();
     }
+
+    @Override
+    public void getPrimitiveVariants(Symbol symbol, Callback<List<Map<Primitive, Integer>>, Exception> callback)
+    {
+        Thread worker = new Thread(() ->
+        {
+            try
+            {
+                List<Integer> components = database.symbolDao().getComponents(symbol.index());
+                if (components.isEmpty())
+                {
+                    components = Collections.singletonList(symbol.index());
+                }
+
+                List<List<Map<Primitive, Integer>>> allComponentsVariants = new ArrayList<>(components.size());
+                for (int componentIdx : components)
+                {
+                    allComponentsVariants.add(mComponentVariantsCache.get(componentIdx));
+                }
+
+                List<Map<Primitive, Integer>> result = new ArrayList<>();
+                generateVariantsRecursive(allComponentsVariants, 0, new HashMap<>(), result);
+                callback.onSuccess(result);
+            }
+            catch (Exception e)
+            {
+                callback.onFailure(e);
+            }
+        });
+        worker.start();
+    }
+
+    private void generateVariantsRecursive(List<List<Map<Primitive, Integer>>> allComponentsVariants,
+                                           int index,
+                                           Map<Primitive, Integer> currentMap,
+                                           List<Map<Primitive, Integer>> result)
+    {
+        if (index == allComponentsVariants.size())
+        {
+            result.add(new HashMap<>(currentMap));
+            return;
+        }
+
+        List<Map<Primitive, Integer>> variants = allComponentsVariants.get(index);
+        for (Map<Primitive, Integer> variant : variants)
+        {
+            // Add variant to currentMap
+            for (Map.Entry<Primitive, Integer> entry : variant.entrySet())
+            {
+                currentMap.merge(entry.getKey(), entry.getValue(), Integer::sum);
+            }
+
+            generateVariantsRecursive(allComponentsVariants, index + 1, currentMap, result);
+
+            // Backtrack: remove variant from currentMap
+            for (Map.Entry<Primitive, Integer> entry : variant.entrySet())
+            {
+                int currentCount = currentMap.get(entry.getKey());
+                if (currentCount == entry.getValue())
+                {
+                    currentMap.remove(entry.getKey());
+                }
+                else
+                {
+                    currentMap.put(entry.getKey(), currentCount - entry.getValue());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void getRandomSymbol(Callback<Symbol, Exception> callback)
+    {
+        Thread worker = new Thread(() ->
+        {
+            try
+            {
+                // Select symbols that have at least one primitive definition (to avoid empty targets)
+                String query = """
+                    SELECT S.symbol_index, 0 as min_size
+                    FROM Symbol S
+                    JOIN Composition C ON S.symbol_index = C.symbol_index
+                    JOIN Definition D ON C.component_index = D.component_index
+                    GROUP BY S.symbol_index
+                    ORDER BY RANDOM() LIMIT 1
+                """;
+                List<SymbolDto> dtos = database.symbolDao().getSymbols(new SimpleSQLiteQuery(query));
+                if (!dtos.isEmpty())
+                {
+                    callback.onSuccess(new Symbol(dtos.get(0).index));
+                }
+                else
+                {
+                    // Fallback to any symbol if query fails
+                    dtos = database.symbolDao().getSymbols(new SimpleSQLiteQuery("SELECT symbol_index, 0 as min_size FROM Symbol ORDER BY RANDOM() LIMIT 1"));
+                    if (!dtos.isEmpty()) {
+                        callback.onSuccess(new Symbol(dtos.get(0).index));
+                    } else {
+                        callback.onFailure(new NoResultsException());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                callback.onFailure(e);
+            }
+        });
+        worker.start();
+    }
 }

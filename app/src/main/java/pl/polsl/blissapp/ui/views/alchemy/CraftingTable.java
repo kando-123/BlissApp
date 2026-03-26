@@ -1,77 +1,40 @@
 package pl.polsl.blissapp.ui.views.alchemy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import pl.polsl.blissapp.data.model.Primitive;
-import pl.polsl.blissapp.data.model.Symbol;
+class CraftingTable {
+    private final List<Object> mItems;
 
-class CraftingTable
-{
-    private final List<Symbol> mSymbols;
-    private final List<Primitive> mPrimitives;
-    // To maintain order of insertion for "pop"
-    private final List<Object> mHistory;
-
-    CraftingTable()
-    {
-        mSymbols = new ArrayList<>();
-        mPrimitives = new ArrayList<>();
-        mHistory = new ArrayList<>();
+    CraftingTable() {
+        mItems = new ArrayList<>();
     }
 
-    private CraftingTable(CraftingTable base)
-    {
-        mSymbols = new ArrayList<>(base.mSymbols);
-        mPrimitives = new ArrayList<>(base.mPrimitives);
-        mHistory = new ArrayList<>(base.mHistory);
+    private CraftingTable(List<Object> items) {
+        mItems = new ArrayList<>(items);
     }
 
-    CraftingTable addSymbol(Symbol symbol)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.mSymbols.add(symbol);
-        copy.mHistory.add(symbol);
-        return copy;
+    public CraftingTable addItem(Object item) {
+        List<Object> copy = new ArrayList<>(mItems);
+        copy.add(item);
+        return new CraftingTable(copy);
     }
 
-    CraftingTable addRadical(Primitive primitive)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.mPrimitives.add(primitive);
-        copy.mHistory.add(primitive);
-        return copy;
+    public CraftingTable removeItem(Object item) {
+        List<Object> copy = new ArrayList<>(mItems);
+        copy.remove(item); // Removes the first occurrence
+        return new CraftingTable(copy);
     }
 
-    CraftingTable removeSymbol(Symbol symbol)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.mSymbols.remove(symbol);
-        copy.mHistory.remove(symbol);
-        return copy;
+    public CraftingTable removeLast() {
+        if (mItems.isEmpty()) return this;
+        List<Object> copy = new ArrayList<>(mItems);
+        copy.remove(copy.size() - 1);
+        return new CraftingTable(copy);
     }
 
-    CraftingTable removeRadical(Primitive primitive)
-    {
-        CraftingTable copy = new CraftingTable(this);
-        copy.mPrimitives.remove(primitive);
-        copy.mHistory.remove(primitive);
-        return copy;
+    public List<Object> getAllItems() {
+        return Collections.unmodifiableList(mItems);
     }
-
-    CraftingTable removeLast() {
-        if (mHistory.isEmpty()) return this;
-        CraftingTable copy = new CraftingTable(this);
-        Object last = copy.mHistory.remove(copy.mHistory.size() - 1);
-        if (last instanceof Symbol) {
-            copy.mSymbols.remove(last);
-        } else if (last instanceof Primitive) {
-            copy.mPrimitives.remove(last);
-        }
-        return copy;
-    }
-
-    List<Symbol> getSymbols() { return mSymbols; }
-    List<Primitive> getPrimitives() { return mPrimitives; }
-    List<Object> getAllItems() { return mHistory; }
 }

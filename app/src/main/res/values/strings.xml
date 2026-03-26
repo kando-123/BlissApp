@@ -25,4 +25,5 @@
     <string name="fab_content_description">Action button</string>
     <string name="image_view_item_transform_content_description">Item preview</string>
     <string name="item_count_format">x%1$d</string>
+    <string name="alchemy_daily_goal">Daily Goal: %1$d symbols</string>
 </resources>

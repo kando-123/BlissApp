@@ -35,4 +35,13 @@ public interface SymbolRepository
 
     void getSvg(Symbol symbol,
                 Callback<String, Exception> callback);
+
+    /**
+     * Gets all possible primitive variants (decompositions) for the given symbol.
+     * Each map in the list represents one valid set of primitives that make up the symbol.
+     */
+    void getPrimitiveVariants(Symbol symbol,
+                              Callback<List<Map<Primitive, Integer>>, Exception> callback);
+                       
+    void getRandomSymbol(Callback<Symbol, Exception> callback);
 }
