@@ -140,8 +140,20 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
 
         holder.resetView();
 
-        if (item instanceof Symbol symbol) holder.loadSymbol(symbol, symbolRepository);
-        else if (item instanceof Primitive primitive) holder.loadPrimitive(primitive);
+        if (item instanceof Symbol symbol) {
+            holder.loadSymbol(symbol, symbolRepository);
+        } else if (item instanceof Primitive primitive) {
+            String letterLabel = primitive.getLetterLabel();
+            if (letterLabel != null) {
+                holder.imageView.setVisibility(View.GONE);
+                holder.tvLetter.setVisibility(View.VISIBLE);
+                holder.tvLetter.setText(letterLabel);
+            } else {
+                holder.imageView.setVisibility(View.VISIBLE);
+                holder.tvLetter.setVisibility(View.GONE);
+                holder.loadPrimitive(primitive);
+            }
+        }
 
         holder.tvLabel.setText(craftingItem.label != null ? craftingItem.label : "");
         holder.tvLabel.setVisibility(craftingItem.label != null && !craftingItem.label.isEmpty() ? View.VISIBLE : View.GONE);
@@ -161,12 +173,14 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
         private final ImageView imageView;
         private final MaterialCardView cardView;
         private final TextView tvLabel;
+        private final TextView tvLetter;
 
         ViewHolder(View view) {
             super(view);
             imageView = view.findViewById(R.id.img_symbol);
             cardView = view.findViewById(R.id.filter_key_card);
             tvLabel = view.findViewById(R.id.tv_symbol_label);
+            tvLetter = view.findViewById(R.id.tv_letter);
         }
 
         void applyStatus(MatchStatus status, Object item) {
@@ -223,6 +237,10 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             if (imageView != null) {
                 imageView.setImageDrawable(null);
                 imageView.setTag(null);
+                imageView.setVisibility(View.VISIBLE);
+            }
+            if (tvLetter != null) {
+                tvLetter.setVisibility(View.GONE);
             }
             itemView.clearAnimation();
             itemView.setRotation(0f);
