@@ -1,8 +1,13 @@
 package pl.polsl.blissapp.ui.views.natlangwriter;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,20 +20,31 @@ import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.ui.repository.TranslationRepository;
 
 @HiltViewModel
-public class NaturalLanguageWriterViewModel extends ViewModel
+public class NaturalLanguageWriterViewModel extends AndroidViewModel
 {
+    private static final String PREFS_NAME = "NatLangWriterPrefs";
+    private static final String PREF_LANGUAGE_KEY = "last_language";
+    private static final String DEFAULT_LANGUAGE = "English";
+
     private final TranslationRepository mTranslationRepository;
+    private final SharedPreferences mPrefs;
+    
     private final MutableLiveData<List<Translation>> mTranslations = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
-    private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>("English");
+    private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>();
     
     // Track the latest search term to avoid race conditions
     private String mCurrentQuery = "";
 
     @Inject
-    public NaturalLanguageWriterViewModel(TranslationRepository translationRepository)
+    public NaturalLanguageWriterViewModel(@NonNull Application application, TranslationRepository translationRepository)
     {
+        super(application);
         this.mTranslationRepository = translationRepository;
+        this.mPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        
+        String lastLanguage = mPrefs.getString(PREF_LANGUAGE_KEY, DEFAULT_LANGUAGE);
+        mSelectedLanguage.setValue(lastLanguage);
     }
 
     LiveData<List<Translation>> getTranslations()
@@ -49,6 +65,7 @@ public class NaturalLanguageWriterViewModel extends ViewModel
     void setSelectedLanguage(String language)
     {
         mSelectedLanguage.setValue(language);
+        mPrefs.edit().putString(PREF_LANGUAGE_KEY, language).apply();
     }
 
     void translate(String input)

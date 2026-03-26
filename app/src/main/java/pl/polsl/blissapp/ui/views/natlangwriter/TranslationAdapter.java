@@ -1,9 +1,10 @@
 package pl.polsl.blissapp.ui.views.natlangwriter;
 
-import android.graphics.Color;
+import android.content.Context;
 import android.graphics.Picture;
 import android.graphics.drawable.PictureDrawable;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,12 +68,18 @@ public class TranslationAdapter extends ListAdapter<Translation, TranslationAdap
     {
         private final ImageView ivSymbol;
         private final TextView tvMeanings;
+        private final int colorOnPrimary;
 
         public ViewHolder(@NonNull View itemView)
         {
             super(itemView);
             ivSymbol = itemView.findViewById(R.id.iv_symbol);
             tvMeanings = itemView.findViewById(R.id.tv_meanings);
+
+            Context context = itemView.getContext();
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnPrimary, typedValue, true);
+            colorOnPrimary = typedValue.data;
         }
 
         public void bind(Translation translation)
@@ -90,7 +97,7 @@ public class TranslationAdapter extends ListAdapter<Translation, TranslationAdap
                             Picture picture = svg.renderToPicture();
                             PictureDrawable drawable = new PictureDrawable(picture);
                             ivSymbol.setImageDrawable(drawable);
-                            ivSymbol.setColorFilter(Color.BLACK);
+                            ivSymbol.setColorFilter(colorOnPrimary);
                         } catch (SVGParseException e) {
                             ivSymbol.setImageResource(R.drawable.ic_launcher_foreground);
                         }
