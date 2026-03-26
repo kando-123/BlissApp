@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
+import pl.polsl.blissapp.common.exception.NoResultsException;
 import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
 import pl.polsl.blissapp.data.room.dto.SymbolDto;
+import pl.polsl.blissapp.data.room.dto.TranslationDto;
 import pl.polsl.blissapp.data.room.dto.VariantDto;
 import pl.polsl.blissapp.data.room.entity.SymbolImageEntity;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
@@ -346,7 +348,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
             }
 
             int result = matchPrimitives(variancePrimitives, requiredPrimitives);
-            if (minMatch == MATCH_FAILURE || result < minMatch)
+            if (minMatch == MATCH_FAILURE || (result < minMatch && result >= 0))
             {
                 minMatch = result;
             }
@@ -363,7 +365,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
                 varianceCounter[i] = 0;
             }
         }
-        while (hasNext);
+        while (hasNext && minMatch != 0);
 
         return minMatch;
     }
@@ -504,24 +506,5 @@ public class SymbolRepositoryImpl implements SymbolRepository
             }
         });
         worker.start();
-    }
-
-    private String getLanguage()
-    {
-        return "English";
-    }
-
-    @Override
-    public void getMeanings(Symbol symbol,
-                            Callback<List<String>, Exception> callback)
-    {
-
-    }
-
-    @Override
-    public void getTranslations(String input,
-                                Callback<List<Translation>, Exception> callback)
-    {
-
     }
 }

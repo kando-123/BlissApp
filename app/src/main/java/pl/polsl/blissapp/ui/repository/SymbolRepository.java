@@ -35,22 +35,4 @@ public interface SymbolRepository
 
     void getSvg(Symbol symbol,
                 Callback<String, Exception> callback);
-
-    /**
-     * Gets the meanings of the given symbol.
-     *
-     * @param symbol the symbol whose meanings should be retrieved
-     * @param callback the callback that will be called with the results, or failure
-     */
-    void getMeanings(Symbol symbol,
-                     Callback<List<String>, Exception> callback);
-
-    /**
-     * Gets the symbols and their meanings for given text input.
-     *
-     * @param input
-     * @param callback
-     */
-    void getTranslations(String input,
-                         Callback<List<Translation>, Exception> callback);
 }

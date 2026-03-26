@@ -31,22 +31,30 @@ import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
 @AndroidEntryPoint
-public class BlissWriterFragment extends Fragment {
+public class BlissWriterFragment extends Fragment
+{
+    private BlissKeyboardViewModel mKeyboardViewModel;
+    private BlissWriterViewModel mWriterViewModel;
+    private FilterAdapter mFilterAdapter;
+    private SymbolAdapter mHintsAdapter;
+    private SymbolAdapter mMessageAdapter;
+
+    private View cursorVertical;
+    private View cursorHorizontal;
+    private View cursorContainer;
+    private RecyclerView messageRecyclerView;
 
     private BlissWriterViewModel writerViewModel;
     private BlissKeyboardViewModel keyboardViewModel;
     private FilterAdapter filterAdapter;
     private SymbolAdapter hintsAdapter;
     private SymbolAdapter messageAdapter;
-    private View cursorVertical;
-    private View cursorHorizontal;
-    private View cursorContainer;
-    private RecyclerView messageRecyclerView;
+
     private int currentCursorIndex = 0;
     private List<BlissWriterViewModel.MessageItem> currentItems;
 
     @Inject
-    SymbolRepository symbolRepository;
+    SymbolRepository mSymbolRepository;
 
     @Nullable
     @Override
@@ -58,31 +66,34 @@ public class BlissWriterFragment extends Fragment {
 
     @SuppressLint("DefaultLocale")
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+    {
         super.onViewCreated(view, savedInstanceState);
 
-        keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
-        writerViewModel = new ViewModelProvider(this).get(BlissWriterViewModel.class);
+        mKeyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
+        mWriterViewModel = new ViewModelProvider(this).get(BlissWriterViewModel.class);
 
-        cursorVertical = view.findViewById(R.id.cursor_vertical);
-        cursorHorizontal = view.findViewById(R.id.cursor_horizontal);
-        cursorContainer = view.findViewById(R.id.cursor_container);
-        messageRecyclerView = view.findViewById(R.id.rv_message);
+        mCursorVertical = view.findViewById(R.id.cursor_vertical);
+        mCursorHorizontal = view.findViewById(R.id.cursor_horizontal);
+        mCursorContainer = view.findViewById(R.id.cursor_container);
+        mMessageRecyclerView = view.findViewById(R.id.rv_message);
 
         setupFilterView(view);
         setupHintsView(view);
         setupMessageView();
 
-        keyboardViewModel.clearInputs();
+        mKeyboardViewModel.clearInputs();
 
-        keyboardViewModel.getPrimitiveInput().observe(getViewLifecycleOwner(),
-                writerViewModel::putPrimitive);
+        mKeyboardViewModel.getPrimitiveInput().observe(getViewLifecycleOwner(),
+                mWriterViewModel::putPrimitive);
 
-        keyboardViewModel.getControlInput().observe(getViewLifecycleOwner(), controlKey -> {
+        mKeyboardViewModel.getControlInput().observe(getViewLifecycleOwner(), controlKey ->
+        {
             if (controlKey == null) return;
-            switch (controlKey) {
+            switch (controlKey)
+            {
                 case POP_SYMBOL:
-                    writerViewModel.popSymbol();
+                    mWriterViewModel.popSymbol();
                     break;
                 case LEFT_SYMBOL:
                     writerViewModel.moveCursorLeft();
@@ -93,32 +104,34 @@ public class BlissWriterFragment extends Fragment {
             }
         });
 
-        writerViewModel.getState().observe(getViewLifecycleOwner(), state -> {
-            currentItems = state.items;
-            currentCursorIndex = state.cursorIndex;
-            messageAdapter.update(state.items);
+        mWriterViewModel.getState().observe(getViewLifecycleOwner(), state ->
+        {
+            mCurrentItems = state.items;
+            mCurrentCursorIndex = state.cursorIndex;
+            mMessageAdapter.update(state.items);
 
             messageRecyclerView.post(() -> scrollToCursor(currentCursorIndex));
             scheduleCursorUpdate();
         });
 
-        writerViewModel.getHints().observe(getViewLifecycleOwner(),
-                symbols -> hintsAdapter.update(symbols));
+        mWriterViewModel.getHints().observe(getViewLifecycleOwner(),
+                symbols -> mHintsAdapter.update(symbols));
 
-        writerViewModel.getFilter().observe(getViewLifecycleOwner(),
-                filterAdapter::update);
+        mWriterViewModel.getFilter().observe(getViewLifecycleOwner(),
+                mFilterAdapter::update);
 
         writerViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
                 Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show());
 
-        messageRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mMessageRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 updateCursorPosition();
             }
         });
 
-        messageRecyclerView.getViewTreeObserver().addOnPreDrawListener(() -> {
+        mMessageRecyclerView.getViewTreeObserver().addOnPreDrawListener(() ->
+        {
             updateCursorPosition();
             return true;
         });
@@ -126,7 +139,7 @@ public class BlissWriterFragment extends Fragment {
         cursorContainer.post(() -> {
             Animation blink = AnimationUtils.loadAnimation(requireContext(), R.anim.blink);
             if (blink != null) {
-                cursorContainer.startAnimation(blink);
+                mCursorContainer.startAnimation(blink);
             }
         });
 
@@ -165,72 +178,77 @@ public class BlissWriterFragment extends Fragment {
         });
     }
 
-    private void scheduleCursorUpdate() {
-        if (messageRecyclerView == null) return;
-        messageRecyclerView.post(this::updateCursorPosition);
+    private void scheduleCursorUpdate()
+    {
+        if (mMessageRecyclerView == null) return;
+        mMessageRecyclerView.post(this::updateCursorPosition);
     }
 
     private void updateCursorPosition() {
-        if (!isAdded() || messageRecyclerView == null ||
-                messageRecyclerView.getLayoutManager() == null ||
-                currentItems == null || currentCursorIndex < 0 ||
-                currentCursorIndex >= currentItems.size()) {
-            cursorVertical.setVisibility(View.INVISIBLE);
-            cursorHorizontal.setVisibility(View.INVISIBLE);
+        if (!isAdded() || mMessageRecyclerView == null ||
+                mMessageRecyclerView.getLayoutManager() == null ||
+                mCurrentItems == null || mCurrentCursorIndex < 0 ||
+                mCurrentCursorIndex >= mCurrentItems.size()) {
+            mCursorVertical.setVisibility(View.INVISIBLE);
+            mCursorHorizontal.setVisibility(View.INVISIBLE);
             return;
         }
 
-        View itemView = messageRecyclerView.getLayoutManager()
-                .findViewByPosition(currentCursorIndex);
+        View itemView = mMessageRecyclerView.getLayoutManager()
+                .findViewByPosition(mCurrentCursorIndex);
 
         if (itemView == null || itemView.getWidth() <= 0 || itemView.getHeight() <= 0) {
-            cursorVertical.setVisibility(View.INVISIBLE);
-            cursorHorizontal.setVisibility(View.INVISIBLE);
+            mCursorVertical.setVisibility(View.INVISIBLE);
+            mCursorHorizontal.setVisibility(View.INVISIBLE);
             return;
         }
 
         int[] containerLocation = new int[2];
         int[] itemLocation = new int[2];
-        cursorContainer.getLocationOnScreen(containerLocation);
+        mCursorContainer.getLocationOnScreen(containerLocation);
         itemView.getLocationOnScreen(itemLocation);
 
         float relativeX = itemLocation[0] - containerLocation[0];
         float relativeY = itemLocation[1] - containerLocation[1];
 
-        BlissWriterViewModel.MessageItem currentItem = currentItems.get(currentCursorIndex);
+        BlissWriterViewModel.MessageItem currentItem = mCurrentItems.get(mCurrentCursorIndex);
         boolean isSymbol = currentItem instanceof BlissWriterViewModel.MessageItem.SymbolItem;
 
-        if (isSymbol) {
-            cursorVertical.setVisibility(View.INVISIBLE);
-            cursorHorizontal.setVisibility(View.VISIBLE);
+        if (isSymbol)
+        {
+            mCursorVertical.setVisibility(View.INVISIBLE);
+            mCursorHorizontal.setVisibility(View.VISIBLE);
 
-            ViewGroup.LayoutParams params = cursorHorizontal.getLayoutParams();
+            ViewGroup.LayoutParams params = mCursorHorizontal.getLayoutParams();
             if (params.width != itemView.getWidth()) {
                 params.width = itemView.getWidth();
-                cursorHorizontal.setLayoutParams(params);
+                mCursorHorizontal.setLayoutParams(params);
             }
 
-            float targetX = relativeX - cursorHorizontal.getLeft();
+            float targetX = relativeX - mCursorHorizontal.getLeft();
             float targetY = relativeY + itemView.getHeight() -
-                    cursorHorizontal.getHeight() - cursorHorizontal.getTop() - 4;
+                    mCursorHorizontal.getHeight() - mCursorHorizontal.getTop() - 4;
 
-            cursorHorizontal.setTranslationX(targetX);
-            cursorHorizontal.setTranslationY(targetY);
-        } else {
-            cursorHorizontal.setVisibility(View.INVISIBLE);
-            cursorVertical.setVisibility(View.VISIBLE);
+            mCursorHorizontal.setTranslationX(targetX);
+            mCursorHorizontal.setTranslationY(targetY);
+        }
+        else
+        {
+            mCursorHorizontal.setVisibility(View.INVISIBLE);
+            mCursorVertical.setVisibility(View.VISIBLE);
 
             float targetX = relativeX + (itemView.getWidth() / 2f) -
-                    (cursorVertical.getWidth() / 2f) - cursorVertical.getLeft();
-            float targetY = relativeY + itemView.getPaddingTop() - cursorVertical.getTop();
+                    (mCursorVertical.getWidth() / 2f) - mCursorVertical.getLeft();
+            float targetY = relativeY + itemView.getPaddingTop() - mCursorVertical.getTop();
 
-            cursorVertical.setTranslationX(targetX);
-            cursorVertical.setTranslationY(targetY);
+            mCursorVertical.setTranslationX(targetX);
+            mCursorVertical.setTranslationY(targetY);
         }
     }
 
-    private void scrollToCursor(int position) {
-        LinearLayoutManager layoutManager = (LinearLayoutManager) messageRecyclerView.getLayoutManager();
+    private void scrollToCursor(int position)
+    {
+        LinearLayoutManager layoutManager = (LinearLayoutManager) mMessageRecyclerView.getLayoutManager();
         if (layoutManager == null) return;
 
         int firstVisible = layoutManager.findFirstCompletelyVisibleItemPosition();
@@ -243,7 +261,8 @@ public class BlissWriterFragment extends Fragment {
         layoutManager.startSmoothScroll(smoothScroller);
     }
 
-    private RecyclerView.SmoothScroller getScroller(int position) {
+    private RecyclerView.SmoothScroller getScroller(int position)
+    {
         int offsetPx = (int) (12 * getResources().getDisplayMetrics().density);
 
         RecyclerView.SmoothScroller smoothScroller = new LinearSmoothScroller(requireContext()) {
@@ -261,7 +280,8 @@ public class BlissWriterFragment extends Fragment {
         return smoothScroller;
     }
 
-    private void setupFilterView(View root) {
+    private void setupFilterView(View root)
+    {
         RecyclerView filterView = root.findViewById(R.id.rv_filters);
         filterAdapter = new FilterAdapter(writerViewModel);
         filterView.setAdapter(filterAdapter);
@@ -269,13 +289,14 @@ public class BlissWriterFragment extends Fragment {
                 LinearLayoutManager.HORIZONTAL, false));
     }
 
-    private void setupHintsView(View root) {
+    private void setupHintsView(View root)
+    {
         RecyclerView hintsView = root.findViewById(R.id.rv_hints);
 
-        hintsAdapter = new SymbolAdapter(symbolRepository, R.layout.item_bliss_symbol,
-                (position, item) -> writerViewModel.selectHint((Symbol) item));
+        mHintsAdapter = new SymbolAdapter(mSymbolRepository, R.layout.item_bliss_symbol,
+                (position, item) -> mWriterViewModel.selectHint((Symbol) item));
 
-        hintsView.setAdapter(hintsAdapter);
+        hintsView.setAdapter(mHintsAdapter);
 
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 4);
         hintsView.setLayoutManager(layoutManager);
@@ -296,7 +317,7 @@ public class BlissWriterFragment extends Fragment {
         messageAdapter = new SymbolAdapter(symbolRepository,
                 R.layout.item_bliss_message_symbol,
                 R.layout.item_bliss_cursor,
-                (position, item) -> writerViewModel.setCursorIndex(position));
+                (position, item) -> mWriterViewModel.setCursorIndex(position));
 
         messageAdapter.setOnImageRenderedListener(position -> {
             if (position == currentCursorIndex) {

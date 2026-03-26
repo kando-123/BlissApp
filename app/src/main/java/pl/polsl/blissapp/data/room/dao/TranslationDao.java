@@ -23,14 +23,14 @@ public interface TranslationDao
         FROM
             "Translation"
         WHERE
-            "symbol_index" = :symbolIdx AND "language_code" = :language
+            "symbol_index" = :symbolIdx AND "language_code" = :language;
         """)
     List<String> getMeanings(int symbolIdx, String language);
 
     /**
-     * Returns symbols with their meanings, with the meanings relating to the given input.
+     * Returns symbols with their meanings, with the meanings matching the given pattern.
      *
-     * @param input
+     * @param pattern
      * @param language
      * @return
      */
@@ -40,7 +40,9 @@ public interface TranslationDao
         FROM
             "Translation"
         WHERE
-            "translation" LIKE '%' || :input || '%' AND "language_code" = :language
+            "translation" LIKE :pattern AND "language_code" = :language
+        ORDER BY
+            "symbol_index";
         """)
-    List<TranslationDto> getTranslations(String input, String language);
+    List<TranslationDto> getTranslations(String pattern, String language);
 }

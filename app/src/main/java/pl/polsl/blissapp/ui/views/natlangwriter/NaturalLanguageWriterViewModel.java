@@ -13,18 +13,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Translation;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
+import pl.polsl.blissapp.ui.repository.TranslationRepository;
 
 @HiltViewModel
 public class NaturalLanguageWriterViewModel extends ViewModel
 {
-    private final SymbolRepository mSymbolRepository;
+    @Inject
+    TranslationRepository mTranslationRepository;
     private final MutableLiveData<List<Translation>> mTranslations = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
 
     @Inject
-    public NaturalLanguageWriterViewModel(SymbolRepository symbolRepository)
+    public NaturalLanguageWriterViewModel(TranslationRepository translationRepository)
     {
-        this.mSymbolRepository = symbolRepository;
+        this.mTranslationRepository = translationRepository;
     }
 
     LiveData<List<Translation>> getTranslations()
@@ -53,7 +55,7 @@ public class NaturalLanguageWriterViewModel extends ViewModel
                 mFailure.setValue(data);
             }
         };
-        mSymbolRepository.getTranslations(input, callback);
+        mTranslationRepository.getTranslations(input, callback);
     }
 
     void clearTranslations()
