@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -140,7 +139,7 @@ public class AlchemyFragment extends Fragment
         keyboardViewModel.getControlInput().observe(getViewLifecycleOwner(), controlKey -> {
             if (controlKey != null) {
                 switch (controlKey) {
-                    case ENTER:
+                    case TEXT_TO_SPEECH:
                         viewModel.onEnterPressed();
                         break;
                     case POP_SYMBOL:

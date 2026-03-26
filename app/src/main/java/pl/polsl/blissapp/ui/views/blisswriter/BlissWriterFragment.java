@@ -2,7 +2,9 @@ package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -28,20 +30,14 @@ import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
-/**
- * Fragment that allows the user to compose a message using Bliss symbols.
- * It shows the current message, a set of hints based on selected primitives,
- * and a filter row showing chosen primitives.
- */
 @AndroidEntryPoint
 public class BlissWriterFragment extends Fragment {
 
-    private BlissKeyboardViewModel keyboardViewModel;
     private BlissWriterViewModel writerViewModel;
+    private BlissKeyboardViewModel keyboardViewModel;
     private FilterAdapter filterAdapter;
     private SymbolAdapter hintsAdapter;
     private SymbolAdapter messageAdapter;
-
     private View cursorVertical;
     private View cursorHorizontal;
     private View cursorContainer;
@@ -75,7 +71,7 @@ public class BlissWriterFragment extends Fragment {
 
         setupFilterView(view);
         setupHintsView(view);
-        setupMessageView(view);
+        setupMessageView();
 
         keyboardViewModel.clearInputs();
 
@@ -88,8 +84,11 @@ public class BlissWriterFragment extends Fragment {
                 case POP_SYMBOL:
                     writerViewModel.popSymbol();
                     break;
-                case PUSH_SYMBOL:
-                    writerViewModel.confirmSymbol();
+                case LEFT_SYMBOL:
+                    writerViewModel.moveCursorLeft();
+                    break;
+                case RIGHT_SYMBOL:
+                    writerViewModel.moveCursorRight();
                     break;
             }
         });
@@ -99,11 +98,7 @@ public class BlissWriterFragment extends Fragment {
             currentCursorIndex = state.cursorIndex;
             messageAdapter.update(state.items);
 
-            // 1. STAGE ONE: Trigger the initial scroll.
-            // If the item is off-screen, this forces the RecyclerView to move towards it,
-            // bringing it on-screen so the SVG can start loading.
             messageRecyclerView.post(() -> scrollToCursor(currentCursorIndex));
-
             scheduleCursorUpdate();
         });
 
@@ -113,9 +108,8 @@ public class BlissWriterFragment extends Fragment {
         writerViewModel.getFilter().observe(getViewLifecycleOwner(),
                 filterAdapter::update);
 
-        writerViewModel.getFailure().observe(getViewLifecycleOwner(), exception -> {
-            Toast.makeText(getContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+        writerViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
+                Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show());
 
         messageRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -130,13 +124,45 @@ public class BlissWriterFragment extends Fragment {
         });
 
         cursorContainer.post(() -> {
-            Animation blink = AnimationUtils.loadAnimation(getContext(), R.anim.blink);
+            Animation blink = AnimationUtils.loadAnimation(requireContext(), R.anim.blink);
             if (blink != null) {
                 cursorContainer.startAnimation(blink);
             }
         });
 
         scheduleCursorUpdate();
+        setupMessageTouchListener();
+    }
+
+    private void setupMessageTouchListener() {
+        final GestureDetector gestureDetector = new GestureDetector(requireContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapUp(@NonNull MotionEvent e) {
+                LinearLayoutManager layoutManager = (LinearLayoutManager) messageRecyclerView.getLayoutManager();
+                if (layoutManager == null) return false;
+
+                int lastVisiblePos = layoutManager.findLastVisibleItemPosition();
+                int totalItemCount = messageAdapter.getItemCount();
+
+                if (lastVisiblePos == totalItemCount - 1 && lastVisiblePos >= 0) {
+                    View lastVisibleView = layoutManager.findViewByPosition(lastVisiblePos);
+                    if (lastVisibleView != null && e.getX() > lastVisibleView.getRight()) {
+                        messageAdapter.triggerLastItemClick();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        messageRecyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                gestureDetector.onTouchEvent(e);
+                return false;
+            }
+        });
     }
 
     private void scheduleCursorUpdate() {
@@ -220,7 +246,7 @@ public class BlissWriterFragment extends Fragment {
     private RecyclerView.SmoothScroller getScroller(int position) {
         int offsetPx = (int) (12 * getResources().getDisplayMetrics().density);
 
-        RecyclerView.SmoothScroller smoothScroller = new LinearSmoothScroller(getContext()) {
+        RecyclerView.SmoothScroller smoothScroller = new LinearSmoothScroller(requireContext()) {
             @Override
             protected int getHorizontalSnapPreference() {
                 return SNAP_TO_END;
@@ -228,7 +254,6 @@ public class BlissWriterFragment extends Fragment {
 
             @Override
             public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
-                // 2. Corrected math to align the end of the item with the end of the RecyclerView
                 return (boxEnd - offsetPx) - viewEnd;
             }
         };
@@ -240,7 +265,7 @@ public class BlissWriterFragment extends Fragment {
         RecyclerView filterView = root.findViewById(R.id.rv_filters);
         filterAdapter = new FilterAdapter(writerViewModel);
         filterView.setAdapter(filterAdapter);
-        filterView.setLayoutManager(new LinearLayoutManager(getContext(),
+        filterView.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
     }
 
@@ -252,43 +277,36 @@ public class BlissWriterFragment extends Fragment {
 
         hintsView.setAdapter(hintsAdapter);
 
-        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 4);
         hintsView.setLayoutManager(layoutManager);
 
-        hintsView.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
-        {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom,
-                                       int oldLeft, int oldTop, int oldRight, int oldBottom)
-            {
-                int width = Math.max(0, right - left - hintsView.getPaddingLeft() - hintsView.getPaddingRight());
-                float defaultSize = getResources().getDimension(R.dimen.writer_hint_default_size);
+        hintsView.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                             oldLeft, oldTop, oldRight, oldBottom) -> {
+            int width = Math.max(0, right - left - hintsView.getPaddingLeft() - hintsView.getPaddingRight());
+            float defaultSize = getResources().getDimension(R.dimen.writer_hint_default_size);
 
-                int spanCount = Math.max(1, (int) Math.ceil(width / defaultSize));
-                if (layoutManager.getSpanCount() != spanCount)
-                {
-                    layoutManager.setSpanCount(spanCount);
-                }
+            int spanCount = Math.max(1, (int) Math.ceil(width / defaultSize));
+            if (layoutManager.getSpanCount() != spanCount) {
+                layoutManager.setSpanCount(spanCount);
             }
         });
     }
 
-    private void setupMessageView(View root) {
+    private void setupMessageView() {
         messageAdapter = new SymbolAdapter(symbolRepository,
                 R.layout.item_bliss_message_symbol,
                 R.layout.item_bliss_cursor,
                 (position, item) -> writerViewModel.setCursorIndex(position));
 
-        // 3. Added listener to trigger scroll only AFTER the image has fully loaded and laid out
         messageAdapter.setOnImageRenderedListener(position -> {
             if (position == currentCursorIndex) {
                 scrollToCursor(currentCursorIndex);
-                scheduleCursorUpdate(); // Ensure cursor line updates to the new, exact dynamic width
+                scheduleCursorUpdate();
             }
         });
 
         messageRecyclerView.setAdapter(messageAdapter);
-        messageRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(),
+        messageRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
     }
 }

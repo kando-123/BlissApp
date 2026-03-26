@@ -26,16 +26,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 1. Install splash screen only on fresh launch
+        // 1. Install splash screen
         if (savedInstanceState == null) {
             SplashScreen.installSplashScreen(this);
         }
 
-        // 2. Apply the saved theme before super.onCreate
+        // 2. Apply theme BEFORE super.onCreate
         ThemeManager.applyTheme(this);
+        
         super.onCreate(savedInstanceState);
 
-        // 3. Enable edge-to-edge (draw behind status bar)
+        // 3. Remove recreation animations (Fixes black flash during language/theme change)
+        if (savedInstanceState != null) {
+            overridePendingTransition(0, 0);
+        }
+
+        // 4. Enable edge-to-edge
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         setContentView(R.layout.activity_main);
@@ -65,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
             NavigationUI.setupWithNavController(navigationView, navController);
 
-            // Handle navigation item clicks (including Settings)
             navigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.nav_settings) {

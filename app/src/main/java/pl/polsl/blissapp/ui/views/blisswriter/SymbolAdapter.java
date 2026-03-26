@@ -68,6 +68,28 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
         this.imageRenderedListener = listener;
     }
 
+    // --- Nowe metody pomocnicze do obsługi kliknięcia ostatniego elementu ---
+    /**
+     * Zwraca ostatni element w liście lub null, jeśli lista jest pusta.
+     */
+    @Nullable
+    public Object getLastItem() {
+        if (items.isEmpty()) return null;
+        return items.get(items.size() - 1);
+    }
+
+    /**
+     * Wywołuje listener kliknięcia dla ostatniego elementu, jeśli istnieje.
+     * Można tego użyć, gdy kliknięcie nastąpiło w pusty obszar RecyclerView.
+     */
+    public void triggerLastItemClick() {
+        if (listener != null && !items.isEmpty()) {
+            int lastPos = items.size() - 1;
+            listener.onItemClick(lastPos, items.get(lastPos));
+        }
+    }
+    // ----------------------------------------------------------------
+
     public void update(List<?> newItems) {
         List<Object> oldItems = new ArrayList<>(items);
         List<Object> finalNewItems = newItems != null ? new ArrayList<>(newItems) : new ArrayList<>();

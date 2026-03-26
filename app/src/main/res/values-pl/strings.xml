@@ -1,0 +1,24 @@
+<resources>
+    <string name="navigation_drawer_open">Otwórz menu nawigacyjne</string>
+    <string name="navigation_drawer_close">Zamknij menu nawigacyjne</string>
+    <string name="nav_header_subtitle">Daj głos swoim myślom</string>
+    <string name="nav_header_desc">Nagłówek nawigacji</string>
+    <string name="action_settings">Ustawienia</string>
+
+    <string name="menu_dictionary">Słownik</string>
+    <string name="menu_writer">Pisanie</string>
+    <string name="menu_alchemy">Alchemia</string>
+    <string name="menu_settings">Ustawienia</string>
+    <string name="menu_preferences">Preferencje</string>
+
+    <string name="settings_title_language">Język aplikacji</string>
+    <string name="settings_title_theme">Motyw aplikacji</string>
+    <string name="theme_lavender">Lawenda</string>
+    <string name="theme_ocean">Ocean</string>
+    <string name="theme_forest">Las</string>
+    <string name="theme_sunset">Wieczór</string>
+
+    <string name="fab_content_description">Przycisk akcji</string>
+    <string name="image_view_item_transform_content_description">Podgląd elementu</string>
+    <string name="item_count_format">x%1$d</string>
+</resources>

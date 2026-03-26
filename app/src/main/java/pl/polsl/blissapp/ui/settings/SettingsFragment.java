@@ -4,12 +4,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
@@ -33,12 +36,39 @@ public class SettingsFragment extends Fragment {
     private void setupLanguageSpinner(View root) {
         Spinner spinner = root.findViewById(R.id.spinner_language);
         List<String> languages = new ArrayList<>();
-        languages.add("English");
-        languages.add("Polish");
+        languages.add(getString(R.string.language_english));
+        languages.add(getString(R.string.language_polish));
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, languages);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+
+        // Set initial selection based on current locale
+        LocaleListCompat currentLocales = AppCompatDelegate.getApplicationLocales();
+        if (!currentLocales.isEmpty()) {
+            String language = currentLocales.get(0).getLanguage();
+            if ("pl".equals(language)) {
+                spinner.setSelection(1);
+            } else {
+                spinner.setSelection(0);
+            }
+        }
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String languageTag = (position == 1) ? "pl" : "en";
+                
+                LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+                if (current.isEmpty() || !languageTag.equals(current.get(0).getLanguage())) {
+                    LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageTag);
+                    AppCompatDelegate.setApplicationLocales(appLocale);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
     private void setupThemeSelection(View root) {

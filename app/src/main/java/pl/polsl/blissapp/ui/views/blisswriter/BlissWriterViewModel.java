@@ -133,24 +133,29 @@ public class BlissWriterViewModel extends ViewModel {
     }
 
     /**
-     * Moves cursor to the next gap (if on a symbol) or to the next symbol (if on a gap).
-     * Used by the "space" / confirm key.
+     * Moves cursor to the next position.
      */
-    public void confirmSymbol() {
+    public void moveCursorRight() {
         WriterState current = state.getValue();
         if (current == null) return;
-        List<MessageItem> items = current.items;
         int cursorIdx = current.cursorIndex;
 
-        if (items.get(cursorIdx) instanceof MessageItem.SymbolItem) {
-            // Move to the gap after this symbol
-            setCursorIndex(cursorIdx + 1);
-        } else if (cursorIdx + 1 < items.size()) {
-            // On a gap, move to the next symbol (if exists)
+        if (cursorIdx + 1 < current.items.size()) {
             setCursorIndex(cursorIdx + 1);
         }
-        // If already at last gap, do nothing
-        updateHints();
+    }
+
+    /**
+     * Moves cursor to the previous position.
+     */
+    public void moveCursorLeft() {
+        WriterState current = state.getValue();
+        if (current == null) return;
+        int cursorIdx = current.cursorIndex;
+
+        if (cursorIdx > 0) {
+            setCursorIndex(cursorIdx - 1);
+        }
     }
 
     /**

@@ -51,7 +51,6 @@ public class BlissKeyboardViewModel extends ViewModel
     public LiveData<Primitive> getPrimitiveInput() { return mPrimitiveInput; }
     public LiveData<ControlKey> getControlInput() { return mControlInput; }
     public LiveData<KeyboardMode> getKeyboardMode() { return mKeyboardMode; }
-
     public void clearInputs()
     {
         mPrimitiveInput.setValue(null);

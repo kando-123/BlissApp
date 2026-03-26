@@ -43,17 +43,15 @@ public class BlissKeyboardFragment extends Fragment
     private BlissKeyboardViewModel mViewModel;
     private final List<View> mRadicalButtons = new ArrayList<>();
     private final List<View> mAlphanumericButtons = new ArrayList<>();
-    private final List<View> mShiftButtons = new ArrayList<>();  // for both keyboards (Issue #9)
+    private final List<View> mShiftButtons = new ArrayList<>();
+    private final List<ImageButton> mLeftButtons = new ArrayList<>();
+    private final List<ImageButton> mRightButtons = new ArrayList<>();
+
     private boolean mIsShiftMode = false;
     private PopupWindow mCurrentPopupWindow;
     private LinearLayout mKeyboardContainer;
-    private View mBlissKeyboard;   // pre‑built bliss layout
-    private View mAlphaKeyboard;   // pre‑built alphanumeric layout
-
-    public BlissKeyboardViewModel getViewModel()
-    {
-        return mViewModel;
-    }
+    private View mBlissKeyboard;
+    private View mAlphaKeyboard;
 
     @Nullable
     @Override
@@ -70,22 +68,18 @@ public class BlissKeyboardFragment extends Fragment
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         mKeyboardContainer.setOrientation(LinearLayout.VERTICAL);
         mKeyboardContainer.setGravity(Gravity.BOTTOM);
-        
-        // Use background with a subtle top border to soften the "sudden" end (Issue #BetterTransition)
+
         mKeyboardContainer.setBackgroundResource(R.drawable.keyboard_background_with_border);
 
         int padding = getResources().getDimensionPixelSize(R.dimen.keyboard_padding);
         mKeyboardContainer.setPadding(padding, padding, padding, padding);
 
-        // Pre‑build both keyboards (Issue #9)
         mBlissKeyboard = createBlissKeyboard();
         mAlphaKeyboard = createAlphanumericKeyboard();
         mKeyboardContainer.addView(mBlissKeyboard);
         mKeyboardContainer.addView(mAlphaKeyboard);
 
-        // Observe mode and toggle visibility
         mViewModel.getKeyboardMode().observe(getViewLifecycleOwner(), mode -> {
-            // Reset shift mode when switching keyboards
             if (mIsShiftMode) {
                 toggleShiftMode();
             }
@@ -111,8 +105,6 @@ public class BlissKeyboardFragment extends Fragment
         }
         mCurrentPopupWindow = null;
     }
-
-    // ------------------- Keyboard Creation Methods -------------------
 
     private View createBlissKeyboard() {
         LinearLayout root = new LinearLayout(getContext());
@@ -195,7 +187,6 @@ public class BlissKeyboardFragment extends Fragment
                 int altSize = (int)(keyHeight/1.5f);
                 FrameLayout.LayoutParams altParams = new FrameLayout.LayoutParams(altSize, altSize);
                 altParams.gravity = Gravity.TOP | Gravity.END;
-                // Use dimension resources instead of hardcoded pixels (Issue #6)
                 int offsetX = getResources().getDimensionPixelOffset(R.dimen.keyboard_alt_image_offset_x);
                 int offsetY = getResources().getDimensionPixelOffset(R.dimen.keyboard_alt_image_offset_y);
                 altParams.setMargins(0, offsetY, offsetX, 0);
@@ -214,57 +205,39 @@ public class BlissKeyboardFragment extends Fragment
             ControlKey action = controlKey.action;
             View keyView;
 
-            if (action == ControlKey.SWITCH_TO_ALPHANUMERIC || action == ControlKey.SWITCH_TO_BLISS) {
-                FrameLayout frameLayout = new FrameLayout(getContext());
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        0, keyHeight, keyConfig.weight);
-                params.setMargins(keyMargin, keyMargin, keyMargin, keyMargin);
-                frameLayout.setLayoutParams(params);
-                frameLayout.setBackgroundResource(R.drawable.control_key_background);
+            ImageButton imageButton = new ImageButton(getContext());
+            imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
 
-                TextView textView = new TextView(getContext());
-                textView.setLayoutParams(new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                textView.setGravity(Gravity.CENTER);
-                switch (action)
-                {
-                    case SWITCH_TO_ALPHANUMERIC:
-                        textView.setText("ABC");
-                        break;
-                    case SWITCH_TO_BLISS:
-                        textView.setText("BLISS");
-                        break;
-                }
-
-                textView.setTextColor(Color.BLACK);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-                frameLayout.addView(textView);
-
-                keyView = frameLayout;
-            } else {
-                ImageButton imageButton = new ImageButton(getContext());
-                imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
-
-                switch (action)
-                {
-                    case POP_SYMBOL:
-                        imageButton.setImageResource(android.R.drawable.ic_input_delete);
-                        imageButton.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
-                        break;
-                    case SHIFT:
-                        imageButton.setImageResource(R.drawable.indicator_placeholder);
-                        mShiftButtons.add(imageButton);   // track shift buttons (Issue #9)
-                        break;
-                    case PUSH_SYMBOL:
-                        imageButton.setImageResource(android.R.drawable.ic_menu_add);
-                        break;
-                    case ENTER:
-                        imageButton.setImageResource(android.R.drawable.ic_menu_send);
-                        break;
-                }
-                keyView = imageButton;
+            switch (action)
+            {
+                case POP_SYMBOL:
+                    imageButton.setImageResource(R.drawable.ic_backspace);
+                    break;
+                case SHIFT:
+                    imageButton.setImageResource(R.drawable.ic_shift_off);
+                    mShiftButtons.add(imageButton);
+                    break;
+                case LEFT_SYMBOL:
+                    imageButton.setImageResource(R.drawable.ic_arrow_left);
+                    mLeftButtons.add(imageButton);
+                    break;
+                case RIGHT_SYMBOL:
+                    imageButton.setImageResource(R.drawable.ic_arrow_right);
+                    mRightButtons.add(imageButton);
+                    break;
+                case TEXT_TO_SPEECH:
+                    imageButton.setImageResource(R.drawable.ic_text_to_speech);
+                    break;
+                case SWITCH_TO_BLISS:
+                    imageButton.setImageResource(R.drawable.ic_bliss);
+                    break;
+                case SWITCH_TO_ALPHANUMERIC:
+                    imageButton.setImageResource(R.drawable.ic_abc);
+                    break;
             }
+
+            keyView = imageButton;
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     0, keyHeight, keyConfig.weight);
@@ -277,8 +250,6 @@ public class BlissKeyboardFragment extends Fragment
         throw new IllegalArgumentException("Unknown KeyUI type");
     }
 
-    // ----- KEYBOARD CONFIGURATION -----
-
     private BlissKeyUI bliss(Primitive r) { return new BlissKeyUI(r, null, 1f); }
     private BlissKeyUI bliss(Primitive r, Primitive i) { return new BlissKeyUI(r, i, 1f); }
     private AlphanumericKeyUI alpha(Primitive l) { return new AlphanumericKeyUI(l, null, 1f); }
@@ -288,10 +259,9 @@ public class BlissKeyboardFragment extends Fragment
     private List<List<KeyUI>> getBlissKeyboardRows()
     {
         return Arrays.asList(
-                // Row 1: Radicals with Indicators
                 Arrays.asList(
-                        bliss(Primitive.SEMICIRCLE, Primitive.DIGIT_1),
-                        bliss(Primitive.ARC, Primitive.DIGIT_2),
+                        bliss(Primitive.ARC, Primitive.DIGIT_1),
+                        bliss(Primitive.SEMICIRCLE, Primitive.DIGIT_2),
                         bliss(Primitive.ARROW, Primitive.DIGIT_3),
                         bliss(Primitive.BUILDING, Primitive.DIGIT_4),
                         bliss(Primitive.CROSSHATCH, Primitive.DIGIT_5),
@@ -301,7 +271,6 @@ public class BlissKeyboardFragment extends Fragment
                         bliss(Primitive.HEART, Primitive.DIGIT_9),
                         bliss(Primitive.DOT, Primitive.DIGIT_0)
                 ),
-                // Row 2: More Radicals
                 Arrays.asList(
                         bliss(Primitive.OPEN_RECTANGLE, Primitive.INDICATOR_PAST_ACTION),
                         bliss(Primitive.RECTANGLE, Primitive.INDICATOR_FUTURE_ACTION),
@@ -314,7 +283,6 @@ public class BlissKeyboardFragment extends Fragment
                         bliss(Primitive.ACUTE_TRIANGLE, Primitive.INDICATOR_ACTIVE),
                         bliss(Primitive.ACUTE_ANGLE, Primitive.INDICATOR_PASSIVE)
                 ),
-                // Row 3: Punctuations and Shift
                 Arrays.asList(
                         ctrl(ControlKey.SHIFT, 1.5f),
                         bliss(Primitive.PIN, Primitive.INDICATOR_DESCRIPTION),
@@ -324,11 +292,11 @@ public class BlissKeyboardFragment extends Fragment
                         bliss(Primitive.DIAGONAL_LINE, Primitive.QUESTION_MARK),
                         ctrl(ControlKey.POP_SYMBOL, 1.5f)
                 ),
-                // Row 4: Controls
                 Arrays.asList(
                         ctrl(ControlKey.SWITCH_TO_ALPHANUMERIC, 1.5f),
-                        ctrl(ControlKey.PUSH_SYMBOL, 4f),
-                        ctrl(ControlKey.ENTER, 1.5f)
+                        ctrl(ControlKey.LEFT_SYMBOL, 2f),
+                        ctrl(ControlKey.RIGHT_SYMBOL, 2f),
+                        ctrl(ControlKey.TEXT_TO_SPEECH, 1.5f)
                 )
         );
     }
@@ -364,13 +332,12 @@ public class BlissKeyboardFragment extends Fragment
                 ),
                 Arrays.asList(
                         ctrl(ControlKey.SWITCH_TO_BLISS, 1.5f),
-                        ctrl(ControlKey.PUSH_SYMBOL, 4f),
-                        ctrl(ControlKey.ENTER, 1.5f)
+                        ctrl(ControlKey.LEFT_SYMBOL, 2f),
+                        ctrl(ControlKey.RIGHT_SYMBOL, 2f),
+                        ctrl(ControlKey.TEXT_TO_SPEECH, 1.5f)
                 )
         );
     }
-
-    // ----- EVENT HANDLING LOGIC -----
 
     private void setupKeyLogic(View buttonView, KeyUI blueprint)
     {
@@ -445,12 +412,13 @@ public class BlissKeyboardFragment extends Fragment
     private void toggleShiftMode()
     {
         mIsShiftMode = !mIsShiftMode;
-        // Update all shift buttons (both keyboards)
         for (View shiftBtn : mShiftButtons) {
             shiftBtn.setActivated(mIsShiftMode);
+            if (shiftBtn instanceof ImageButton imageButton) {
+                imageButton.setImageResource(mIsShiftMode ? R.drawable.ic_shift_on : R.drawable.ic_shift_off);
+            }
         }
 
-        // Update radical buttons (bliss)
         for (View btn : mRadicalButtons)
         {
             BlissKeyUI blueprint = (BlissKeyUI) btn.getTag();
@@ -477,7 +445,6 @@ public class BlissKeyboardFragment extends Fragment
             }
         }
 
-        // Update alphanumeric buttons
         for (View btn : mAlphanumericButtons)
         {
             AlphanumericKeyUI blueprint = (AlphanumericKeyUI) btn.getTag();
@@ -538,8 +505,8 @@ public class BlissKeyboardFragment extends Fragment
 
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
-        int color = typedValue.resourceId != 0 
-                ? ContextCompat.getColor(context, typedValue.resourceId) 
+        int color = typedValue.resourceId != 0
+                ? ContextCompat.getColor(context, typedValue.resourceId)
                 : typedValue.data;
 
         btn.setImageResource(DrawableMapper.getDrawableRes(variant));

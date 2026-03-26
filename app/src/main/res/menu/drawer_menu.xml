@@ -18,12 +18,12 @@
             android:title="@string/menu_alchemy" />
     </group>
 
-    <item android:title="Settings">
+    <item android:title="@string/menu_settings">
         <menu>
             <item
                 android:id="@+id/nav_settings"
                 android:icon="@android:drawable/ic_menu_preferences"
-                android:title="Preferences" />
+                android:title="@string/menu_preferences" />
         </menu>
     </item>
 

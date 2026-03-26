@@ -28,7 +28,7 @@ public class DrawableMapper
         radicalMap.put(ACUTE_TRIANGLE_SMALL_SOUTH,     R.drawable.radical_acute_triangle_small_south);
         radicalMap.put(ACUTE_TRIANGLE_SMALL_WEST,      R.drawable.radical_acute_triangle_small_west);
 
-        radicalMap.put(ARC,                 R.drawable.radical_arc_large_east);
+        radicalMap.put(ARC,                 R.drawable.radical_arc_large_north);
         radicalMap.put(ARC_LARGE_NORTH,     R.drawable.radical_arc_large_north);
         radicalMap.put(ARC_LARGE_EAST,      R.drawable.radical_arc_large_east);
         radicalMap.put(ARC_LARGE_SOUTH,     R.drawable.radical_arc_large_south);
