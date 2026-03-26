@@ -64,6 +64,7 @@ public class TranslationRepositoryImpl implements TranslationRepository
                     }
                     else
                     {
+                        translations.sort(String::compareToIgnoreCase);
                         result.add(new Translation(new Symbol(symbolIndex), translations));
                         symbolIndex = index;
                         translations = new ArrayList<>();
@@ -71,6 +72,13 @@ public class TranslationRepositoryImpl implements TranslationRepository
                     }
                 }
                 result.add(new Translation(new Symbol(symbolIndex), translations));
+
+                result.sort((t1, t2) ->
+                {
+                    String left = t1.meanings().isEmpty() ? "" : t1.meanings().get(0);
+                    String right = t2.meanings().isEmpty() ? "" : t2.meanings().get(0);
+                    return left.compareToIgnoreCase(right);
+                });
 
                 callback.onSuccess(result);
             }

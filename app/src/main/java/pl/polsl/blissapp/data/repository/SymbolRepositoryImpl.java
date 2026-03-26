@@ -370,6 +370,9 @@ public class SymbolRepositoryImpl implements SymbolRepository
         return minMatch;
     }
 
+    private static final int SIBLING_MATCH_PENALTY = 5;
+    private static final int EXCESS_PENALTY = 1;
+
     /**
      * The method evaluates how the provided radicals match the required ones.
      *
@@ -449,7 +452,7 @@ public class SymbolRepositoryImpl implements SymbolRepository
             // Count the reductions to the result.
             if (counter[child.ordinal()] < 0 && counter[parent.ordinal()] > 0)
             {
-                result += min(-counter[child.ordinal()], +counter[parent.ordinal()]);
+                result += SIBLING_MATCH_PENALTY * min(-counter[child.ordinal()], +counter[parent.ordinal()]);
             }
 
             // Pass the score to the parent.
@@ -459,14 +462,16 @@ public class SymbolRepositoryImpl implements SymbolRepository
 
         // If we still have an unsatisfied requirement (a negative counter), the match is failed.
         // If there are excessively provided symbols, the result is worse (> 0).
+        int excess = 0;
         for (int count : counter)
         {
             if (count < 0)
             {
                 return MATCH_FAILURE;
             }
-            result += count;
+            excess += count;
         }
+        result += EXCESS_PENALTY * excess;
         return result;
     }
 
