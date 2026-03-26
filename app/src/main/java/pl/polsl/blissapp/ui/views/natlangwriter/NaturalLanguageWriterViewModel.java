@@ -70,7 +70,7 @@ public class NaturalLanguageWriterViewModel extends AndroidViewModel
 
     void translate(String input)
     {
-        final String query = (input == null) ? "" : input.trim();
+        final String query = (input == null) ? "" : input;
         mCurrentQuery = query;
 
         if (query.isEmpty()) {

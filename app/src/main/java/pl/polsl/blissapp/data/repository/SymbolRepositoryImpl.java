@@ -234,8 +234,10 @@ public class SymbolRepositoryImpl implements SymbolRepository
                     JOIN "Primitive" P ON D."primitive_code" = P."primitive_code"
                 """ + primitiveRootFilter(rootSet)
                 + """
-                    GROUP BY SC."symbol_index"
-                    HAVING COUNT(DISTINCT IFNULL(P."parent_code", P."primitive_code")) =\s""" + rootSet.size()
+                  GROUP BY SC."symbol_index"
+                  """
+                + (!prefixComponents.isEmpty() && rootSet.isEmpty() ? "" : ("""
+                  HAVING COUNT(DISTINCT IFNULL(P."parent_code", P."primitive_code")) =\s""" + rootSet.size()))
                 + """
                 ),
                 "QualifiedSymbol" AS

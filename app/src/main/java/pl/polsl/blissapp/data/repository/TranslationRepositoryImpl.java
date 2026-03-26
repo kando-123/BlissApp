@@ -43,7 +43,9 @@ public class TranslationRepositoryImpl implements TranslationRepository
     {
         Thread worker = new Thread(() ->
         {
-            String pattern = "%" + input + "%";
+            String pattern = input.charAt(0) == ' ' || input.charAt(input.length() - 1) == ' '
+                    ? input.trim()
+                    : "%" + input + "%";
             List<TranslationDto> dtos = database.translationDao().getTranslations(pattern, language);
 
             if (dtos != null && !dtos.isEmpty())
