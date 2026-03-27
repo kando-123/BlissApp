@@ -55,7 +55,10 @@ public class AlchemyViewModel extends ViewModel {
     private final MutableLiveData<List<AlchemyAdapter.CraftingItem>> mHintItems = new MutableLiveData<>(new ArrayList<>());
 
     private final Set<Symbol> mDiscoveredSymbols = new HashSet<>();
+    private List<Integer> mTargetComponentSequence = new ArrayList<>();
     private List<Map<Primitive, Integer>> mTargetVariants = new ArrayList<>();
+    private Set<Integer> mTargetComponentIndices = new HashSet<>();
+    private final Map<Integer, Map<Primitive, Integer>> mSymbolPrimitivesMap = new HashMap<>();
     private boolean mDiscoveryInProgress = false;
 
     @Inject
@@ -96,6 +99,7 @@ public class AlchemyViewModel extends ViewModel {
                 mTargetSymbol.postValue(result);
                 fetchTargetLabel(result);
                 fetchTargetVariants(result);
+                fetchTargetComponents(result);
             }
 
             @Override
@@ -135,6 +139,46 @@ public class AlchemyViewModel extends ViewModel {
         });
     }
 
+    private void fetchTargetComponents(Symbol symbol) {
+        mSymbolRepository.getComponents(symbol, new Callback<List<Symbol>, Exception>() {
+            @Override
+            public void onSuccess(List<Symbol> result) {
+                mTargetComponentIndices = new HashSet<>();
+                mTargetComponentSequence = new ArrayList<>();
+                for (Symbol s : result) {
+                    mTargetComponentIndices.add(s.index());
+                    mTargetComponentSequence.add(s.index()); // Track the sequence
+                }
+            }
+            @Override
+            public void onFailure(Exception reason) {
+                mTargetComponentIndices = new HashSet<>();
+                mTargetComponentSequence = new ArrayList<>();
+            }
+        });
+    }
+
+    private int getNextExpectedComponentIndex() {
+        CraftingTable table = mCraftingTable.getValue();
+        Set<Integer> symbolsOnBoard = new HashSet<>();
+
+        if (table != null) {
+            for (Object obj : table.getAllItems()) {
+                if (obj instanceof Symbol) {
+                    symbolsOnBoard.add(((Symbol) obj).index());
+                }
+            }
+        }
+
+        // Return the first component from the string that isn't on the board yet
+        for (Integer compIndex : mTargetComponentSequence) {
+            if (!symbolsOnBoard.contains(compIndex)) {
+                return compIndex;
+            }
+        }
+        return -1; // All components found
+    }
+
     private void updateFolders() {
         Map<String, List<Symbol>> folders = new LinkedHashMap<>();
         folders.put("Discovery Journal", new ArrayList<>(mDiscoveredSymbols));
@@ -145,21 +189,36 @@ public class AlchemyViewModel extends ViewModel {
         CraftingTable table = mCraftingTable.getValue();
         if (table == null || mTargetVariants.isEmpty()) return;
 
-        List<Object> items = table.getAllItems();
-        List<AlchemyAdapter.CraftingItem> combined = new ArrayList<>();
-
-        // Find the "best" variant to show hints for (the one with the most matches)
-        Map<Primitive, Integer> currentPrims = new HashMap<>();
-        for (Object obj : items) {
-            if (obj instanceof Primitive p) currentPrims.merge(p, 1, Integer::sum);
+        List<Object> rawItems = table.getAllItems();
+        
+        // 1. Group board items for display
+        Map<Primitive, Integer> primDisplayCounts = new LinkedHashMap<>();
+        Map<Symbol, Integer> symbolDisplayCounts = new LinkedHashMap<>();
+        for (Object obj : rawItems) {
+            if (obj instanceof Primitive p) primDisplayCounts.merge(p, 1, Integer::sum);
+            else if (obj instanceof Symbol s) symbolDisplayCounts.merge(s, 1, Integer::sum);
         }
 
+        // 2. Calculate TOTAL primitive counts for matching (including expanded symbols)
+        Map<Primitive, Integer> totalPrims = new HashMap<>();
+        for (Map.Entry<Primitive, Integer> entry : primDisplayCounts.entrySet()) {
+            totalPrims.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+        for (Map.Entry<Symbol, Integer> entry : symbolDisplayCounts.entrySet()) {
+            Map<Primitive, Integer> sPrims = mSymbolPrimitivesMap.get(entry.getKey().index());
+            if (sPrims != null) {
+                for (Map.Entry<Primitive, Integer> sp : sPrims.entrySet()) {
+                    totalPrims.merge(sp.getKey(), sp.getValue() * entry.getValue(), Integer::sum);
+                }
+            }
+        }
+
+        // 3. Find the "best" variant of the target
         Map<Primitive, Integer> bestVariant = mTargetVariants.get(0);
         int maxExactMatches = -1;
-
         for (Map<Primitive, Integer> variant : mTargetVariants) {
             int matches = 0;
-            for (Map.Entry<Primitive, Integer> entry : currentPrims.entrySet()) {
+            for (Map.Entry<Primitive, Integer> entry : totalPrims.entrySet()) {
                 if (variant.containsKey(entry.getKey())) {
                     matches += Math.min(entry.getValue(), variant.get(entry.getKey()));
                 }
@@ -170,51 +229,41 @@ public class AlchemyViewModel extends ViewModel {
             }
         }
 
-        Map<Primitive, Integer> targetCounts = new HashMap<>(bestVariant);
         Set<Primitive> targetRoots = new HashSet<>();
         for (Primitive p : bestVariant.keySet()) {
             targetRoots.add(p.getRoot());
         }
 
-        for (Object obj : items) {
-            if (!(obj instanceof Primitive p)) {
-                combined.add(new AlchemyAdapter.CraftingItem(obj, MatchStatus.NONE));
-                continue;
-            }
+        // 4. Build results
+        List<AlchemyAdapter.CraftingItem> combined = new ArrayList<>();
+        
+        for (Map.Entry<Symbol, Integer> entry : symbolDisplayCounts.entrySet()) {
+            Symbol s = entry.getKey();
+            MatchStatus status = mTargetComponentIndices.contains(s.index()) ? MatchStatus.PARTIAL : MatchStatus.INCORRECT;
+            combined.add(new AlchemyAdapter.CraftingItem(s, status, null, entry.getValue()));
+        }
+
+        for (Map.Entry<Primitive, Integer> entry : primDisplayCounts.entrySet()) {
+            Primitive p = entry.getKey();
+            int count = entry.getValue();
 
             MatchStatus status;
             if (bestVariant.containsKey(p)) {
-                if (targetCounts.get(p) > 0) {
-                    status = MatchStatus.EXACT;
-                    targetCounts.put(p, targetCounts.get(p) - 1);
-                } else {
-                    status = MatchStatus.INCORRECT;
-                }
+                status = MatchStatus.EXACT;
             } else if (targetRoots.contains(p.getRoot())) {
                 status = MatchStatus.PARTIAL;
             } else {
                 status = MatchStatus.INCORRECT;
             }
-            combined.add(new AlchemyAdapter.CraftingItem(p, status, null));
+            
+            combined.add(new AlchemyAdapter.CraftingItem(p, status, null, count));
         }
 
         mCraftingItems.setValue(combined);
     }
 
     private void updateHints() {
-        List<AlchemyAdapter.CraftingItem> currentItems = mCraftingItems.getValue();
-        if (currentItems == null || currentItems.isEmpty()) {
-            mHintItems.postValue(new ArrayList<>());
-            return;
-        }
-
-        Map<Primitive, Integer> filterMap = new HashMap<>();
-        for (AlchemyAdapter.CraftingItem item : currentItems) {
-            if (item.object instanceof Primitive p) {
-                filterMap.merge(p, 1, Integer::sum);
-            }
-        }
-
+        Map<Primitive, Integer> filterMap = getTotalPrimitiveCounts();
         if (filterMap.isEmpty()) {
             mHintItems.postValue(new ArrayList<>());
             return;
@@ -222,7 +271,7 @@ public class AlchemyViewModel extends ViewModel {
 
         mSymbolRepository.getMatchingSymbols(null, filterMap, 6, new Callback<List<Symbol>, Exception>() {
             @Override
-            public void onSuccess(List<Symbol> result) {
+            public void onSuccess(List<Symbol> result) { // <-- Back to iterating over the raw result
                 if (result.isEmpty()) {
                     mHintItems.postValue(new ArrayList<>());
                     return;
@@ -230,32 +279,39 @@ public class AlchemyViewModel extends ViewModel {
 
                 AlchemyAdapter.CraftingItem[] resultsArray = new AlchemyAdapter.CraftingItem[result.size()];
                 AtomicInteger pending = new AtomicInteger(result.size());
+
                 Symbol target = mTargetSymbol.getValue();
+                int nextExpectedIndex = getNextExpectedComponentIndex(); // <-- We use this here!
 
                 for (int i = 0; i < result.size(); i++) {
                     final int index = i;
                     final Symbol s = result.get(i);
                     final boolean isTarget = (target != null && s.index() == target.index());
-                    
-                    if (isTarget) {
+
+                    // ONLY the next expected component gets treated as a special component
+                    final boolean isNextComponent = (s.index() == nextExpectedIndex);
+
+                    if (isTarget || isNextComponent) {
                         mTranslationRepository.getMeanings(s, "en", new Callback<List<String>, Exception>() {
                             @Override
                             public void onSuccess(List<String> meanings) {
                                 String label = meanings.isEmpty() ? "" : meanings.get(0);
-                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, MatchStatus.EXACT, label);
+                                MatchStatus status = isTarget ? MatchStatus.EXACT : MatchStatus.PARTIAL;
+                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, status, label);
                                 if (pending.decrementAndGet() == 0) {
                                     mHintItems.postValue(Arrays.asList(resultsArray));
                                 }
                             }
                             @Override
                             public void onFailure(Exception reason) {
-                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, MatchStatus.EXACT, "");
+                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, isTarget ? MatchStatus.EXACT : MatchStatus.PARTIAL, "");
                                 if (pending.decrementAndGet() == 0) {
                                     mHintItems.postValue(Arrays.asList(resultsArray));
                                 }
                             }
                         });
                     } else {
+                        // Far components and wrong symbols fall into here (rendered as grey/NONE)
                         resultsArray[index] = new AlchemyAdapter.CraftingItem(s, MatchStatus.NONE, null);
                         if (pending.decrementAndGet() == 0) {
                             mHintItems.postValue(Arrays.asList(resultsArray));
@@ -268,6 +324,26 @@ public class AlchemyViewModel extends ViewModel {
                 mHintItems.postValue(new ArrayList<>());
             }
         });
+    }
+
+    private Map<Primitive, Integer> getTotalPrimitiveCounts() {
+        Map<Primitive, Integer> total = new HashMap<>();
+        CraftingTable table = mCraftingTable.getValue();
+        if (table == null) return total;
+        
+        for (Object obj : table.getAllItems()) {
+            if (obj instanceof Primitive p) {
+                total.merge(p, 1, Integer::sum);
+            } else if (obj instanceof Symbol s) {
+                Map<Primitive, Integer> prims = mSymbolPrimitivesMap.get(s.index());
+                if (prims != null) {
+                    for (Map.Entry<Primitive, Integer> entry : prims.entrySet()) {
+                        total.merge(entry.getKey(), entry.getValue(), Integer::sum);
+                    }
+                }
+            }
+        }
+        return total;
     }
 
     public void addRadical(@Nullable Primitive primitive) {
@@ -283,9 +359,35 @@ public class AlchemyViewModel extends ViewModel {
 
     public void onHintPressed(Object item) {
         if (mDiscoveryInProgress || !(item instanceof Symbol symbol)) return;
+
         Symbol target = mTargetSymbol.getValue();
+// ... previous code
         if (target != null && symbol.index() == target.index()) {
             startDiscovery(symbol);
+        } else if (symbol.index() == getNextExpectedComponentIndex()) { // <-- UPDATED
+            mSymbolRepository.getPrimitiveVariants(symbol, new Callback<List<Map<Primitive, Integer>>, Exception>() {
+                @Override
+                public void onSuccess(List<Map<Primitive, Integer>> variants) {
+                    if (variants.isEmpty()) return;
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        // Keep track of the primitives for this symbol
+                        mSymbolPrimitivesMap.put(symbol.index(), variants.get(0));
+
+                        // 1. CLEAR the filter by creating a completely fresh crafting table
+                        CraftingTable table = new CraftingTable();
+
+                        // 2. Add ONLY the newly matched yellow symbol to the board
+                        table = table.addItem(symbol);
+
+                        mCraftingTable.setValue(table);
+                        updateCraftingItems();
+                        updateHints();
+                    });
+                }
+                @Override
+                public void onFailure(Exception data) {}
+            });
         }
     }
 

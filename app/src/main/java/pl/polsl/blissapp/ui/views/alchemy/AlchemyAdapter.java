@@ -23,7 +23,9 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.common.Callback;
@@ -40,15 +42,21 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
         public final Object object;
         public final MatchStatus status;
         public final String label;
+        public final int count;
 
         public CraftingItem(Object object, MatchStatus status) {
-            this(object, status, null);
+            this(object, status, null, 1);
         }
 
         public CraftingItem(Object object, MatchStatus status, String label) {
+            this(object, status, label, 1);
+        }
+
+        public CraftingItem(Object object, MatchStatus status, String label, int count) {
             this.object = object;
             this.status = status;
             this.label = label;
+            this.count = count;
         }
 
         @Override
@@ -56,12 +64,12 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             CraftingItem that = (CraftingItem) o;
-            return Objects.equals(object, that.object) && status == that.status && Objects.equals(label, that.label);
+            return count == that.count && Objects.equals(object, that.object) && status == that.status && Objects.equals(label, that.label);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(object, status, label);
+            return Objects.hash(object, status, label, count);
         }
     }
 
@@ -155,6 +163,13 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             }
         }
 
+        if (craftingItem.count > 1) {
+            holder.tvCounter.setVisibility(View.VISIBLE);
+            holder.tvCounter.setText(String.valueOf(craftingItem.count));
+        } else {
+            holder.tvCounter.setVisibility(View.GONE);
+        }
+
         holder.tvLabel.setText(craftingItem.label != null ? craftingItem.label : "");
         holder.tvLabel.setVisibility(craftingItem.label != null && !craftingItem.label.isEmpty() ? View.VISIBLE : View.GONE);
         holder.applyStatus(craftingItem.status, item);
@@ -174,6 +189,7 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
         private final MaterialCardView cardView;
         private final TextView tvLabel;
         private final TextView tvLetter;
+        private final TextView tvCounter;
 
         ViewHolder(View view) {
             super(view);
@@ -181,6 +197,7 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             cardView = view.findViewById(R.id.filter_key_card);
             tvLabel = view.findViewById(R.id.tv_symbol_label);
             tvLetter = view.findViewById(R.id.tv_letter);
+            tvCounter = view.findViewById(R.id.tv_counter);
         }
 
         void applyStatus(MatchStatus status, Object item) {
@@ -225,6 +242,10 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
                     bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
                     strokeColor = Color.parseColor("#4CAF50");
                     strokeWidth = (int) (2 * density);
+                } else if (status == MatchStatus.PARTIAL) {
+                    bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#FFEB3B"), 0.2f);
+                    strokeColor = Color.parseColor("#FFEB3B");
+                    strokeWidth = (int) (2 * density);
                 }
             }
 
@@ -241,6 +262,9 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             }
             if (tvLetter != null) {
                 tvLetter.setVisibility(View.GONE);
+            }
+            if (tvCounter != null) {
+                tvCounter.setVisibility(View.GONE);
             }
             itemView.clearAnimation();
             itemView.setRotation(0f);

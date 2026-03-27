@@ -585,6 +585,29 @@ public class SymbolRepositoryImpl implements SymbolRepository
     }
 
     @Override
+    public void getComponents(Symbol symbol, Callback<List<Symbol>, Exception> callback)
+    {
+        Thread worker = new Thread(() ->
+        {
+            try
+            {
+                List<Integer> componentIndices = database.symbolDao().getComponents(symbol.index());
+                List<Symbol> components = new ArrayList<>();
+                for (int idx : componentIndices)
+                {
+                    components.add(new Symbol(idx));
+                }
+                callback.onSuccess(components);
+            }
+            catch (Exception e)
+            {
+                callback.onFailure(e);
+            }
+        });
+        worker.start();
+    }
+
+    @Override
     public void getRandomSymbol(Callback<Symbol, Exception> callback)
     {
         Thread worker = new Thread(() ->

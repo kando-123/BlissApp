@@ -43,5 +43,11 @@ public interface SymbolRepository
     void getPrimitiveVariants(Symbol symbol,
                               Callback<List<Map<Primitive, Integer>>, Exception> callback);
                        
+    /**
+     * Gets the list of symbols that compose the given symbol.
+     */
+    void getComponents(Symbol symbol,
+                       Callback<List<Symbol>, Exception> callback);
+
     void getRandomSymbol(Callback<Symbol, Exception> callback);
 }
