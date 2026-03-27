@@ -108,7 +108,7 @@ public class AlchemyViewModel extends ViewModel {
     }
 
     private void fetchTargetLabel(Symbol symbol) {
-        mTranslationRepository.getMeanings(symbol, "en", new Callback<List<String>, Exception>() {
+        mTranslationRepository.getMeanings(symbol, getLanguage(), new Callback<List<String>, Exception>() {
             @Override
             public void onSuccess(List<String> result) {
                 mTargetLabel.postValue(!result.isEmpty() ? result.get(0) : "???");
@@ -292,7 +292,7 @@ public class AlchemyViewModel extends ViewModel {
                     final boolean isNextComponent = (s.index() == nextExpectedIndex);
 
                     if (isTarget || isNextComponent) {
-                        mTranslationRepository.getMeanings(s, "en", new Callback<List<String>, Exception>() {
+                        mTranslationRepository.getMeanings(s, getLanguage(), new Callback<List<String>, Exception>() {
                             @Override
                             public void onSuccess(List<String> meanings) {
                                 String label = meanings.isEmpty() ? "" : meanings.get(0);
@@ -344,6 +344,11 @@ public class AlchemyViewModel extends ViewModel {
             }
         }
         return total;
+    }
+
+    private String getLanguage() {
+        String lang = java.util.Locale.getDefault().getLanguage();
+        return "pl".equalsIgnoreCase(lang) ? "Polish" : "English";
     }
 
     public void addRadical(@Nullable Primitive primitive) {
