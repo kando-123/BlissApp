@@ -147,6 +147,9 @@ public class BlissKeyboardFragment extends Fragment
         int keyHeight = getResources().getDimensionPixelSize(R.dimen.keyboard_key_height);
         int keyMargin = getResources().getDimensionPixelSize(R.dimen.keyboard_key_margin);
         int keyPadding = getResources().getDimensionPixelSize(R.dimen.keyboard_key_padding);
+        
+        int textPrimary = getThemeColor(android.R.attr.textColorPrimary);
+        int colorControlNormal = getThemeColor(android.R.attr.colorControlNormal);
 
         if (keyConfig instanceof BlissKeyUI blissKey)
         {
@@ -161,6 +164,7 @@ public class BlissKeyboardFragment extends Fragment
             imageButton.setBackgroundResource(R.drawable.key_background);
             imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
+            imageButton.setColorFilter(textPrimary, PorterDuff.Mode.SRC_ATOP);
 
             mRadicalButtons.add(imageButton);
             return imageButton;
@@ -179,7 +183,7 @@ public class BlissKeyboardFragment extends Fragment
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             mainText.setGravity(Gravity.CENTER);
             mainText.setText(alphaKey.letter.getLetterLabel());
-            mainText.setTextColor(Color.BLACK);
+            mainText.setTextColor(textPrimary);
             mainText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
             frameLayout.addView(mainText);
 
@@ -194,7 +198,7 @@ public class BlissKeyboardFragment extends Fragment
                 altImage.setLayoutParams(altParams);
                 altImage.setImageResource(DrawableMapper.getDrawableRes(alphaKey.alternativeDigit));
                 altImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                altImage.setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
+                altImage.setColorFilter(colorControlNormal, PorterDuff.Mode.SRC_ATOP);
                 frameLayout.addView(altImage);
             }
 
@@ -209,6 +213,7 @@ public class BlissKeyboardFragment extends Fragment
             ImageButton imageButton = new ImageButton(getContext());
             imageButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageButton.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
+            imageButton.setColorFilter(textPrimary, PorterDuff.Mode.SRC_ATOP);
 
             switch (action)
             {
@@ -249,6 +254,14 @@ public class BlissKeyboardFragment extends Fragment
             return keyView;
         }
         throw new IllegalArgumentException("Unknown KeyUI type");
+    }
+
+    private int getThemeColor(int attr) {
+        TypedValue typedValue = new TypedValue();
+        if (getContext() != null && getContext().getTheme().resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data;
+        }
+        return Color.BLACK;
     }
 
     private BlissKeyUI bliss(Primitive r) { return new BlissKeyUI(r, null, 1f); }
@@ -499,13 +512,15 @@ public class BlissKeyboardFragment extends Fragment
         int keyMargin = getResources().getDimensionPixelSize(R.dimen.keyboard_key_margin);
         int keyPadding = getResources().getDimensionPixelSize(R.dimen.keyboard_key_padding);
 
+        int textPrimary = getThemeColor(android.R.attr.textColorPrimary);
+
         ImageButton btn = new ImageButton(context);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(keyHeight, keyHeight);
         params.setMargins(keyMargin, keyMargin, keyMargin, keyPadding);
         btn.setLayoutParams(params);
 
         TypedValue typedValue = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true);
         int color = typedValue.resourceId != 0
                 ? ContextCompat.getColor(context, typedValue.resourceId)
                 : typedValue.data;
@@ -514,7 +529,7 @@ public class BlissKeyboardFragment extends Fragment
         btn.setContentDescription(variant.name());
         btn.setBackgroundResource(R.drawable.key_background);
         btn.setBackgroundTintList(ColorStateList.valueOf(color));
-        btn.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
+        btn.setColorFilter(textPrimary, PorterDuff.Mode.SRC_ATOP);
         btn.setScaleType(ImageView.ScaleType.FIT_CENTER);
         btn.setPadding(keyPadding, keyPadding, keyPadding, keyPadding);
 

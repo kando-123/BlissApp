@@ -26,7 +26,8 @@
             android:layout_gravity="center"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Bliss Symbol" />
+            android:contentDescription="Bliss Symbol"
+            app:tint="?android:attr/textColorPrimary" />
 
     </com.google.android.material.card.MaterialCardView>
 

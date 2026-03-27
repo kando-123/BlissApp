@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode UI Elements -->
+    <color name="settings_card_background">#1E1E1E</color>
+    <color name="settings_divider">#404040</color>
+    <color name="text_primary">#F5F5F5</color>
+    <color name="text_secondary">#B0B0B0</color>
+
+    <!-- Unified Keyboard Palette (Dark Mode) -->
+    <color name="keyboard_background">#1A1A1A</color>
+    <color name="keyboard_key_background">#2C2C2C</color>
+    <color name="keyboard_control_key_background">#383838</color>
+    <color name="keyboard_key_pressed_background">#444444</color>
+    <color name="keyboard_control_key_ON_background">#505050</color>
+
+    <!-- Desaturated Primary Colors for Dark Mode -->
+    <color name="lavender_primary_dark">#B39DDB</color> <!-- Lavender 200 -->
+    <color name="lavender_variant_dark">#9575CD</color> <!-- Lavender 300 -->
+
+    <color name="ocean_primary_dark">#90CAF9</color> <!-- Blue 200 -->
+    <color name="ocean_variant_dark">#64B5F6</color> <!-- Blue 300 -->
+
+    <color name="forest_primary_dark">#A5D6A7</color> <!-- Green 200 -->
+    <color name="forest_variant_dark">#81C784</color> <!-- Green 300 -->
+
+    <color name="sunset_primary_dark">#FFCC80</color> <!-- Orange 200 -->
+    <color name="sunset_variant_dark">#FFB74D</color> <!-- Orange 300 -->
+</resources>

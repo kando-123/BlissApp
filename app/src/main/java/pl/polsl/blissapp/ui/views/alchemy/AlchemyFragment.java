@@ -1,10 +1,13 @@
 package pl.polsl.blissapp.ui.views.alchemy;
 
+import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.PictureDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +39,7 @@ import pl.polsl.blissapp.ui.common.TextToSpeechManager;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
+import java.util.Objects;
 import javax.inject.Inject;
 
 @AndroidEntryPoint
@@ -283,12 +287,24 @@ public class AlchemyFragment extends Fragment {
                 try {
                     SVG svg = SVG.getFromString(svgString);
                     PictureDrawable drawable = new PictureDrawable(svg.renderToPicture());
-                    ivTargetSymbol.post(() -> ivTargetSymbol.setImageDrawable(drawable));
+                    ivTargetSymbol.post(() -> {
+                        ivTargetSymbol.setImageDrawable(drawable);
+                        int tintColor = getThemeColor(ivTargetSymbol.getContext(), android.R.attr.textColorPrimary);
+                        ivTargetSymbol.setColorFilter(tintColor, PorterDuff.Mode.SRC_ATOP);
+                    });
                 } catch (SVGParseException ignored) {}
             }
             @Override
             public void onFailure(Exception data) {}
         });
+    }
+
+    private int getThemeColor(Context context, int attr) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data;
+        }
+        return Color.BLACK;
     }
 
     private void updateStarPosition(int progress) {
@@ -299,7 +315,7 @@ public class AlchemyFragment extends Fragment {
             // Calculate position along the bar
             float translationX = (progress / max) * width;
 
-            // Shift the star so its CENTER is at the progress point
+            // Shift the star so its CENTER at the progress point
             ivGoalStar.setTranslationX(translationX - (ivGoalStar.getWidth() / 2f));
 
             // Optional: Add a slight "bob" animation when it moves

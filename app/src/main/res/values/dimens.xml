@@ -10,7 +10,7 @@
     <dimen name="keyboard_key_margin">2dp</dimen>
     <dimen name="keyboard_key_padding">8dp</dimen>
     <dimen name="keyboard_padding">4dp</dimen>
-    <dimen name="keyboard_bottom_offset">32dp</dimen>
+    <dimen name="keyboard_bottom_offset">48dp</dimen>
     <dimen name="keyboard_popup_offset">10dp</dimen>
     <dimen name="filter_bar_height">70dp</dimen>
     <dimen name="keyboard_key_elevation">2dp</dimen>

@@ -2,12 +2,12 @@ package pl.polsl.blissapp.ui.views.alchemy;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.PictureDrawable;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,9 +23,7 @@ import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.common.Callback;
@@ -148,35 +146,49 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
 
         holder.resetView();
 
+        Context context = holder.itemView.getContext();
+        int tintColor = getThemeColor(context, android.R.attr.textColorPrimary);
+
         if (item instanceof Symbol symbol) {
-            holder.loadSymbol(symbol, symbolRepository);
+            holder.loadSymbol(symbol, symbolRepository, tintColor);
         } else if (item instanceof Primitive primitive) {
             String letterLabel = primitive.getLetterLabel();
             if (letterLabel != null) {
                 holder.imageView.setVisibility(View.GONE);
                 holder.tvLetter.setVisibility(View.VISIBLE);
                 holder.tvLetter.setText(letterLabel);
+                holder.tvLetter.setTextColor(tintColor);
             } else {
                 holder.imageView.setVisibility(View.VISIBLE);
                 holder.tvLetter.setVisibility(View.GONE);
-                holder.loadPrimitive(primitive);
+                holder.loadPrimitive(primitive, tintColor);
             }
         }
 
         if (craftingItem.count > 1) {
             holder.tvCounter.setVisibility(View.VISIBLE);
             holder.tvCounter.setText(String.valueOf(craftingItem.count));
+            holder.tvCounter.setTextColor(tintColor);
         } else {
             holder.tvCounter.setVisibility(View.GONE);
         }
 
         holder.tvLabel.setText(craftingItem.label != null ? craftingItem.label : "");
         holder.tvLabel.setVisibility(craftingItem.label != null && !craftingItem.label.isEmpty() ? View.VISIBLE : View.GONE);
+        holder.tvLabel.setTextColor(tintColor);
         holder.applyStatus(craftingItem.status, item);
 
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) clickListener.onItemClick(item);
         });
+    }
+
+    private int getThemeColor(Context context, int attr) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data;
+        }
+        return Color.BLACK;
     }
 
     @Override
@@ -204,65 +216,36 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             if (cardView == null) return;
 
             Context context = itemView.getContext();
-
-            // 1. Get the opaque base background color
             int baseBgColor = ContextCompat.getColor(context, R.color.keyboard_key_background);
 
-            // 2. Set Defaults (NO outline, standard opaque background)
             int strokeColor = Color.TRANSPARENT;
             int strokeWidthDp = 0;
             int bgColor = baseBgColor;
 
             if (item instanceof Primitive primitive) {
-                // If it has a parent, it is a variant
                 boolean isVariant = primitive.getParent() != null;
-
                 if (status == MatchStatus.INCORRECT) {
-                    // Red outline if incorrect
                     strokeColor = Color.parseColor("#F44336");
-                    strokeWidthDp = 2; // 3dp thickness
-                    // Additional red inside if is a variant
-                    if (isVariant) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#F44336"), 0.2f);
-                    }
-
+                    strokeWidthDp = 2;
+                    if (isVariant) bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#F44336"), 0.2f);
                 } else if (status == MatchStatus.PARTIAL) {
-                    // Yellow inside if incorrect variant
-                    if (isVariant) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#FFEB3B"), 0.2f);
-                    }
-
+                    if (isVariant) bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#FFEB3B"), 0.2f);
                 } else if (status == MatchStatus.EXACT) {
-                    if (isVariant) {
-                        // Green inside if it's the correct variant
-                        bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
-                    }
-                    // Base primitives remain default inside, no outline for either
+                    if (isVariant) bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
                 }
-
             } else if (item instanceof Symbol) {
                 if (status == MatchStatus.EXACT) {
-                    // Target: green inside + outline
                     bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
                     strokeColor = Color.parseColor("#4CAF50");
                     strokeWidthDp = 2;
-
                 } else if (status == MatchStatus.PARTIAL) {
-                    // Component: blue inside + outline
                     bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#2196F3"), 0.15f);
                     strokeColor = Color.parseColor("#2196F3");
                     strokeWidthDp = 2;
                 }
             }
 
-            // Convert DP to strictly enforced Pixels
-            int strokeWidthPx = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    strokeWidthDp,
-                    context.getResources().getDisplayMetrics()
-            );
-
-            // Apply the properties using ColorStateList to force the MaterialCardView to update
+            int strokeWidthPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, strokeWidthDp, context.getResources().getDisplayMetrics());
             cardView.setStrokeColor(android.content.res.ColorStateList.valueOf(strokeColor));
             cardView.setStrokeWidth(strokeWidthPx);
             cardView.setCardBackgroundColor(bgColor);
@@ -273,13 +256,10 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
                 imageView.setImageDrawable(null);
                 imageView.setTag(null);
                 imageView.setVisibility(View.VISIBLE);
+                imageView.setColorFilter(null);
             }
-            if (tvLetter != null) {
-                tvLetter.setVisibility(View.GONE);
-            }
-            if (tvCounter != null) {
-                tvCounter.setVisibility(View.GONE);
-            }
+            if (tvLetter != null) tvLetter.setVisibility(View.GONE);
+            if (tvCounter != null) tvCounter.setVisibility(View.GONE);
             itemView.clearAnimation();
             itemView.setRotation(0f);
             itemView.setScaleX(1f);
@@ -287,11 +267,14 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             itemView.setAlpha(1f);
         }
 
-        void loadPrimitive(Primitive primitive) {
-            if (imageView != null) imageView.setImageResource(DrawableMapper.getDrawableRes(primitive));
+        void loadPrimitive(Primitive primitive, int tintColor) {
+            if (imageView != null) {
+                imageView.setImageResource(DrawableMapper.getDrawableRes(primitive));
+                imageView.setColorFilter(tintColor, PorterDuff.Mode.SRC_ATOP);
+            }
         }
 
-        void loadSymbol(Symbol symbol, SymbolRepository repository) {
+        void loadSymbol(Symbol symbol, SymbolRepository repository, int tintColor) {
             if (imageView == null) return;
             imageView.setTag(symbol.index());
             repository.getSvg(symbol, new Callback<String, Exception>() {
@@ -302,7 +285,10 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
                         SVG svg = SVG.getFromString(svgString);
                         PictureDrawable drawable = new PictureDrawable(svg.renderToPicture());
                         imageView.post(() -> {
-                            if (Objects.equals(imageView.getTag(), symbol.index())) imageView.setImageDrawable(drawable);
+                            if (Objects.equals(imageView.getTag(), symbol.index())) {
+                                imageView.setImageDrawable(drawable);
+                                imageView.setColorFilter(tintColor, PorterDuff.Mode.SRC_ATOP);
+                            }
                         });
                     } catch (SVGParseException ignored) {}
                 }

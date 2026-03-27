@@ -73,20 +73,17 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         Context context = holder.itemView.getContext();
         boolean isVariant = primitive.getParent() != null;
 
+        int textPrimary = getThemeColor(context, android.R.attr.textColorPrimary);
+
         if (isVariant) {
-            TypedValue typedValue = new TypedValue();
-            context.getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
-            int color = typedValue.resourceId != 0 
-                    ? ContextCompat.getColor(context, typedValue.resourceId) 
-                    : typedValue.data;
-            holder.cardView.setCardBackgroundColor(color);
-            holder.imageView.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
-            holder.textView.setTextColor(Color.BLACK);
+            int surfaceColor = getThemeColor(context, com.google.android.material.R.attr.colorSurface);
+            holder.cardView.setCardBackgroundColor(surfaceColor);
         } else {
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.keyboard_key_background));
-            holder.imageView.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_ATOP);
-            holder.textView.setTextColor(Color.BLACK);
         }
+        
+        holder.imageView.setColorFilter(textPrimary, PorterDuff.Mode.SRC_ATOP);
+        holder.textView.setTextColor(textPrimary);
 
         String letterLabel = primitive.getLetterLabel();
         if (letterLabel != null) {
@@ -111,6 +108,14 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
         }
 
         holder.itemView.setOnClickListener(v -> mViewModel.removePrimitive(primitive));
+    }
+
+    private int getThemeColor(Context context, int attr) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data;
+        }
+        return Color.BLACK;
     }
 
     @Override

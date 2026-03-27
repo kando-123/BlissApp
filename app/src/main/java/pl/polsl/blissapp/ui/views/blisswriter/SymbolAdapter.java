@@ -1,6 +1,10 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.PictureDrawable;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +41,6 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
     private final int symbolLayoutResId;
     private final Integer emptyLayoutResId;
 
-    // 1. Interface to notify when an SVG has finished rendering and resizing
     public interface OnImageRenderedListener {
         void onImageRendered(int position);
     }
@@ -63,32 +66,22 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
         this.listener = listener;
     }
 
-    // 2. Setter for the render listener
     public void setOnImageRenderedListener(OnImageRenderedListener listener) {
         this.imageRenderedListener = listener;
     }
 
-    // --- Nowe metody pomocnicze do obsługi kliknięcia ostatniego elementu ---
-    /**
-     * Zwraca ostatni element w liście lub null, jeśli lista jest pusta.
-     */
     @Nullable
     public Object getLastItem() {
         if (items.isEmpty()) return null;
         return items.get(items.size() - 1);
     }
 
-    /**
-     * Wywołuje listener kliknięcia dla ostatniego elementu, jeśli istnieje.
-     * Można tego użyć, gdy kliknięcie nastąpiło w pusty obszar RecyclerView.
-     */
     public void triggerLastItemClick() {
         if (listener != null && !items.isEmpty()) {
             int lastPos = items.size() - 1;
             listener.onItemClick(lastPos, items.get(lastPos));
         }
     }
-    // ----------------------------------------------------------------
 
     public void update(List<?> newItems) {
         List<Object> oldItems = new ArrayList<>(items);
@@ -147,7 +140,6 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         int layoutId = (viewType == VIEW_TYPE_EMPTY) ? emptyLayoutResId : symbolLayoutResId;
         View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
-        // 3. Pass the listener into the ViewHolder
         return new ViewHolder(view, imageRenderedListener);
     }
 
@@ -170,8 +162,17 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
         });
 
         if (symbol != null) {
-            holder.loadSymbol(symbol, symbolRepository);
+            int tintColor = getThemeColor(holder.itemView.getContext(), android.R.attr.textColorPrimary);
+            holder.loadSymbol(symbol, symbolRepository, tintColor);
         }
+    }
+
+    private int getThemeColor(Context context, int attr) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data;
+        }
+        return Color.BLACK;
     }
 
     @Override
@@ -199,10 +200,11 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
             if (imageView != null) {
                 imageView.setImageDrawable(null);
                 imageView.setTag(null);
+                imageView.setColorFilter(null);
             }
         }
 
-        void loadSymbol(Symbol symbol, SymbolRepository repository) {
+        void loadSymbol(Symbol symbol, SymbolRepository repository, int tintColor) {
             if (imageView == null) return;
             imageView.setTag(symbol.index());
 
@@ -213,12 +215,18 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
 
                     try {
                         SVG svg = SVG.getFromString(svgString);
+                        if (svg.getDocumentViewBox() != null) {
+                            svg.setDocumentWidth(svg.getDocumentViewBox().width());
+                            svg.setDocumentHeight(svg.getDocumentViewBox().height());
+                        }
+                        
                         PictureDrawable drawable = new PictureDrawable(svg.renderToPicture());
+                        
                         imageView.post(() -> {
                             if (Objects.equals(imageView.getTag(), symbol.index())) {
                                 imageView.setImageDrawable(drawable);
+                                imageView.setColorFilter(tintColor, PorterDuff.Mode.SRC_IN);
 
-                                // 4. Post once more to allow the view to measure its new dynamic width
                                 imageView.post(() -> {
                                     int pos = getBindingAdapterPosition();
                                     if (renderListener != null && pos != RecyclerView.NO_POSITION) {
@@ -227,15 +235,11 @@ public class SymbolAdapter extends RecyclerView.Adapter<SymbolAdapter.ViewHolder
                                 });
                             }
                         });
-                    } catch (SVGParseException ignored) {
-                        // fallback: keep image cleared
-                    }
+                    } catch (SVGParseException ignored) {}
                 }
 
                 @Override
-                public void onFailure(Exception data) {
-                    // On error, leave the image cleared
-                }
+                public void onFailure(Exception data) {}
             });
         }
     }
