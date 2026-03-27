@@ -2,6 +2,7 @@ package pl.polsl.blissapp.ui.views.blisswriter;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -130,8 +131,12 @@ public class BlissWriterFragment extends Fragment
         mWriterViewModel.getFilter().observe(getViewLifecycleOwner(),
                 mFilterAdapter::update);
 
-        mWriterViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
-                Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show());
+        mWriterViewModel.getFailure().observe(getViewLifecycleOwner(),
+                exception ->
+                {
+                    Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.d("BlissWriterFragment", exception.getMessage(), exception);
+                });
 
         mWriterViewModel.getSpeakRequest().observe(getViewLifecycleOwner(), texts -> {
             if (texts != null && !texts.isEmpty()) {

@@ -61,32 +61,7 @@ public class InjectionModule
             @Override
             public void setGameState(Set<Symbol> newGameState)
             {
-            }
 
-            @Override
-            public void getConstructibleSymbol(List<Primitive> r,
-                                               List<Symbol> s,
-                                               Callback<List<Symbol>, Exception> callback)
-            {
-                callback.onFailure(new Exception("Not implemented yet"));
-            }
-
-            @Override
-            public void getDerivedSymbols(Symbol symbol, Callback<List<Symbol>, Exception> callback)
-            {
-                callback.onFailure(new Exception("Not implemented yet"));
-            }
-
-            @Override
-            public void getFrontier(Set<Symbol> discoveredSymbols, Callback<List<Symbol>, Exception> callback)
-            {
-                callback.onFailure(new Exception("Not implemented yet"));
-            }
-
-            @Override
-            public void getFrontierIncrease(Set<Symbol> currentlyDiscoveredSymbols, Symbol newlyDiscoveredSymbol, Callback<List<Symbol>, Exception> callback)
-            {
-                callback.onFailure(new Exception("Not implemented yet"));
             }
         };
     }
