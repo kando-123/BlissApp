@@ -60,8 +60,13 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/target_symbol_card"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_max="200dp"
+        app:layout_constraintHeight_max="200dp"
+        app:layout_constraintDimensionRatio="1:1"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="2dp"
         app:strokeWidth="1dp"
@@ -75,13 +80,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:padding="12dp">
 
             <ImageView
                 android:id="@+id/iv_target_symbol"
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:padding="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:scaleType="fitCenter" />
 
             <TextView
@@ -90,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textSize="18sp"
-                android:textStyle="bold"
+                android:textAlignment="center"
                 android:textColor="?attr/colorOnSurface"
                 tools:text="Symbol Name" />
         </LinearLayout>
@@ -122,8 +128,9 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_hints"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:clipToPadding="false"

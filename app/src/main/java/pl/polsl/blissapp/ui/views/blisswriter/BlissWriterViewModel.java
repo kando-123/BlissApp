@@ -1,16 +1,21 @@
 package pl.polsl.blissapp.ui.views.blisswriter;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
@@ -19,13 +24,19 @@ import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Primitive;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
+import pl.polsl.blissapp.ui.repository.TranslationRepository;
 
 /**
  * ViewModel that manages the Bliss writer state: message composition, primitive filter,
  * symbol hints, and user actions.
  */
 @HiltViewModel
-public class BlissWriterViewModel extends ViewModel {
+public class BlissWriterViewModel extends AndroidViewModel {
+
+    // ---------- Shared Prefs Constants (shared with NatLangWriter) ----------
+    private static final String PREFS_NAME = "BlissAppContentPrefs"; // Renamed to be generic
+    private static final String PREF_CONTENT_LANGUAGE_KEY = "content_language";
+    private static final String DEFAULT_LANGUAGE = "English";
 
     // ---------- Nested data classes ----------
     public static abstract sealed class MessageItem {
@@ -50,18 +61,42 @@ public class BlissWriterViewModel extends ViewModel {
 
     // ---------- Dependencies ----------
     private final SymbolRepository symbolRepository;
+    private final TranslationRepository translationRepository;
+    private final SharedPreferences mPrefs;
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPrefListener;
 
     // ---------- LiveData ----------
     private final MutableLiveData<WriterState> state = new MutableLiveData<>();
     private final MutableLiveData<List<Symbol>> hints = new MutableLiveData<>();
     private final MutableLiveData<Map<Primitive, Integer>> filter = new MutableLiveData<>();
     private final MutableLiveData<Exception> failure = new MutableLiveData<>();
+    private final MutableLiveData<String> selectedLanguage = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> speakRequest = new MutableLiveData<>();
 
     private static final int MAX_HINT_COUNT = 48;
 
     @Inject
-    public BlissWriterViewModel(SymbolRepository symbolRepository) {
+    public BlissWriterViewModel(@NonNull Application application, 
+                                SymbolRepository symbolRepository,
+                                TranslationRepository translationRepository) {
+        super(application);
         this.symbolRepository = symbolRepository;
+        this.translationRepository = translationRepository;
+        this.mPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        mPrefListener = (prefs, key) -> {
+            if (PREF_CONTENT_LANGUAGE_KEY.equals(key)) {
+                String lang = prefs.getString(PREF_CONTENT_LANGUAGE_KEY, DEFAULT_LANGUAGE);
+                if (!lang.equals(selectedLanguage.getValue())) {
+                    selectedLanguage.postValue(lang);
+                    // Trigger any re-translations here if needed when language swaps
+                }
+            }
+        };
+        mPrefs.registerOnSharedPreferenceChangeListener(mPrefListener);
+
+        String lastLanguage = mPrefs.getString(PREF_CONTENT_LANGUAGE_KEY, DEFAULT_LANGUAGE);
+        selectedLanguage.setValue(lastLanguage);
 
         // Initial state: one empty slot, cursor at 0.
         List<MessageItem> initialItems = new ArrayList<>();
@@ -72,13 +107,25 @@ public class BlissWriterViewModel extends ViewModel {
         filter.setValue(new LinkedHashMap<>());
     }
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mPrefs.unregisterOnSharedPreferenceChangeListener(mPrefListener);
+    }
+
     // ---------- Public LiveData getters ----------
     public LiveData<WriterState> getState() { return state; }
     public LiveData<List<Symbol>> getHints() { return hints; }
     public LiveData<Map<Primitive, Integer>> getFilter() { return filter; }
     public LiveData<Exception> getFailure() { return failure; }
+    public LiveData<String> getSelectedLanguage() { return selectedLanguage; }
+    public LiveData<List<String>> getSpeakRequest() { return speakRequest; }
 
-    // ---------- Public actions ----------
+    public void setSelectedLanguage(String language) {
+        if (language.equals(selectedLanguage.getValue())) return;
+        mPrefs.edit().putString(PREF_CONTENT_LANGUAGE_KEY, language).apply();
+    }
+
     /**
      * Adds a primitive to the current filter. Updates hints accordingly.
      */
@@ -188,6 +235,61 @@ public class BlissWriterViewModel extends ViewModel {
         } // else first gap, nothing to delete
 
         updateHints();
+    }
+
+    public void speakMessage() {
+        WriterState current = state.getValue();
+        if (current == null) return;
+
+        List<Symbol> symbols = new ArrayList<>();
+        for (MessageItem item : current.items) {
+            if (item instanceof MessageItem.SymbolItem si) {
+                symbols.add(si.symbol);
+            }
+        }
+
+        if (symbols.isEmpty()) return;
+
+        String language = selectedLanguage.getValue();
+        String[] results = new String[symbols.size()];
+        AtomicInteger remaining = new AtomicInteger(symbols.size());
+
+        for (int i = 0; i < symbols.size(); i++) {
+            final int index = i;
+            translationRepository.getMeanings(symbols.get(i), language, new Callback<List<String>, Exception>() {
+                @Override
+                public void onSuccess(List<String> data) {
+                    results[index] = data.isEmpty() ? "" : data.get(0);
+                    if (remaining.decrementAndGet() == 0) {
+                        postSpeakRequest(results);
+                    }
+                }
+
+                @Override
+                public void onFailure(Exception data) {
+                    results[index] = "";
+                    if (remaining.decrementAndGet() == 0) {
+                        postSpeakRequest(results);
+                    }
+                }
+            });
+        }
+    }
+
+    private void postSpeakRequest(String[] results) {
+        List<String> speakList = new ArrayList<>();
+        for (String s : results) {
+            if (s != null && !s.isEmpty()) {
+                speakList.add(s);
+            }
+        }
+        if (!speakList.isEmpty()) {
+            speakRequest.postValue(speakList);
+        }
+    }
+
+    public void clearSpeakRequest() {
+        speakRequest.setValue(null);
     }
 
     // ---------- Private helpers ----------

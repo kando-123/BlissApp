@@ -204,53 +204,67 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             if (cardView == null) return;
 
             Context context = itemView.getContext();
-            float density = context.getResources().getDisplayMetrics().density;
 
             // 1. Get the opaque base background color
             int baseBgColor = ContextCompat.getColor(context, R.color.keyboard_key_background);
 
             // 2. Set Defaults (NO outline, standard opaque background)
             int strokeColor = Color.TRANSPARENT;
-            int strokeWidth = 0;
+            int strokeWidthDp = 0;
             int bgColor = baseBgColor;
 
             if (item instanceof Primitive primitive) {
-                boolean isChild = primitive.getParent() != null;
+                // If it has a parent, it is a variant
+                boolean isVariant = primitive.getParent() != null;
 
                 if (status == MatchStatus.INCORRECT) {
-                    // Red outline for ALL incorrect primitives
+                    // Red outline if incorrect
                     strokeColor = Color.parseColor("#F44336");
-                    strokeWidth = (int) (2 * density);
-
-                    if (isChild) {
+                    strokeWidthDp = 2; // 3dp thickness
+                    // Additional red inside if is a variant
+                    if (isVariant) {
                         bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#F44336"), 0.2f);
                     }
 
-                } else if (status == MatchStatus.EXACT) {
-                    if (isChild) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
-                    }
-
                 } else if (status == MatchStatus.PARTIAL) {
-                    if (isChild) {
+                    // Yellow inside if incorrect variant
+                    if (isVariant) {
                         bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#FFEB3B"), 0.2f);
                     }
+
+                } else if (status == MatchStatus.EXACT) {
+                    if (isVariant) {
+                        // Green inside if it's the correct variant
+                        bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
+                    }
+                    // Base primitives remain default inside, no outline for either
                 }
 
             } else if (item instanceof Symbol) {
                 if (status == MatchStatus.EXACT) {
+                    // Target: green inside + outline
                     bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#4CAF50"), 0.2f);
                     strokeColor = Color.parseColor("#4CAF50");
-                    strokeWidth = (int) (2 * density);
+                    strokeWidthDp = 2;
+
                 } else if (status == MatchStatus.PARTIAL) {
-                    bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#FFEB3B"), 0.2f);
-                    strokeColor = Color.parseColor("#FFEB3B");
-                    strokeWidth = (int) (2 * density);
+                    // Component: blue inside + outline
+                    bgColor = ColorUtils.blendARGB(baseBgColor, Color.parseColor("#2196F3"), 0.15f);
+                    strokeColor = Color.parseColor("#2196F3");
+                    strokeWidthDp = 2;
                 }
             }
 
-            cardView.setStrokeColor(strokeColor);
-            cardView.setStrokeWidth(strokeWidth);
+            // Convert DP to strictly enforced Pixels
+            int strokeWidthPx = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    strokeWidthDp,
+                    context.getResources().getDisplayMetrics()
+            );
+
+            // Apply the properties using ColorStateList to force the MaterialCardView to update
+            cardView.setStrokeColor(android.content.res.ColorStateList.valueOf(strokeColor));
+            cardView.setStrokeWidth(strokeWidthPx);
             cardView.setCardBackgroundColor(bgColor);
         }
 

@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Symbol;
+import pl.polsl.blissapp.ui.common.TextToSpeechManager;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
@@ -60,6 +61,9 @@ public class AlchemyFragment extends Fragment {
     @Inject
     SymbolRepository symbolRepository;
 
+    @Inject
+    TextToSpeechManager mTextToSpeechManager;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -84,6 +88,8 @@ public class AlchemyFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(AlchemyViewModel.class);
         keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
+
+        viewModel.refreshLanguageIfNeeded();
 
         setupUI();
         setupRecyclerViews();
@@ -229,30 +235,6 @@ public class AlchemyFragment extends Fragment {
             }
         });
 
-        viewModel.getDailyGoalReached().observe(getViewLifecycleOwner(), reached -> {
-            if (reached) {
-                // Big celebratory pop for the star
-                ivGoalStar.setImageResource(R.drawable.ic_star_shine); // Fill the star
-                ivGoalStar.animate()
-                        .scaleX(2.0f)
-                        .scaleY(2.0f)
-                        .setDuration(500)
-                        .setInterpolator(new OvershootInterpolator(2.0f))
-                        .withEndAction(() -> ivGoalStar.animate().scaleX(1.5f).scaleY(1.5f).setDuration(300).start())
-                        .start();
-
-                ivGoalStar.setColorFilter(getResources().getColor(R.color.sunset_primary, null));
-
-                // Trigger the success animation on the card too for extra "oomph"
-                targetSymbolCard.animate()
-                        .scaleX(1.1f)
-                        .scaleY(1.1f)
-                        .setDuration(200)
-                        .withEndAction(() -> targetSymbolCard.animate().scaleX(1.0f).scaleY(1.0f).start())
-                        .start();
-            }
-        });
-
         viewModel.getCheerIcon().observe(getViewLifecycleOwner(), iconRes -> {
             if (iconRes != 0) {
                 ivCheer.setImageResource(iconRes);
@@ -260,6 +242,22 @@ public class AlchemyFragment extends Fragment {
         });
 
         viewModel.getIsTargetMatched().observe(getViewLifecycleOwner(), this::updateCompositionAreaMatch);
+
+        viewModel.getSelectedLanguage().observe(getViewLifecycleOwner(), language -> {
+            if (language != null) {
+                // We no longer set the language on the TTS Manager here!
+                viewModel.pickNewTargetSymbol(); // Just refresh the label
+            }
+        });
+
+        viewModel.getSpeakRequest().observe(getViewLifecycleOwner(), texts -> {
+            if (texts != null && !texts.isEmpty()) {
+                // Grab the language directly from the ViewModel and pass it to speak()
+                String currentLang = viewModel.getSelectedLanguage().getValue();
+                mTextToSpeechManager.speak(texts, currentLang);
+                viewModel.clearSpeakRequest();
+            }
+        });
     }
 
     private void updateCompositionAreaMatch(boolean isMatch) {
@@ -334,6 +332,12 @@ public class AlchemyFragment extends Fragment {
                 keyboardViewModel.clearInputs();
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mTextToSpeechManager.stop();
     }
 
     private void playSuccessAnimation() {

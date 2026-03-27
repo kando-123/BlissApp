@@ -149,6 +149,7 @@ public class NaturalLanguageWriterFragment extends Fragment
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
+        // 1. THE OBSERVER: Reacts to changes from other tabs
         mViewModel.getSelectedLanguage().observe(getViewLifecycleOwner(), language -> {
             for (int i = 0; i < values.length; i++) {
                 if (values[i].equals(language)) {
@@ -156,15 +157,24 @@ public class NaturalLanguageWriterFragment extends Fragment
                     break;
                 }
             }
+            // Still good to have this here for when the language changes from a different tab!
+            if (mEtSearch != null && mEtSearch.getText() != null) {
+                mViewModel.translate(mEtSearch.getText().toString());
+            }
         });
 
+        // 2. THE LISTENER: Catches the user's physical clicks on the Spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedValue = values[position];
+
                 if (!selectedValue.equals(mViewModel.getSelectedLanguage().getValue())) {
+                    // Instantly updates the language in the ViewModel
                     mViewModel.setSelectedLanguage(selectedValue);
-                    if (mEtSearch != null) {
+
+                    // Force the translation refresh immediately using the new language
+                    if (mEtSearch != null && mEtSearch.getText() != null) {
                         mViewModel.translate(mEtSearch.getText().toString());
                     }
                 }

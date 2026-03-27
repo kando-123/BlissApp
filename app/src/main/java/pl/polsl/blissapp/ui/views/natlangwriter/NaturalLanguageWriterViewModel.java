@@ -22,16 +22,18 @@ import pl.polsl.blissapp.ui.repository.TranslationRepository;
 @HiltViewModel
 public class NaturalLanguageWriterViewModel extends AndroidViewModel
 {
-    private static final String PREFS_NAME = "NatLangWriterPrefs";
-    private static final String PREF_LANGUAGE_KEY = "last_language";
+    private static final String PREFS_NAME = "BlissAppContentPrefs";
+    private static final String PREF_CONTENT_LANGUAGE_KEY = "content_language";
     private static final String DEFAULT_LANGUAGE = "English";
 
-    private final TranslationRepository mTranslationRepository;
     private final SharedPreferences mPrefs;
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPrefListener;
+    private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>();
+
+    private final TranslationRepository mTranslationRepository;
     
     private final MutableLiveData<List<Translation>> mTranslations = new MutableLiveData<>();
     private final MutableLiveData<Exception> mFailure = new MutableLiveData<>();
-    private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>();
     
     // Track the latest search term to avoid race conditions
     private String mCurrentQuery = "";
@@ -42,8 +44,21 @@ public class NaturalLanguageWriterViewModel extends AndroidViewModel
         super(application);
         this.mTranslationRepository = translationRepository;
         this.mPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        
-        String lastLanguage = mPrefs.getString(PREF_LANGUAGE_KEY, DEFAULT_LANGUAGE);
+
+        // Listen for changes made by the Writer (or other tabs)
+        mPrefListener = (prefs, key) -> {
+            if (PREF_CONTENT_LANGUAGE_KEY.equals(key)) {
+                String lang = prefs.getString(PREF_CONTENT_LANGUAGE_KEY, DEFAULT_LANGUAGE);
+                if (!lang.equals(mSelectedLanguage.getValue())) {
+                    mSelectedLanguage.postValue(lang);
+                    // Trigger your dictionary search again here if needed so the results update instantly!
+                }
+            }
+        };
+        mPrefs.registerOnSharedPreferenceChangeListener(mPrefListener);
+
+        // Load the initial language
+        String lastLanguage = mPrefs.getString(PREF_CONTENT_LANGUAGE_KEY, DEFAULT_LANGUAGE);
         mSelectedLanguage.setValue(lastLanguage);
     }
 
@@ -55,17 +70,6 @@ public class NaturalLanguageWriterViewModel extends AndroidViewModel
     LiveData<Exception> getFailure()
     {
         return mFailure;
-    }
-
-    LiveData<String> getSelectedLanguage()
-    {
-        return mSelectedLanguage;
-    }
-
-    void setSelectedLanguage(String language)
-    {
-        mSelectedLanguage.setValue(language);
-        mPrefs.edit().putString(PREF_LANGUAGE_KEY, language).apply();
     }
 
     void translate(String input)
@@ -105,5 +109,25 @@ public class NaturalLanguageWriterViewModel extends AndroidViewModel
     {
         mCurrentQuery = "";
         mTranslations.setValue(Collections.emptyList());
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mPrefs.unregisterOnSharedPreferenceChangeListener(mPrefListener);
+    }
+
+    public LiveData<String> getSelectedLanguage() {
+        return mSelectedLanguage;
+    }
+
+    public void setSelectedLanguage(String language) {
+        if (language.equals(mSelectedLanguage.getValue())) return;
+
+        // 1. Instantly update the LiveData so translate() immediately sees the new value
+        mSelectedLanguage.setValue(language);
+
+        // 2. Notify the other tabs by saving it to SharedPreferences
+        mPrefs.edit().putString(PREF_CONTENT_LANGUAGE_KEY, language).apply();
     }
 }

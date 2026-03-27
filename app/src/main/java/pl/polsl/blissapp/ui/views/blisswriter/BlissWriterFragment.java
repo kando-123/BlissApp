@@ -4,16 +4,24 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +35,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 import pl.polsl.blissapp.R;
 import pl.polsl.blissapp.data.model.Symbol;
+import pl.polsl.blissapp.ui.common.TextToSpeechManager;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
@@ -49,6 +58,9 @@ public class BlissWriterFragment extends Fragment
 
     @Inject
     SymbolRepository mSymbolRepository;
+
+    @Inject
+    TextToSpeechManager mTextToSpeechManager;
 
     @Nullable
     @Override
@@ -75,6 +87,7 @@ public class BlissWriterFragment extends Fragment
         setupFilterView(view);
         setupHintsView(view);
         setupMessageView();
+        setupMenu();
 
         mKeyboardViewModel.clearInputs();
 
@@ -94,6 +107,9 @@ public class BlissWriterFragment extends Fragment
                     break;
                 case RIGHT_SYMBOL:
                     mWriterViewModel.moveCursorRight();
+                    break;
+                case TEXT_TO_SPEECH:
+                    mWriterViewModel.speakMessage();
                     break;
             }
         });
@@ -117,6 +133,16 @@ public class BlissWriterFragment extends Fragment
         mWriterViewModel.getFailure().observe(getViewLifecycleOwner(), exception ->
                 Toast.makeText(requireContext(), exception.getMessage(), Toast.LENGTH_SHORT).show());
 
+        mWriterViewModel.getSpeakRequest().observe(getViewLifecycleOwner(), texts -> {
+            if (texts != null && !texts.isEmpty()) {
+                // Grab the content language from the ViewModel and pass it to speak()
+                String currentLang = mWriterViewModel.getSelectedLanguage().getValue();
+                mTextToSpeechManager.speak(texts, currentLang);
+
+                mWriterViewModel.clearSpeakRequest(); // Don't forget to clear it here too!
+            }
+        });
+
         mMessageRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -139,6 +165,67 @@ public class BlissWriterFragment extends Fragment
 
         scheduleCursorUpdate();
         setupMessageTouchListener();
+    }
+
+    private void setupMenu()
+    {
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.menu_natural_language_writer, menu);
+                MenuItem item = menu.findItem(R.id.action_language_selector);
+                if (item != null) {
+                    View view = item.getActionView();
+                    if (view instanceof Spinner spinner) {
+                        setupLanguageSpinner(spinner);
+                    }
+                }
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                return false;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    }
+
+    private void setupLanguageSpinner(Spinner spinner)
+    {
+        String[] languages = {getString(R.string.language_english), getString(R.string.language_polish)};
+        String[] values = {"English", "Polish"};
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                R.layout.item_language_selected, languages);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        mWriterViewModel.getSelectedLanguage().observe(getViewLifecycleOwner(), language -> {
+            for (int i = 0; i < values.length; i++) {
+                if (values[i].equals(language)) {
+                    spinner.setSelection(i);
+                    break;
+                }
+            }
+        });
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedValue = values[position];
+                if (!selectedValue.equals(mWriterViewModel.getSelectedLanguage().getValue())) {
+                    mWriterViewModel.setSelectedLanguage(selectedValue);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mTextToSpeechManager.stop();
     }
 
     private void setupMessageTouchListener() {

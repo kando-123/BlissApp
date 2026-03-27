@@ -1,23 +1,26 @@
 package pl.polsl.blissapp.ui.views.alchemy;
 
+import android.app.Application;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
@@ -31,7 +34,7 @@ import pl.polsl.blissapp.ui.repository.TranslationRepository;
 import pl.polsl.blissapp.ui.views.alchemy.AlchemyAdapter.MatchStatus;
 
 @HiltViewModel
-public class AlchemyViewModel extends ViewModel {
+public class AlchemyViewModel extends AndroidViewModel {
     private static final String TAG = "AlchemyVM";
     public static final int DAILY_GOAL = 10;
 
@@ -50,6 +53,8 @@ public class AlchemyViewModel extends ViewModel {
     private final MutableLiveData<String> mTargetLabel = new MutableLiveData<>("");
     private final MutableLiveData<Integer> mDailyProgress = new MutableLiveData<>(0);
     private final MutableLiveData<Boolean> mDailyGoalReached = new MutableLiveData<>(false);
+    private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> mSpeakRequest = new MutableLiveData<>();
 
     private final MutableLiveData<List<AlchemyAdapter.CraftingItem>> mCraftingItems = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<AlchemyAdapter.CraftingItem>> mHintItems = new MutableLiveData<>(new ArrayList<>());
@@ -62,13 +67,27 @@ public class AlchemyViewModel extends ViewModel {
     private boolean mDiscoveryInProgress = false;
 
     @Inject
-    public AlchemyViewModel(AlchemyRepository alchemyRepository,
+    public AlchemyViewModel(@NonNull Application application,
+                            AlchemyRepository alchemyRepository,
                             SymbolRepository symbolRepository,
                             TranslationRepository translationRepository) {
+        super(application);
         this.mAlchemyRepository = alchemyRepository;
         this.mSymbolRepository = symbolRepository;
         this.mTranslationRepository = translationRepository;
+
+        mSelectedLanguage.setValue(getCurrentAppLanguage());
+
         loadInitialState();
+    }
+
+    private String getCurrentAppLanguage() {
+        LocaleListCompat currentLocales = AppCompatDelegate.getApplicationLocales();
+        Locale locale = currentLocales.isEmpty() ? Locale.getDefault() : currentLocales.get(0);
+
+        if (locale == null) return "English";
+        String lang = locale.getLanguage();
+        return (lang != null && lang.startsWith("pl")) ? "Polish" : "English";
     }
 
     private void loadInitialState() {
@@ -92,7 +111,7 @@ public class AlchemyViewModel extends ViewModel {
         });
     }
 
-    private void pickNewTargetSymbol() {
+    public void pickNewTargetSymbol() {
         mSymbolRepository.getRandomSymbol(new Callback<Symbol, Exception>() {
             @Override
             public void onSuccess(Symbol result) {
@@ -108,7 +127,7 @@ public class AlchemyViewModel extends ViewModel {
     }
 
     private void fetchTargetLabel(Symbol symbol) {
-        mTranslationRepository.getMeanings(symbol, getLanguage(), new Callback<List<String>, Exception>() {
+        mTranslationRepository.getMeanings(symbol, getSelectedLanguage().getValue(), new Callback<List<String>, Exception>() {
             @Override
             public void onSuccess(List<String> result) {
                 mTargetLabel.postValue(!result.isEmpty() ? result.get(0) : "???");
@@ -271,54 +290,36 @@ public class AlchemyViewModel extends ViewModel {
 
         mSymbolRepository.getMatchingSymbols(null, filterMap, 6, new Callback<List<Symbol>, Exception>() {
             @Override
-            public void onSuccess(List<Symbol> result) { // <-- Back to iterating over the raw result
+            public void onSuccess(List<Symbol> result) {
                 if (result.isEmpty()) {
                     mHintItems.postValue(new ArrayList<>());
                     return;
                 }
 
-                AlchemyAdapter.CraftingItem[] resultsArray = new AlchemyAdapter.CraftingItem[result.size()];
-                AtomicInteger pending = new AtomicInteger(result.size());
-
+                List<AlchemyAdapter.CraftingItem> newHints = new ArrayList<>();
                 Symbol target = mTargetSymbol.getValue();
-                int nextExpectedIndex = getNextExpectedComponentIndex(); // <-- We use this here!
+                int nextExpectedIndex = getNextExpectedComponentIndex();
 
-                for (int i = 0; i < result.size(); i++) {
-                    final int index = i;
-                    final Symbol s = result.get(i);
-                    final boolean isTarget = (target != null && s.index() == target.index());
+                for (Symbol s : result) {
+                    boolean isTarget = (target != null && s.index() == target.index());
+                    boolean isNextComponent = (s.index() == nextExpectedIndex);
 
-                    // ONLY the next expected component gets treated as a special component
-                    final boolean isNextComponent = (s.index() == nextExpectedIndex);
-
-                    if (isTarget || isNextComponent) {
-                        mTranslationRepository.getMeanings(s, getLanguage(), new Callback<List<String>, Exception>() {
-                            @Override
-                            public void onSuccess(List<String> meanings) {
-                                String label = meanings.isEmpty() ? "" : meanings.get(0);
-                                MatchStatus status = isTarget ? MatchStatus.EXACT : MatchStatus.PARTIAL;
-                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, status, label);
-                                if (pending.decrementAndGet() == 0) {
-                                    mHintItems.postValue(Arrays.asList(resultsArray));
-                                }
-                            }
-                            @Override
-                            public void onFailure(Exception reason) {
-                                resultsArray[index] = new AlchemyAdapter.CraftingItem(s, isTarget ? MatchStatus.EXACT : MatchStatus.PARTIAL, "");
-                                if (pending.decrementAndGet() == 0) {
-                                    mHintItems.postValue(Arrays.asList(resultsArray));
-                                }
-                            }
-                        });
+                    MatchStatus status;
+                    if (isTarget) {
+                        status = MatchStatus.EXACT;
+                    } else if (isNextComponent) {
+                        status = MatchStatus.PARTIAL;
                     } else {
-                        // Far components and wrong symbols fall into here (rendered as grey/NONE)
-                        resultsArray[index] = new AlchemyAdapter.CraftingItem(s, MatchStatus.NONE, null);
-                        if (pending.decrementAndGet() == 0) {
-                            mHintItems.postValue(Arrays.asList(resultsArray));
-                        }
+                        status = MatchStatus.NONE;
                     }
+
+                    // Pass null for the label so the adapter hides the TextView entirely
+                    newHints.add(new AlchemyAdapter.CraftingItem(s, status, null));
                 }
+
+                mHintItems.postValue(newHints);
             }
+
             @Override
             public void onFailure(Exception reason) {
                 mHintItems.postValue(new ArrayList<>());
@@ -346,9 +347,8 @@ public class AlchemyViewModel extends ViewModel {
         return total;
     }
 
-    private String getLanguage() {
-        String lang = java.util.Locale.getDefault().getLanguage();
-        return "pl".equalsIgnoreCase(lang) ? "Polish" : "English";
+    public LiveData<String> getSelectedLanguage() {
+        return mSelectedLanguage;
     }
 
     public void addRadical(@Nullable Primitive primitive) {
@@ -467,7 +467,28 @@ public class AlchemyViewModel extends ViewModel {
         mResultingSymbol.setValue(null);
     }
 
-    public void onEnterPressed() {}
+    public void onEnterPressed() {
+        String label = mTargetLabel.getValue();
+        if (label != null && !label.isEmpty() && !"???".equals(label)) {
+            mSpeakRequest.postValue(Collections.singletonList(label));
+        }
+    }
+
+    public LiveData<List<String>> getSpeakRequest() {
+        return mSpeakRequest;
+    }
+
+    public void clearSpeakRequest() {
+        mSpeakRequest.setValue(null);
+    }
+
+    public void refreshLanguageIfNeeded() {
+        String currentAppLang = getCurrentAppLanguage();
+        // If the system language changed (e.g., from Settings), update our LiveData
+        if (!currentAppLang.equals(mSelectedLanguage.getValue())) {
+            mSelectedLanguage.setValue(currentAppLang);
+        }
+    }
 
     public LiveData<List<AlchemyAdapter.CraftingItem>> getCraftingItems() { return mCraftingItems; }
     public LiveData<List<AlchemyAdapter.CraftingItem>> getHintItems() { return mHintItems; }
