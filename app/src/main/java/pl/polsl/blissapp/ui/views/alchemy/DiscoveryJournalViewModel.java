@@ -13,8 +13,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
@@ -31,7 +33,12 @@ public class DiscoveryJournalViewModel extends AndroidViewModel {
     private final TranslationRepository translationRepository;
 
     private final MutableLiveData<List<JournalItem>> journalItems = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(true);
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<Integer> totalDiscovered = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> currentPage = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> totalPages = new MutableLiveData<>(1);
+
+    private static final int PAGE_SIZE = 12;
 
     public static class JournalItem {
         public final Symbol symbol;
@@ -50,7 +57,7 @@ public class DiscoveryJournalViewModel extends AndroidViewModel {
         super(application);
         this.alchemyRepository = alchemyRepository;
         this.translationRepository = translationRepository;
-        loadDiscoveredSymbols();
+        loadTotalCount();
     }
 
     private String getCurrentAppLanguage() {
@@ -61,46 +68,66 @@ public class DiscoveryJournalViewModel extends AndroidViewModel {
         return (lang != null && lang.startsWith("pl")) ? "Polish" : "English";
     }
 
-    private void loadDiscoveredSymbols() {
-        isLoading.setValue(true);
-        alchemyRepository.getDiscovered(new Callback<List<Symbol>, Exception>() {
+    private void loadTotalCount() {
+        alchemyRepository.getDiscoveredCount(new Callback<Integer, Exception>() {
+            @Override
+            public void onSuccess(Integer count) {
+                totalDiscovered.postValue(count);
+                int pages = (int) Math.ceil((double) count / PAGE_SIZE);
+                totalPages.postValue(pages > 0 ? pages : 1);
+                loadPage(0);
+            }
+
+            @Override
+            public void onFailure(Exception data) {
+                totalDiscovered.postValue(0);
+                totalPages.postValue(1);
+                loadPage(0);
+            }
+        });
+    }
+
+    public void loadPage(int page) {
+        if (page < 0) return;
+        if (Boolean.TRUE.equals(isLoading.getValue())) return;
+
+        int total = totalDiscovered.getValue() != null ? totalDiscovered.getValue() : 0;
+        int pages = totalPages.getValue() != null ? totalPages.getValue() : 1;
+        if (page >= pages) return;
+
+        isLoading.postValue(true);
+        loadPageInternal(page);
+    }
+
+    private void loadPageInternal(int page) {
+        int offset = page * PAGE_SIZE;
+        alchemyRepository.getDiscoveredPaginated(PAGE_SIZE, offset, new Callback<List<Symbol>, Exception>() {
             @Override
             public void onSuccess(List<Symbol> symbols) {
-                Log.d("Journal", "getDiscovered success, symbols size: " + (symbols != null ? symbols.size() : "null"));
-                if (symbols == null || symbols.isEmpty()) {
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        journalItems.setValue(new ArrayList<>());
-                        isLoading.setValue(false);
-                    });
-                    return;
-                }
+                if (symbols == null) symbols = Collections.emptyList();
 
                 String currentLang = getCurrentAppLanguage();
+                List<JournalItem> newItems = Collections.synchronizedList(new ArrayList<>());
+                AtomicInteger counter = new AtomicInteger(0);
+                int totalCount = symbols.size();
 
-                // Use a Thread-safe list and an Atomic counter
-                List<JournalItem> items = java.util.Collections.synchronizedList(new ArrayList<>());
-                java.util.concurrent.atomic.AtomicInteger counter = new java.util.concurrent.atomic.AtomicInteger(0);
-                final int total = symbols.size();
+                if (totalCount == 0) {
+                    journalItems.postValue(new ArrayList<>());
+                    isLoading.postValue(false);
+                    return;
+                }
 
                 for (Symbol symbol : symbols) {
                     translationRepository.getMeanings(symbol, currentLang, new Callback<List<String>, Exception>() {
                         @Override
                         public void onSuccess(List<String> meanings) {
                             String label = !meanings.isEmpty() ? meanings.get(0) : "???";
-                            items.add(new JournalItem(symbol, label));
-
-                            if (counter.incrementAndGet() == total) {
-                                finalizeList(items);
-                            }
+                            addItem(symbol, label, newItems, counter, totalCount);
                         }
 
                         @Override
                         public void onFailure(Exception reason) {
-                            items.add(new JournalItem(symbol, "???"));
-
-                            if (counter.incrementAndGet() == total) {
-                                finalizeList(items);
-                            }
+                            addItem(symbol, "???", newItems, counter, totalCount);
                         }
                     });
                 }
@@ -108,23 +135,47 @@ public class DiscoveryJournalViewModel extends AndroidViewModel {
 
             @Override
             public void onFailure(Exception reason) {
-                Log.e("Journal", "getDiscovered failed", reason);
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    journalItems.setValue(new ArrayList<>());
-                    isLoading.setValue(false);
-                });
+                Log.e("Journal", "Failed to load page", reason);
+                isLoading.postValue(false);
             }
         });
     }
 
-    private void finalizeList(List<JournalItem> items) {
-        new Handler(Looper.getMainLooper()).post(() -> {
-            Log.d("Journal", "Discovered symbols count: " + items.size());
-            journalItems.setValue(new ArrayList<>(items));
-            isLoading.setValue(false);
-        });
+    private void addItem(Symbol symbol, String label, List<JournalItem> newItems,
+                         AtomicInteger counter, int total) {
+        newItems.add(new JournalItem(symbol, label));
+        if (counter.incrementAndGet() == total) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                journalItems.setValue(new ArrayList<>(newItems));
+                isLoading.setValue(false);
+            });
+        }
+    }
+
+    public void nextPage() {
+        Integer current = currentPage.getValue();
+        Integer total = totalPages.getValue();
+        if (current != null && total != null && current + 1 < total) {
+            // Set loading synchronously to avoid flicker
+            isLoading.setValue(true);
+            currentPage.setValue(current + 1);
+            loadPageInternal(current + 1);
+        }
+    }
+
+    public void previousPage() {
+        Integer current = currentPage.getValue();
+        if (current != null && current > 0) {
+            // Set loading synchronously to avoid flicker
+            isLoading.setValue(true);
+            currentPage.setValue(current - 1);
+            loadPageInternal(current - 1);
+        }
     }
 
     public LiveData<List<JournalItem>> getJournalItems() { return journalItems; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
+    public LiveData<Integer> getTotalDiscovered() { return totalDiscovered; }
+    public LiveData<Integer> getCurrentPage() { return currentPage; }
+    public LiveData<Integer> getTotalPages() { return totalPages; }
 }

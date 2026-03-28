@@ -1,6 +1,8 @@
 package pl.polsl.blissapp.ui.views.alchemy;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -15,6 +17,7 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +41,10 @@ import pl.polsl.blissapp.ui.views.alchemy.AlchemyAdapter.MatchStatus;
 
 @HiltViewModel
 public class AlchemyViewModel extends AndroidViewModel {
+    private final SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = "alchemy_prefs";
+    private static final String KEY_DAILY_PROGRESS = "daily_progress";
+    private static final String KEY_LAST_DATE = "last_date";
     private static final String TAG = "AlchemyVM";
     public static final int DAILY_GOAL = 10;
 
@@ -84,6 +91,9 @@ public class AlchemyViewModel extends AndroidViewModel {
                             SymbolRepository symbolRepository,
                             TranslationRepository translationRepository) {
         super(application);
+        sharedPreferences = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        loadDailyProgress();
+
         this.mAlchemyRepository = alchemyRepository;
         this.mSymbolRepository = symbolRepository;
         this.mTranslationRepository = translationRepository;
@@ -97,6 +107,39 @@ public class AlchemyViewModel extends AndroidViewModel {
         mHintItems.addSource(mCraftingTable, table -> recomputeHints());
 
         loadInitialState();
+    }
+
+    private void loadDailyProgress() {
+        String lastDate = sharedPreferences.getString(KEY_LAST_DATE, null);
+        String today = getTodayDateString();
+
+        if (today.equals(lastDate)) {
+            int savedProgress = sharedPreferences.getInt(KEY_DAILY_PROGRESS, 0);
+            mDailyProgress.setValue(savedProgress);
+            // Update goal reached state if needed
+            mDailyGoalReached.setValue(savedProgress >= DAILY_GOAL);
+        } else {
+            // New day: reset progress
+            mDailyProgress.setValue(0);
+            mDailyGoalReached.setValue(false);
+            saveDailyProgress(0);
+        }
+    }
+
+    private void saveDailyProgress(int count) {
+        sharedPreferences.edit()
+                .putInt(KEY_DAILY_PROGRESS, count)
+                .putString(KEY_LAST_DATE, getTodayDateString())
+                .apply();
+    }
+
+    private String getTodayDateString() {
+        // Use Calendar to get year-month-day
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH); // 0-based
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        return year + "-" + (month + 1) + "-" + day; // simple format
     }
 
     private String getCurrentAppLanguage() {
@@ -272,49 +315,76 @@ public class AlchemyViewModel extends AndroidViewModel {
         }
 
         List<Object> rawItems = table.getAllItems();
-        Map<Primitive, Integer> primDisplayCounts = new LinkedHashMap<>();
-        Map<Symbol, Integer> symbolDisplayCounts = new LinkedHashMap<>();
-        for (Object obj : rawItems) {
-            if (obj instanceof Primitive p) primDisplayCounts.merge(p, 1, Integer::sum);
-            else if (obj instanceof Symbol s) symbolDisplayCounts.merge(s, 1, Integer::sum);
+        if (rawItems.isEmpty()) {
+            mCraftingItems.setValue(new ArrayList<>());
+            return;
         }
 
-        List<AlchemyAdapter.CraftingItem> combined = new ArrayList<>();
-
-        // Inside recomputeCraftingItems(), after computing totalPrims:
+        // Precompute target primitive sets (same as before)
         List<Map<Primitive, Integer>> variants = mTargetVariants.getValue();
         Set<Primitive> allVariantPrimitives = new HashSet<>();
         Set<Primitive> allVariantRoots = new HashSet<>();
-
         if (variants != null && !variants.isEmpty()) {
             for (Map<Primitive, Integer> variant : variants) {
                 allVariantPrimitives.addAll(variant.keySet());
-                // Collect roots of all primitives in the variant
                 for (Primitive p : variant.keySet()) {
                     allVariantRoots.add(p.getRoot());
                 }
             }
         }
+        Symbol target = mTargetSymbol.getValue();
 
-        // Then when processing primitives:
-        for (Map.Entry<Primitive, Integer> entry : primDisplayCounts.entrySet()) {
-            Primitive p = entry.getKey();
-            int count = entry.getValue();
+        List<AlchemyAdapter.CraftingItem> items = new ArrayList<>();
+        Object prev = null;
+        int count = 0;
+
+        // Walk through raw items in insertion order
+        for (Object obj : rawItems) {
+            if (prev != null && prev.equals(obj)) {
+                // Same as previous → increase count
+                count++;
+            } else {
+                // New object → finalize previous run (if any)
+                if (prev != null) {
+                    items.add(createCraftingItem(prev, count, target, allVariantPrimitives, allVariantRoots));
+                }
+                prev = obj;
+                count = 1;
+            }
+        }
+        // Finalize last run
+        if (prev != null) {
+            items.add(createCraftingItem(prev, count, target, allVariantPrimitives, allVariantRoots));
+        }
+
+        mCraftingItems.setValue(items);
+    }
+
+    private AlchemyAdapter.CraftingItem createCraftingItem(Object obj, int count,
+                                                           Symbol target,
+                                                           Set<Primitive> variantPrimitives,
+                                                           Set<Primitive> variantRoots) {
+        if (obj instanceof Primitive p) {
             MatchStatus status = MatchStatus.NONE;
-            if (!allVariantPrimitives.isEmpty()) {
-                if (allVariantPrimitives.contains(p)) {
+            if (!variantPrimitives.isEmpty()) {
+                if (variantPrimitives.contains(p)) {
                     status = MatchStatus.EXACT;
-                } else if (allVariantRoots.contains(p.getRoot())) {
+                } else if (variantRoots.contains(p.getRoot())) {
                     status = MatchStatus.PARTIAL;
                 } else {
                     status = MatchStatus.INCORRECT;
                 }
             }
-            combined.add(new AlchemyAdapter.CraftingItem(p, status, null, count));
+            return new AlchemyAdapter.CraftingItem(p, status, null, count);
+        } else if (obj instanceof Symbol s) {
+            MatchStatus status = MatchStatus.PARTIAL_CRAFT;
+            return new AlchemyAdapter.CraftingItem(s, status, null, count);
+        } else {
+            // Fallback
+            return new AlchemyAdapter.CraftingItem(obj, MatchStatus.NONE, null, count);
         }
-
-        mCraftingItems.setValue(combined);
     }
+
     private Map<Primitive, Integer> computeTotalPrimitives(Map<Primitive, Integer> prims,
                                                            Map<Symbol, Integer> symbols) {
         Map<Primitive, Integer> total = new HashMap<>(prims);
@@ -446,10 +516,10 @@ public class AlchemyViewModel extends AndroidViewModel {
                         // Store primitive decomposition for this symbol
                         mSymbolPrimitivesMap.put(symbol.index(), variants.get(0));
 
-                        // Add to existing table, not replace
-                        CraftingTable table = new CraftingTable();
-                        table = table.addItem(symbol);
-                        mCraftingTable.setValue(table);
+                        // Create a new empty table and add only this symbol
+                        CraftingTable newTable = new CraftingTable();
+                        newTable = newTable.addItem(symbol);
+                        mCraftingTable.setValue(newTable);
                     });
                 }
                 @Override
@@ -461,23 +531,15 @@ public class AlchemyViewModel extends AndroidViewModel {
     }
 
     private void incrementProgress() {
-        int current = (mDailyProgress.getValue() == null) ? 0 : mDailyProgress.getValue();
+        int current = mDailyProgress.getValue() == null ? 0 : mDailyProgress.getValue();
         int next = current + 1;
-
         mDailyProgress.setValue(next);
+        saveDailyProgress(next);
 
         if (next >= DAILY_GOAL) {
             if (!Boolean.TRUE.equals(mDailyGoalReached.getValue())) {
                 mDailyGoalReached.setValue(true);
             }
-        }
-    }
-
-    public void onPopPressed() {
-        if (mDiscoveryInProgress) return;
-        CraftingTable table = mCraftingTable.getValue();
-        if (table != null) {
-            mCraftingTable.setValue(table.removeLast());
         }
     }
 

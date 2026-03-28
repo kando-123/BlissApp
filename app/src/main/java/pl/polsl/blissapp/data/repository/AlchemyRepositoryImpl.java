@@ -10,7 +10,7 @@ import pl.polsl.blissapp.BlissApplication;
 import pl.polsl.blissapp.common.Callback;
 import pl.polsl.blissapp.data.model.Symbol;
 import pl.polsl.blissapp.data.room.BlissDatabase;
-import pl.polsl.blissapp.data.room.entity.AlchemyProgressEntity;
+import pl.polsl.blissapp.data.room.dao.AlchemyDao;
 import pl.polsl.blissapp.ui.repository.AlchemyRepository;
 
 @Singleton
@@ -28,6 +28,33 @@ public class AlchemyRepositoryImpl implements AlchemyRepository {
                         .map(Symbol::new)
                         .collect(Collectors.toList());
                 if (callback != null) callback.onSuccess(symbols);
+            } catch (Exception e) {
+                if (callback != null) callback.onFailure(e);
+            }
+        }).start();
+    }
+
+    @Override
+    public void getDiscoveredPaginated(int limit, int offset, Callback<List<Symbol>, Exception> callback) {
+        new Thread(() -> {
+            try {
+                List<Integer> indices = database.alchemyDao().getDiscoveredPaginated(limit, offset);
+                List<Symbol> symbols = indices.stream()
+                        .map(Symbol::new)
+                        .collect(Collectors.toList());
+                if (callback != null) callback.onSuccess(symbols);
+            } catch (Exception e) {
+                if (callback != null) callback.onFailure(e);
+            }
+        }).start();
+    }
+
+    @Override
+    public void getDiscoveredCount(Callback<Integer, Exception> callback) {
+        new Thread(() -> {
+            try {
+                int count = database.alchemyDao().getDiscoveredCount();
+                if (callback != null) callback.onSuccess(count);
             } catch (Exception e) {
                 if (callback != null) callback.onFailure(e);
             }
@@ -70,10 +97,7 @@ public class AlchemyRepositoryImpl implements AlchemyRepository {
     public void setDiscovered(Symbol symbol, Callback<Void, Exception> callback) {
         new Thread(() -> {
             try {
-                AlchemyProgressEntity entity = new AlchemyProgressEntity();
-                entity.symbolIndex = symbol.index();
-                entity.isDiscovered = 1;
-                database.alchemyDao().upsertProgress(entity);
+                database.alchemyDao().setDiscovered(symbol.index());
                 if (callback != null) callback.onSuccess(null);
             } catch (Exception e) {
                 if (callback != null) callback.onFailure(e);

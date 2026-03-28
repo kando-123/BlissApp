@@ -27,4 +27,7 @@
     <string name="item_count_format">x%1$d</string>
     <string name="alchemy_daily_goal">Daily Goal: %1$d symbols</string>
     <string name="discovered_symbols_count">%d symbols discovered</string>
+    <string name="page_info">Page %d of %d</string>
+    <string name="btn_previous">Previous</string>
+    <string name="btn_next">Next</string>
 </resources>

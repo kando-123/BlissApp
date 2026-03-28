@@ -338,7 +338,6 @@ public class AlchemyFragment extends Fragment {
             if (controlKey != null) {
                 switch (controlKey) {
                     case TEXT_TO_SPEECH -> viewModel.onEnterPressed();
-                    case POP_SYMBOL -> viewModel.onPopPressed();
                 }
                 keyboardViewModel.clearInputs();
             }

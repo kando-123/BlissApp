@@ -22,4 +22,8 @@
     <string name="image_view_item_transform_content_description">Podgląd elementu</string>
     <string name="item_count_format">x%1$d</string>
     <string name="alchemy_daily_goal">Cel dzienny: %1$d symboli</string>
+    <string name="discovered_symbols_count">Odkryte symbole: %d</string>
+    <string name="page_info">Strona %d z %d</string>
+    <string name="btn_previous">Poprzednia</string>
+    <string name="btn_next">Następna</string>
 </resources>

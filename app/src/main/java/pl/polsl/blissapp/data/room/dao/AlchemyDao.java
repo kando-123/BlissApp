@@ -23,13 +23,11 @@ public interface AlchemyDao
 
     @Query("""
         SELECT
-            S."symbol_index"
+            "symbol_index"
         FROM
-            "Symbol" S
-        LEFT JOIN
-            "AlchemyProgress" P ON S."symbol_index" = P."symbol_index"
+            "AlchemyProgress"
         WHERE
-            P."is_discovered" IS NULL OR P."is_discovered" = 0;
+            "is_discovered" = 0;
         """)
     List<Integer> getUndiscovered();
 
@@ -39,19 +37,39 @@ public interface AlchemyDao
         FROM
             "AlchemyProgress"
         WHERE
-            "is_discovered" = 1;
+            "is_discovered" = 1
+        ORDER BY "symbol_index" ASC;
         """)
     List<Integer> getDiscovered();
 
+    // NEW: Paginated query for discovered symbols
     @Query("""
         SELECT
-            S."symbol_index"
+            "symbol_index"
         FROM
-            "Symbol" S
-        LEFT JOIN
-            "AlchemyProgress" P ON S."symbol_index" = P."symbol_index"
+            "AlchemyProgress"
         WHERE
-            P."is_discovered" IS NULL OR P."is_discovered" = 0
+            "is_discovered" = 1
+        ORDER BY "symbol_index" ASC
+        LIMIT :limit OFFSET :offset;
+        """)
+    List<Integer> getDiscoveredPaginated(int limit, int offset);
+
+    // NEW: Total count of discovered symbols
+    @Query("""
+        SELECT COUNT(*)
+        FROM "AlchemyProgress"
+        WHERE "is_discovered" = 1;
+        """)
+    int getDiscoveredCount();
+
+    @Query("""
+        SELECT
+            "symbol_index"
+        FROM
+            "AlchemyProgress"
+        WHERE
+            "is_discovered" = 0
         ORDER BY RANDOM()
         LIMIT 1;
         """)
@@ -62,21 +80,21 @@ public interface AlchemyDao
 
     @Query("""
         UPDATE
-        	"AlchemyProgress"
+            "AlchemyProgress"
         SET
-        	"is_discovered" = 1
+            "is_discovered" = 1
         WHERE
-        	"symbol_index" = :symbolIndex;
+            "symbol_index" = :symbolIndex;
         """)
     void setDiscovered(int symbolIndex);
 
     @Query("""
         UPDATE
-        	"AlchemyProgress"
+            "AlchemyProgress"
         SET
-        	"is_discovered" = 0
+            "is_discovered" = 0
         WHERE
-        	"symbol_index" = :symbolIndex;
+            "symbol_index" = :symbolIndex;
         """)
     void setUndiscovered(int symbolIndex);
 }
