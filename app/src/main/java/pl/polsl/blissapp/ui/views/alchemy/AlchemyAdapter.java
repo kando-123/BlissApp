@@ -42,6 +42,7 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
     private static final int COLOR_PARTIAL_PRIMITIVE = Color.parseColor("#FFEB3B");
     private static final int COLOR_PARTIAL_SYMBOL = Color.parseColor("#2196F3");
     private static final int COLOR_EXACT = Color.parseColor("#4CAF50");
+    private static final int COLOR_NONE = Color.parseColor("#000000");
 
     private final List<CraftingItem> items = new ArrayList<>();
     private final SymbolRepository symbolRepository;
@@ -144,10 +145,6 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
         public final MatchStatus status;
         public final String label;
         public final int count;
-
-        public CraftingItem(Object object, MatchStatus status) {
-            this(object, status, null, 1);
-        }
 
         public CraftingItem(Object object, MatchStatus status, String label) {
             this(object, status, label, 1);
@@ -277,19 +274,26 @@ public class AlchemyAdapter extends RecyclerView.Adapter<AlchemyAdapter.ViewHold
             int bgColor = baseBgColor;
 
             if (item instanceof Primitive primitive) {
-                if (status == MatchStatus.INCORRECT) {
-                    strokeColor = COLOR_INCORRECT;
+                if(status == MatchStatus.NONE) {
+                    bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_NONE, 0.2f);
+                    strokeColor = COLOR_NONE;
                     currentStrokeWidth = strokeWidthPx;
                 }
-
-                boolean isVariant = primitive.getParent() != null;
-                if(isVariant) {
+                else {
                     if (status == MatchStatus.INCORRECT) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_INCORRECT, 0.2f);
-                    } else if (status == MatchStatus.PARTIAL) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_PARTIAL_PRIMITIVE, 0.2f);
-                    } else if (status == MatchStatus.EXACT) {
-                        bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_EXACT, 0.2f);
+                        strokeColor = COLOR_INCORRECT;
+                        currentStrokeWidth = strokeWidthPx;
+                    }
+
+                    boolean isVariant = primitive.getParent() != null;
+                    if (isVariant) {
+                        if (status == MatchStatus.INCORRECT) {
+                            bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_INCORRECT, 0.2f);
+                        } else if (status == MatchStatus.PARTIAL) {
+                            bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_PARTIAL_PRIMITIVE, 0.2f);
+                        } else if (status == MatchStatus.EXACT) {
+                            bgColor = ColorUtils.blendARGB(baseBgColor, COLOR_EXACT, 0.2f);
+                        }
                     }
                 }
             } else if (item instanceof Symbol) {
