@@ -606,44 +606,4 @@ public class SymbolRepositoryImpl implements SymbolRepository
         });
         worker.start();
     }
-
-    @Override
-    public void getRandomSymbol(Callback<Symbol, Exception> callback)
-    {
-        Thread worker = new Thread(() ->
-        {
-            try
-            {
-                // Select symbols that have at least one primitive definition (to avoid empty targets)
-                String query = """
-                    SELECT S.symbol_index, 0 as min_size
-                    FROM Symbol S
-                    JOIN Composition C ON S.symbol_index = C.symbol_index
-                    JOIN Definition D ON C.component_index = D.component_index
-                    GROUP BY S.symbol_index
-                    ORDER BY RANDOM() LIMIT 1
-                """;
-                List<SymbolDto> dtos = database.symbolDao().getSymbols(new SimpleSQLiteQuery(query));
-                if (!dtos.isEmpty())
-                {
-                    callback.onSuccess(new Symbol(dtos.get(0).index));
-                }
-                else
-                {
-                    // Fallback to any symbol if query fails
-                    dtos = database.symbolDao().getSymbols(new SimpleSQLiteQuery("SELECT symbol_index, 0 as min_size FROM Symbol ORDER BY RANDOM() LIMIT 1"));
-                    if (!dtos.isEmpty()) {
-                        callback.onSuccess(new Symbol(dtos.get(0).index));
-                    } else {
-                        callback.onFailure(new NoResultsException());
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                callback.onFailure(e);
-            }
-        });
-        worker.start();
-    }
 }

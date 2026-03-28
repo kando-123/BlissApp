@@ -3,6 +3,7 @@ package pl.polsl.blissapp.ui.views.alchemy;
 import android.app.Application;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -42,9 +45,11 @@ public class AlchemyViewModel extends AndroidViewModel {
     private final SymbolRepository mSymbolRepository;
     private final TranslationRepository mTranslationRepository;
 
+    // LiveData for the crafting table (immutable state)
     private final MutableLiveData<CraftingTable> mCraftingTable = new MutableLiveData<>(new CraftingTable());
+
+    // Other LiveData
     private final MutableLiveData<Symbol> mResultingSymbol = new MutableLiveData<>();
-    private final MutableLiveData<Map<String, List<Symbol>>> mSymbolFolders = new MutableLiveData<>(new HashMap<>());
     private final MutableLiveData<Boolean> mShowCheering = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> mCheerIcon = new MutableLiveData<>(0);
     private final MutableLiveData<Boolean> mIsTargetMatched = new MutableLiveData<>(false);
@@ -55,16 +60,23 @@ public class AlchemyViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> mDailyGoalReached = new MutableLiveData<>(false);
     private final MutableLiveData<String> mSelectedLanguage = new MutableLiveData<>();
     private final MutableLiveData<List<String>> mSpeakRequest = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> mNavigateToJournal = new MutableLiveData<>(false);
 
-    private final MutableLiveData<List<AlchemyAdapter.CraftingItem>> mCraftingItems = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<AlchemyAdapter.CraftingItem>> mHintItems = new MutableLiveData<>(new ArrayList<>());
+    // Reactive crafting items: recomputed when mCraftingTable or mTargetVariants changes
+    private final MediatorLiveData<List<AlchemyAdapter.CraftingItem>> mCraftingItems = new MediatorLiveData<>();
 
-    private final Set<Symbol> mDiscoveredSymbols = new HashSet<>();
+    // Hints are recomputed when mCraftingTable changes
+    private final MediatorLiveData<List<AlchemyAdapter.CraftingItem>> mHintItems = new MediatorLiveData<>();
+
+    // Internal data that affects crafting items
+    private final MutableLiveData<List<Map<Primitive, Integer>>> mTargetVariants = new MutableLiveData<>(new ArrayList<>());
+
+    // Other internal fields
     private List<Integer> mTargetComponentSequence = new ArrayList<>();
-    private List<Map<Primitive, Integer>> mTargetVariants = new ArrayList<>();
     private Set<Integer> mTargetComponentIndices = new HashSet<>();
     private final Map<Integer, Map<Primitive, Integer>> mSymbolPrimitivesMap = new HashMap<>();
     private boolean mDiscoveryInProgress = false;
+    private final Map<Integer, Symbol> mDiscoveredSymbols = new LinkedHashMap<>();
 
     @Inject
     public AlchemyViewModel(@NonNull Application application,
@@ -77,6 +89,12 @@ public class AlchemyViewModel extends AndroidViewModel {
         this.mTranslationRepository = translationRepository;
 
         mSelectedLanguage.setValue(getCurrentAppLanguage());
+
+        // Set up MediatorLiveData
+        mCraftingItems.addSource(mCraftingTable, table -> recomputeCraftingItems());
+        mCraftingItems.addSource(mTargetVariants, variants -> recomputeCraftingItems());
+
+        mHintItems.addSource(mCraftingTable, table -> recomputeHints());
 
         loadInitialState();
     }
@@ -91,38 +109,90 @@ public class AlchemyViewModel extends AndroidViewModel {
     }
 
     private void loadInitialState() {
-        mAlchemyRepository.getGameState(new Callback<Set<Symbol>, Exception>() {
+        mAlchemyRepository.getDiscovered(new Callback<List<Symbol>, Exception>() {
             @Override
-            public void onSuccess(Set<Symbol> result) {
+            public void onSuccess(List<Symbol> result) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    mDiscoveredSymbols.addAll(result);
-                    updateFolders();
-                    pickNewTargetSymbol();
+                    mDiscoveredSymbols.clear();
+                    if (result != null) {
+                        for (Symbol s : result) {
+                            mDiscoveredSymbols.put(s.index(), s);
+                        }
+                    }
+                });
+            }
+            @Override
+            public void onFailure(Exception reason) {}
+        });
+
+        pickNewTargetSymbol();
+    }
+
+    private void startDiscovery(Symbol symbol) {
+        if (symbol == null || mDiscoveryInProgress) return;
+        mDiscoveryInProgress = true;
+
+        Symbol target = mTargetSymbol.getValue();
+        boolean isTarget = target != null && symbol.index() == target.index();
+
+        mCheerIcon.postValue(isTarget ? pl.polsl.blissapp.R.drawable.ic_splash_logo : pl.polsl.blissapp.R.drawable.ic_bliss);
+        mIsTargetMatched.postValue(isTarget);
+        mShowCheering.postValue(true);
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            mResultingSymbol.setValue(symbol);
+
+            if (!mDiscoveredSymbols.containsKey(symbol.index())) {
+                mDiscoveredSymbols.put(symbol.index(), symbol);
+                Log.d("AlchemyVM", "Saving discovered symbol: " + symbol.index());
+                mAlchemyRepository.setDiscovered(symbol, new Callback<Void, Exception>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        Log.d("AlchemyVM", "Successfully saved discovered symbol");
+                    }
+                    @Override
+                    public void onFailure(Exception data) {
+                        Log.e("AlchemyVM", "Failed to save discovered symbol", data);
+                    }
+                });
+            }
+
+            if (isTarget) {
+                incrementProgress();
+                pickNewTargetSymbol();
+            }
+
+            mCraftingTable.setValue(new CraftingTable());
+            mIsTargetMatched.setValue(false);
+            mDiscoveryInProgress = false;
+        }, 800);
+    }
+
+    public void pickNewTargetSymbol() {
+        mAlchemyRepository.getRandomUndiscovered(new Callback<Symbol, Exception>() {
+            @Override
+            public void onSuccess(Symbol result) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != null) {
+                        mTargetSymbol.setValue(result);
+                        fetchTargetLabel(result);
+                        fetchTargetVariants(result);
+                        fetchTargetComponents(result);
+                    } else {
+                        mTargetLabel.setValue("All Symbols Discovered!");
+                        mTargetSymbol.setValue(null);
+                    }
                 });
             }
 
             @Override
             public void onFailure(Exception reason) {
+                // Handle error: maybe no undiscovered symbols
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    updateFolders();
-                    pickNewTargetSymbol();
+                    mTargetLabel.setValue("All Symbols Discovered!");
+                    mTargetSymbol.setValue(null);
                 });
             }
-        });
-    }
-
-    public void pickNewTargetSymbol() {
-        mSymbolRepository.getRandomSymbol(new Callback<Symbol, Exception>() {
-            @Override
-            public void onSuccess(Symbol result) {
-                mTargetSymbol.postValue(result);
-                fetchTargetLabel(result);
-                fetchTargetVariants(result);
-                fetchTargetComponents(result);
-            }
-
-            @Override
-            public void onFailure(Exception reason) {}
         });
     }
 
@@ -142,17 +212,13 @@ public class AlchemyViewModel extends AndroidViewModel {
             @Override
             public void onSuccess(List<Map<Primitive, Integer>> result) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    mTargetVariants = result;
-                    updateCraftingItems();
-                    updateHints();
+                    mTargetVariants.setValue(result != null ? result : new ArrayList<>());
                 });
             }
             @Override
             public void onFailure(Exception reason) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    mTargetVariants = new ArrayList<>();
-                    updateCraftingItems();
-                    updateHints();
+                    mTargetVariants.setValue(new ArrayList<>());
                 });
             }
         });
@@ -166,7 +232,7 @@ public class AlchemyViewModel extends AndroidViewModel {
                 mTargetComponentSequence = new ArrayList<>();
                 for (Symbol s : result) {
                     mTargetComponentIndices.add(s.index());
-                    mTargetComponentSequence.add(s.index()); // Track the sequence
+                    mTargetComponentSequence.add(s.index());
                 }
             }
             @Override
@@ -189,28 +255,23 @@ public class AlchemyViewModel extends AndroidViewModel {
             }
         }
 
-        // Return the first component from the string that isn't on the board yet
         for (Integer compIndex : mTargetComponentSequence) {
             if (!symbolsOnBoard.contains(compIndex)) {
                 return compIndex;
             }
         }
-        return -1; // All components found
+        return -1;
     }
 
-    private void updateFolders() {
-        Map<String, List<Symbol>> folders = new LinkedHashMap<>();
-        folders.put("Discovery Journal", new ArrayList<>(mDiscoveredSymbols));
-        mSymbolFolders.postValue(folders);
-    }
-
-    private void updateCraftingItems() {
+    // Core method to recompute crafting items based on current table and target variants
+    private void recomputeCraftingItems() {
         CraftingTable table = mCraftingTable.getValue();
-        if (table == null || mTargetVariants.isEmpty()) return;
+        if (table == null) {
+            mCraftingItems.setValue(new ArrayList<>());
+            return;
+        }
 
         List<Object> rawItems = table.getAllItems();
-        
-        // 1. Group board items for display
         Map<Primitive, Integer> primDisplayCounts = new LinkedHashMap<>();
         Map<Symbol, Integer> symbolDisplayCounts = new LinkedHashMap<>();
         for (Object obj : rawItems) {
@@ -218,77 +279,86 @@ public class AlchemyViewModel extends AndroidViewModel {
             else if (obj instanceof Symbol s) symbolDisplayCounts.merge(s, 1, Integer::sum);
         }
 
-        // 2. Calculate TOTAL primitive counts for matching (including expanded symbols)
-        Map<Primitive, Integer> totalPrims = new HashMap<>();
-        for (Map.Entry<Primitive, Integer> entry : primDisplayCounts.entrySet()) {
-            totalPrims.merge(entry.getKey(), entry.getValue(), Integer::sum);
-        }
-        for (Map.Entry<Symbol, Integer> entry : symbolDisplayCounts.entrySet()) {
-            Map<Primitive, Integer> sPrims = mSymbolPrimitivesMap.get(entry.getKey().index());
-            if (sPrims != null) {
-                for (Map.Entry<Primitive, Integer> sp : sPrims.entrySet()) {
-                    totalPrims.merge(sp.getKey(), sp.getValue() * entry.getValue(), Integer::sum);
-                }
-            }
-        }
-
-        // 3. Find the "best" variant of the target
-        Map<Primitive, Integer> bestVariant = mTargetVariants.get(0);
-        int maxExactMatches = -1;
-        for (Map<Primitive, Integer> variant : mTargetVariants) {
-            int matches = 0;
-            for (Map.Entry<Primitive, Integer> entry : totalPrims.entrySet()) {
-                if (variant.containsKey(entry.getKey())) {
-                    matches += Math.min(entry.getValue(), variant.get(entry.getKey()));
-                }
-            }
-            if (matches > maxExactMatches) {
-                maxExactMatches = matches;
-                bestVariant = variant;
-            }
-        }
-
-        Set<Primitive> targetRoots = new HashSet<>();
-        for (Primitive p : bestVariant.keySet()) {
-            targetRoots.add(p.getRoot());
-        }
-
-        // 4. Build results
         List<AlchemyAdapter.CraftingItem> combined = new ArrayList<>();
-        
-        for (Map.Entry<Symbol, Integer> entry : symbolDisplayCounts.entrySet()) {
-            Symbol s = entry.getKey();
-            MatchStatus status = mTargetComponentIndices.contains(s.index()) ? MatchStatus.PARTIAL : MatchStatus.INCORRECT;
-            combined.add(new AlchemyAdapter.CraftingItem(s, status, null, entry.getValue()));
+
+        // Inside recomputeCraftingItems(), after computing totalPrims:
+        List<Map<Primitive, Integer>> variants = mTargetVariants.getValue();
+        Set<Primitive> allVariantPrimitives = new HashSet<>();
+        Set<Primitive> allVariantRoots = new HashSet<>();
+
+        if (variants != null && !variants.isEmpty()) {
+            for (Map<Primitive, Integer> variant : variants) {
+                allVariantPrimitives.addAll(variant.keySet());
+                // Collect roots of all primitives in the variant
+                for (Primitive p : variant.keySet()) {
+                    allVariantRoots.add(p.getRoot());
+                }
+            }
         }
 
+        // Then when processing primitives:
         for (Map.Entry<Primitive, Integer> entry : primDisplayCounts.entrySet()) {
             Primitive p = entry.getKey();
             int count = entry.getValue();
-
-            MatchStatus status;
-            if (bestVariant.containsKey(p)) {
-                status = MatchStatus.EXACT;
-            } else if (targetRoots.contains(p.getRoot())) {
-                status = MatchStatus.PARTIAL;
-            } else {
-                status = MatchStatus.INCORRECT;
+            MatchStatus status = MatchStatus.NONE;
+            if (!allVariantPrimitives.isEmpty()) {
+                if (allVariantPrimitives.contains(p)) {
+                    status = MatchStatus.EXACT;
+                } else if (allVariantRoots.contains(p.getRoot())) {
+                    status = MatchStatus.PARTIAL;
+                } else {
+                    status = MatchStatus.INCORRECT;
+                }
             }
-            
             combined.add(new AlchemyAdapter.CraftingItem(p, status, null, count));
         }
 
         mCraftingItems.setValue(combined);
     }
+    private Map<Primitive, Integer> computeTotalPrimitives(Map<Primitive, Integer> prims,
+                                                           Map<Symbol, Integer> symbols) {
+        Map<Primitive, Integer> total = new HashMap<>(prims);
+        for (Map.Entry<Symbol, Integer> entry : symbols.entrySet()) {
+            Symbol s = entry.getKey();
+            Map<Primitive, Integer> sPrims = mSymbolPrimitivesMap.get(s.index());
+            if (sPrims != null) {
+                int multiplier = entry.getValue();
+                for (Map.Entry<Primitive, Integer> sp : sPrims.entrySet()) {
+                    total.merge(sp.getKey(), sp.getValue() * multiplier, Integer::sum);
+                }
+            }
+        }
+        return total;
+    }
 
-    private void updateHints() {
+    private Map<Primitive, Integer> selectBestVariant(Map<Primitive, Integer> totalPrims,
+                                                      List<Map<Primitive, Integer>> variants) {
+        Map<Primitive, Integer> best = variants.get(0);
+        int maxMatches = -1;
+        for (Map<Primitive, Integer> variant : variants) {
+            int matches = 0;
+            for (Map.Entry<Primitive, Integer> entry : totalPrims.entrySet()) {
+                Integer variantCount = variant.get(entry.getKey());
+                if (variantCount != null) {
+                    matches += Math.min(entry.getValue(), variantCount);
+                }
+            }
+            if (matches > maxMatches) {
+                maxMatches = matches;
+                best = variant;
+            }
+        }
+        return best;
+    }
+
+    private void recomputeHints() {
         Map<Primitive, Integer> filterMap = getTotalPrimitiveCounts();
         if (filterMap.isEmpty()) {
-            mHintItems.postValue(new ArrayList<>());
+            mHintItems.setValue(new ArrayList<>());
             return;
         }
 
-        mSymbolRepository.getMatchingSymbols(null, filterMap, 6, new Callback<List<Symbol>, Exception>() {
+        mSymbolRepository.getMatchingSymbols(null, filterMap, 4, new Callback<List<Symbol>, Exception>() {
             @Override
             public void onSuccess(List<Symbol> result) {
                 if (result.isEmpty()) {
@@ -313,7 +383,6 @@ public class AlchemyViewModel extends AndroidViewModel {
                         status = MatchStatus.NONE;
                     }
 
-                    // Pass null for the label so the adapter hides the TextView entirely
                     newHints.add(new AlchemyAdapter.CraftingItem(s, status, null));
                 }
 
@@ -331,7 +400,7 @@ public class AlchemyViewModel extends AndroidViewModel {
         Map<Primitive, Integer> total = new HashMap<>();
         CraftingTable table = mCraftingTable.getValue();
         if (table == null) return total;
-        
+
         for (Object obj : table.getAllItems()) {
             if (obj instanceof Primitive p) {
                 total.merge(p, 1, Integer::sum);
@@ -347,6 +416,7 @@ public class AlchemyViewModel extends AndroidViewModel {
         return total;
     }
 
+    // Public LiveData getters
     public LiveData<String> getSelectedLanguage() {
         return mSelectedLanguage;
     }
@@ -357,8 +427,6 @@ public class AlchemyViewModel extends AndroidViewModel {
         CraftingTable table = mCraftingTable.getValue();
         if (table != null) {
             mCraftingTable.setValue(table.addItem(primitive));
-            updateCraftingItems();
-            updateHints();
         }
     }
 
@@ -366,76 +434,39 @@ public class AlchemyViewModel extends AndroidViewModel {
         if (mDiscoveryInProgress || !(item instanceof Symbol symbol)) return;
 
         Symbol target = mTargetSymbol.getValue();
-// ... previous code
         if (target != null && symbol.index() == target.index()) {
             startDiscovery(symbol);
-        } else if (symbol.index() == getNextExpectedComponentIndex()) { // <-- UPDATED
+        } else if (symbol.index() == getNextExpectedComponentIndex()) {
             mSymbolRepository.getPrimitiveVariants(symbol, new Callback<List<Map<Primitive, Integer>>, Exception>() {
                 @Override
                 public void onSuccess(List<Map<Primitive, Integer>> variants) {
                     if (variants.isEmpty()) return;
 
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        // Keep track of the primitives for this symbol
+                        // Store primitive decomposition for this symbol
                         mSymbolPrimitivesMap.put(symbol.index(), variants.get(0));
 
-                        // 1. CLEAR the filter by creating a completely fresh crafting table
+                        // Add to existing table, not replace
                         CraftingTable table = new CraftingTable();
-
-                        // 2. Add ONLY the newly matched yellow symbol to the board
                         table = table.addItem(symbol);
-
                         mCraftingTable.setValue(table);
-                        updateCraftingItems();
-                        updateHints();
                     });
                 }
                 @Override
-                public void onFailure(Exception data) {}
+                public void onFailure(Exception data) {
+                    Log.e(TAG, "Failed to get primitive variants for hint", data);
+                }
             });
         }
-    }
-
-    private void startDiscovery(Symbol symbol) {
-        if (symbol == null || mDiscoveryInProgress) return;
-        mDiscoveryInProgress = true;
-
-        Symbol target = mTargetSymbol.getValue();
-        boolean isTarget = target != null && symbol.index() == target.index();
-
-        mCheerIcon.postValue(isTarget ? pl.polsl.blissapp.R.drawable.ic_splash_logo : pl.polsl.blissapp.R.drawable.ic_bliss);
-        mIsTargetMatched.postValue(isTarget);
-        mShowCheering.postValue(true);
-
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            mResultingSymbol.setValue(symbol);
-            if (mDiscoveredSymbols.add(symbol)) {
-                updateFolders();
-                mAlchemyRepository.setGameState(mDiscoveredSymbols);
-            }
-            if (isTarget) {
-                incrementProgress();
-                pickNewTargetSymbol();
-            }
-
-            mCraftingTable.setValue(new CraftingTable());
-            updateCraftingItems();
-            updateHints();
-            mIsTargetMatched.setValue(false);
-            mDiscoveryInProgress = false;
-        }, 800);
     }
 
     private void incrementProgress() {
         int current = (mDailyProgress.getValue() == null) ? 0 : mDailyProgress.getValue();
         int next = current + 1;
 
-        // Internal count keeps going up
         mDailyProgress.setValue(next);
 
-        // Goal reached logic
         if (next >= DAILY_GOAL) {
-            // Trigger only once when exactly reaching the goal
             if (!Boolean.TRUE.equals(mDailyGoalReached.getValue())) {
                 mDailyGoalReached.setValue(true);
             }
@@ -447,8 +478,6 @@ public class AlchemyViewModel extends AndroidViewModel {
         CraftingTable table = mCraftingTable.getValue();
         if (table != null) {
             mCraftingTable.setValue(table.removeLast());
-            updateCraftingItems();
-            updateHints();
         }
     }
 
@@ -457,8 +486,6 @@ public class AlchemyViewModel extends AndroidViewModel {
         CraftingTable table = mCraftingTable.getValue();
         if (table != null) {
             mCraftingTable.setValue(table.removeItem(item));
-            updateCraftingItems();
-            updateHints();
         }
     }
 
@@ -474,8 +501,12 @@ public class AlchemyViewModel extends AndroidViewModel {
         }
     }
 
-    public LiveData<List<String>> getSpeakRequest() {
-        return mSpeakRequest;
+    public void requestJournalNavigation() {
+        mNavigateToJournal.setValue(true);
+    }
+
+    public void clearNavigation() {
+        mNavigateToJournal.setValue(false);
     }
 
     public void clearSpeakRequest() {
@@ -484,16 +515,21 @@ public class AlchemyViewModel extends AndroidViewModel {
 
     public void refreshLanguageIfNeeded() {
         String currentAppLang = getCurrentAppLanguage();
-        // If the system language changed (e.g., from Settings), update our LiveData
         if (!currentAppLang.equals(mSelectedLanguage.getValue())) {
             mSelectedLanguage.setValue(currentAppLang);
+
+            Symbol currentTarget = mTargetSymbol.getValue();
+            if (currentTarget != null) {
+                fetchTargetLabel(currentTarget);
+            }
         }
     }
 
+    // LiveData getters
+    public LiveData<List<String>> getSpeakRequest() { return mSpeakRequest; }
     public LiveData<List<AlchemyAdapter.CraftingItem>> getCraftingItems() { return mCraftingItems; }
     public LiveData<List<AlchemyAdapter.CraftingItem>> getHintItems() { return mHintItems; }
     public LiveData<Symbol> getResultingSymbol() { return mResultingSymbol; }
-    public LiveData<Map<String, List<Symbol>>> getSymbolFolders() { return mSymbolFolders; }
     public LiveData<Boolean> getShowCheering() { return mShowCheering; }
     public LiveData<Integer> getCheerIcon() { return mCheerIcon; }
     public LiveData<Boolean> getIsTargetMatched() { return mIsTargetMatched; }
@@ -501,4 +537,5 @@ public class AlchemyViewModel extends AndroidViewModel {
     public LiveData<String> getTargetLabel() { return mTargetLabel; }
     public LiveData<Integer> getDailyProgress() { return mDailyProgress; }
     public LiveData<Boolean> getDailyGoalReached() { return mDailyGoalReached; }
+    public LiveData<Boolean> getNavigateToJournal() { return mNavigateToJournal; }
 }

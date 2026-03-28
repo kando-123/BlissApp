@@ -8,11 +8,12 @@ class CraftingTable {
     private final List<Object> mItems;
 
     CraftingTable() {
-        mItems = new ArrayList<>();
+        mItems = Collections.emptyList();
     }
 
     private CraftingTable(List<Object> items) {
-        mItems = new ArrayList<>(items);
+        // Wraps the list in an unmodifiable view without making a second copy
+        mItems = Collections.unmodifiableList(items);
     }
 
     public CraftingTable addItem(Object item) {
@@ -23,7 +24,7 @@ class CraftingTable {
 
     public CraftingTable removeItem(Object item) {
         List<Object> copy = new ArrayList<>(mItems);
-        copy.remove(item); // Removes the first occurrence
+        copy.remove(item);
         return new CraftingTable(copy);
     }
 
@@ -35,6 +36,6 @@ class CraftingTable {
     }
 
     public List<Object> getAllItems() {
-        return Collections.unmodifiableList(mItems);
+        return mItems; // It's already unmodifiable!
     }
 }

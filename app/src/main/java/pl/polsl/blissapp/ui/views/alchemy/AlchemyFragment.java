@@ -11,11 +11,11 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -39,7 +40,7 @@ import pl.polsl.blissapp.ui.common.TextToSpeechManager;
 import pl.polsl.blissapp.ui.repository.SymbolRepository;
 import pl.polsl.blissapp.ui.views.keyboard.BlissKeyboardViewModel;
 
-import java.util.Objects;
+import java.util.Collections;
 import javax.inject.Inject;
 
 @AndroidEntryPoint
@@ -90,10 +91,19 @@ public class AlchemyFragment extends Fragment {
         pbDailyGoal = view.findViewById(R.id.pb_daily_goal);
         ivGoalStar = view.findViewById(R.id.iv_goal_star);
 
-        viewModel = new ViewModelProvider(this).get(AlchemyViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(AlchemyViewModel.class);
         keyboardViewModel = new ViewModelProvider(this).get(BlissKeyboardViewModel.class);
-
         viewModel.refreshLanguageIfNeeded();
+
+        ImageButton btnJournal = view.findViewById(R.id.btn_open_journal);
+        btnJournal.setOnClickListener(v -> viewModel.requestJournalNavigation());
+
+        viewModel.getNavigateToJournal().observe(getViewLifecycleOwner(), navigate -> {
+            if (navigate) {
+                Navigation.findNavController(view).navigate(R.id.action_alchemy_to_journal);
+                viewModel.clearNavigation();
+            }
+        });
 
         setupUI();
         setupRecyclerViews();
@@ -126,43 +136,52 @@ public class AlchemyFragment extends Fragment {
             }
         });
         rvHints.setAdapter(hintAdapter);
-
-        rvHints.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                rvHints.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                int availableWidth = rvHints.getWidth() - rvHints.getPaddingStart() - rvHints.getPaddingEnd();
-                int containerHeight = rvHints.getHeight(); // Assume maxSize of a hint is based on height (square items)
-                
-                if (availableWidth > 0 && containerHeight > 0) {
-                    // Formula: take the max allowed width divide it by the maxSize of a hint -> then you ceil the result 
-                    // and you shrink the hintboxes so they fit.
-                    double count = (double) availableWidth / containerHeight;
-                    int numItems = (int) Math.ceil(count);
-                    if (numItems > 0) {
-                        int itemWidth = availableWidth / numItems;
-                        hintAdapter.setItemWidth(itemWidth);
-                    }
-                }
-            }
-        });
     }
 
     private void observeViewModel() {
         viewModel.getCraftingItems().observe(getViewLifecycleOwner(), craftingItems -> {
-            craftingAdapter.setItems(craftingItems);
-            if (!craftingItems.isEmpty()) {
-                rvCraftingTable.smoothScrollToPosition(craftingItems.size() - 1);
+            if (craftingAdapter != null) {
+                craftingAdapter.setItems(craftingItems);
+                // Post to ensure layout is measured
+                rvCraftingTable.post(() -> {
+                    int height = rvCraftingTable.getHeight() - rvCraftingTable.getPaddingTop() - rvCraftingTable.getPaddingBottom();
+                    if (height <= 0) {
+                        // Fallback to a default size (e.g., 80dp) if height not available
+                        height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80, getResources().getDisplayMetrics());
+                    }
+                    craftingAdapter.setItemWidth(height);
+                });
+                if (!craftingItems.isEmpty()) {
+                    rvCraftingTable.smoothScrollToPosition(craftingItems.size() - 1);
+                }
             }
         });
 
         viewModel.getHintItems().observe(getViewLifecycleOwner(), hintItems -> {
-            hintAdapter.setItems(hintItems);
+            if (hintAdapter != null) {
+                hintAdapter.setItems(hintItems);
+                rvHints.post(() -> {
+                    int maxHeight = rvHints.getHeight() - rvHints.getPaddingTop() - rvHints.getPaddingBottom();
+                    View parent = (View) rvHints.getParent();
+                    if (parent == null || maxHeight <= 0) return;
+
+                    int availableWidth = parent.getWidth() - rvHints.getPaddingStart() - rvHints.getPaddingEnd();
+
+                    if (availableWidth > 0) {
+                        int visibleItems = Math.max(4, hintItems.size());
+                        int itemSize = availableWidth / visibleItems;
+                        itemSize = Math.min(itemSize, maxHeight);
+                        hintAdapter.setItemWidth(itemSize);
+                    }
+                });
+            }
         });
 
         viewModel.getTargetSymbol().observe(getViewLifecycleOwner(), symbol -> {
             if (symbol != null) {
                 loadTargetSymbol(symbol);
+            } else {
+                ivTargetSymbol.setImageDrawable(null);
             }
         });
 
@@ -178,8 +197,7 @@ public class AlchemyFragment extends Fragment {
 
         viewModel.getDailyGoalReached().observe(getViewLifecycleOwner(), reached -> {
             if (reached) {
-                // Big celebratory pop for the star
-                ivGoalStar.setImageResource(R.drawable.ic_star_shine); // Fill the star
+                ivGoalStar.setImageResource(R.drawable.ic_star_shine);
                 ivGoalStar.animate()
                         .scaleX(2.0f)
                         .scaleY(2.0f)
@@ -190,7 +208,6 @@ public class AlchemyFragment extends Fragment {
 
                 ivGoalStar.setColorFilter(getResources().getColor(R.color.sunset_primary, null));
 
-                // Trigger the success animation on the card too for extra "oomph"
                 targetSymbolCard.animate()
                         .scaleX(1.1f)
                         .scaleY(1.1f)
@@ -209,30 +226,25 @@ public class AlchemyFragment extends Fragment {
         viewModel.getShowCheering().observe(getViewLifecycleOwner(), show -> {
             if (show) {
                 ivCheer.setVisibility(View.VISIBLE);
-                // Start tiny and invisible
                 ivCheer.setAlpha(0.0f);
                 ivCheer.setScaleX(0.3f);
                 ivCheer.setScaleY(0.3f);
 
-                // Fast springy pop up
                 ivCheer.animate()
                         .scaleX(1.3f)
                         .scaleY(1.3f)
                         .alpha(1.0f)
-                        .setDuration(200) // Much faster pop
+                        .setDuration(200)
                         .setInterpolator(new OvershootInterpolator(1.5f))
-                        .withEndAction(null)
                         .start();
 
-                // Dismiss much sooner
                 ivCheer.postDelayed(() -> viewModel.dismissCheering(), 800);
             } else {
-                // Quick exit
                 ivCheer.animate()
                         .scaleX(0.5f)
                         .scaleY(0.5f)
                         .alpha(0.0f)
-                        .setDuration(150) // Faster disappear
+                        .setDuration(150)
                         .setInterpolator(new AnticipateInterpolator())
                         .withEndAction(() -> ivCheer.setVisibility(View.GONE))
                         .start();
@@ -247,16 +259,8 @@ public class AlchemyFragment extends Fragment {
 
         viewModel.getIsTargetMatched().observe(getViewLifecycleOwner(), this::updateCompositionAreaMatch);
 
-        viewModel.getSelectedLanguage().observe(getViewLifecycleOwner(), language -> {
-            if (language != null) {
-                // We no longer set the language on the TTS Manager here!
-                viewModel.pickNewTargetSymbol(); // Just refresh the label
-            }
-        });
-
         viewModel.getSpeakRequest().observe(getViewLifecycleOwner(), texts -> {
             if (texts != null && !texts.isEmpty()) {
-                // Grab the language directly from the ViewModel and pass it to speak()
                 String currentLang = viewModel.getSelectedLanguage().getValue();
                 mTextToSpeechManager.speak(texts, currentLang);
                 viewModel.clearSpeakRequest();
@@ -311,14 +315,9 @@ public class AlchemyFragment extends Fragment {
         pbDailyGoal.post(() -> {
             float width = pbDailyGoal.getWidth();
             float max = pbDailyGoal.getMax();
-
-            // Calculate position along the bar
             float translationX = (progress / max) * width;
-
-            // Shift the star so its CENTER at the progress point
             ivGoalStar.setTranslationX(translationX - (ivGoalStar.getWidth() / 2f));
 
-            // Optional: Add a slight "bob" animation when it moves
             ivGoalStar.animate()
                     .scaleX(1.2f).scaleY(1.2f)
                     .setDuration(100)
@@ -338,12 +337,8 @@ public class AlchemyFragment extends Fragment {
         keyboardViewModel.getControlInput().observe(getViewLifecycleOwner(), controlKey -> {
             if (controlKey != null) {
                 switch (controlKey) {
-                    case TEXT_TO_SPEECH:
-                        viewModel.onEnterPressed();
-                        break;
-                    case POP_SYMBOL:
-                        viewModel.onPopPressed();
-                        break;
+                    case TEXT_TO_SPEECH -> viewModel.onEnterPressed();
+                    case POP_SYMBOL -> viewModel.onPopPressed();
                 }
                 keyboardViewModel.clearInputs();
             }

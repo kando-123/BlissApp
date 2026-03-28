@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/nav_writer">
 
@@ -17,7 +18,20 @@
     <fragment
         android:id="@+id/nav_alchemy"
         android:name="pl.polsl.blissapp.ui.views.alchemy.AlchemyFragment"
-        android:label="@string/menu_alchemy" />
+        android:label="@string/menu_alchemy" >
+        <action
+            android:id="@+id/action_alchemy_to_journal"
+            app:destination="@id/nav_journal"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_journal"
+        android:name="pl.polsl.blissapp.ui.views.alchemy.DiscoveryJournalFragment"
+        android:label="Discovery Journal" />
 
     <fragment
         android:id="@+id/nav_settings"

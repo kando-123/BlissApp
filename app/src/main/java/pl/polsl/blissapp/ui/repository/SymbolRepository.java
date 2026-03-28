@@ -48,6 +48,4 @@ public interface SymbolRepository
      */
     void getComponents(Symbol symbol,
                        Callback<List<Symbol>, Exception> callback);
-
-    void getRandomSymbol(Callback<Symbol, Exception> callback);
 }

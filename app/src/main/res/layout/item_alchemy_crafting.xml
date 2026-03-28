@@ -2,10 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-    android:clipChildren="false"
-    android:clipToPadding="false">
+    android:layout_width="80dp"
+    android:layout_height="80dp">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/filter_key_card"
@@ -17,9 +15,8 @@
         app:cardBackgroundColor="@color/keyboard_key_background"
         app:strokeWidth="2dp"
         app:strokeColor="@color/settings_divider"
-        app:layout_constraintDimensionRatio="H,1:1"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/tv_symbol_label"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -47,9 +44,7 @@
                 android:visibility="gone"
                 tools:text="A"
                 tools:visibility="visible" />
-
         </FrameLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
@@ -69,19 +64,5 @@
         android:layout_marginEnd="-2dp"
         tools:text="2"
         tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/tv_symbol_label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="11sp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textColor="?attr/colorOnSurface"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:text="label" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

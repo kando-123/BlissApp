@@ -26,4 +26,5 @@
     <string name="image_view_item_transform_content_description">Item preview</string>
     <string name="item_count_format">x%1$d</string>
     <string name="alchemy_daily_goal">Daily Goal: %1$d symbols</string>
+    <string name="discovered_symbols_count">%d symbols discovered</string>
 </resources>
