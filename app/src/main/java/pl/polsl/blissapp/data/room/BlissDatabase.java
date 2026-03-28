@@ -34,16 +34,18 @@ public abstract class BlissDatabase extends RoomDatabase
 {
     private static volatile BlissDatabase INSTANCE;
 
-    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("CREATE TABLE IF NOT EXISTS `AlchemyProgress` (" +
-                    "`symbol_index` INTEGER NOT NULL, " +
-                    "`is_discovered` INTEGER NOT NULL DEFAULT 0, " +
-                    "PRIMARY KEY(`symbol_index`), " +
-                    "FOREIGN KEY(`symbol_index`) REFERENCES `Symbol`(`symbol_index`) ON UPDATE NO ACTION ON DELETE CASCADE )");
-        }
-    };
+//    static final Migration MIGRATION_4_5 = new Migration(4, 5)
+//    {
+//        @Override
+//        public void migrate(@NonNull SupportSQLiteDatabase database)
+//        {
+//            database.execSQL("CREATE TABLE IF NOT EXISTS `AlchemyProgress` (" +
+//                    "`symbol_index` INTEGER NOT NULL, " +
+//                    "`is_discovered` INTEGER NOT NULL DEFAULT 0, " +
+//                    "PRIMARY KEY(`symbol_index`), " +
+//                    "FOREIGN KEY(`symbol_index`) REFERENCES `Symbol`(`symbol_index`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+//        }
+//    };
 
     public static BlissDatabase getDatabase(final Context context)
     {
@@ -57,7 +59,7 @@ public abstract class BlissDatabase extends RoomDatabase
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             BlissDatabase.class, "Symbol.db")
                             .createFromAsset("databases/Symbol.db")
-                            .addMigrations(MIGRATION_4_5)
+//                            .addMigrations(MIGRATION_4_5)
                             .fallbackToDestructiveMigration(true)
                             .build();
                     Log.d("BlissDatabase", "Database created");
